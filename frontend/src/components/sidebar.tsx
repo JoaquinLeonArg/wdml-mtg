@@ -11,7 +11,7 @@ export default function NavigationSidebar(props: NavigationSidebarProps) {
         <div className={`${!props.visible && "hidden"}`}>
             <aside id="default-sidebar" className="fixed top-17 left-0 z-40 w-64 h-screen transition-transform sm:translate-x-0" aria-label="Sidenav">
                 <div className="overflow-y-auto py-5 px-3 h-full bg-gray-800 border-gray-700">
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 pt-16">
                         <SidebarButton name="News" ><BsMegaphoneFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Packs" ><BsBoxSeamFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Cards" items={[{ name: "Collection", href: "#" }, { name: "Decks", href: "#" }]} ><BsCollectionFill className="w-6 h-6" /></SidebarButton>

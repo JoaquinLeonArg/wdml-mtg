@@ -32,6 +32,12 @@ module.exports = {
           900: '#2f2504',
           950: '#171202',
         },
+        rarity: {
+          "common": "#AAAAAA",
+          "uncommon": "#9BCDCB",
+          "rare": "#C6AC6E",
+          "mythic": "#D66525"
+        }
       }
     },
     fontFamily: {
