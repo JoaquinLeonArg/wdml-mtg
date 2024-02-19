@@ -3,10 +3,13 @@ package auth
 import (
 	"fmt"
 	"net/mail"
+	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	passwordvalidator "github.com/wagslane/go-password-validator"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -29,14 +32,20 @@ func CreateUser(registerRequest RegisterRequest) error {
 	if _, err := mail.ParseAddress(registerRequest.Email); err != nil {
 		return ErrEmailInvalid
 	}
-	err := db.CreateUser(domain.User{
-		Username:    registerRequest.Username,
-		Email:       registerRequest.Email,
-		Password:    registerRequest.Password,
-		Description: "New user!",
-		// CreatedAt:
-		// UpdatedAt:
-		// ProfilePictureURL: "",
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), 30)
+	if err != nil {
+		return err
+	}
+
+	err = db.CreateUser(domain.User{
+		Username:          registerRequest.Username,
+		Email:             registerRequest.Email,
+		Password:          string(passwordHash),
+		Description:       "New user!",
+		CreatedAt:         primitive.NewDateTimeFromTime(time.Now()),
+		UpdatedAt:         primitive.NewDateTimeFromTime(time.Now()),
+		ProfilePictureURL: "",
 	})
 	return err
 }
