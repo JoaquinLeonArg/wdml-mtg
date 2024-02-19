@@ -10,8 +10,11 @@ require (
 	go.mongodb.org/mongo-driver v1.14.0
 )
 
+require github.com/felixge/httpsnoop v1.0.3 // indirect
+
 require (
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/gorilla/handlers v1.5.2
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
