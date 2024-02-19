@@ -7,6 +7,7 @@ import (
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -45,6 +46,10 @@ func GetUserByUsername(username string) (*domain.User, error) {
 }
 
 func CreateUser(user domain.User) error {
+	if user.ID != primitive.NilObjectID {
+		return ErrObjectIDProvided
+	}
+	user.ID = primitive.NewObjectID()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -54,22 +59,15 @@ func CreateUser(user domain.User) error {
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInternal, err)
 	}
-	defer session.EndSession(context.TODO())
-	err = session.StartTransaction()
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInternal, err)
-	}
+	defer session.EndSession(ctx)
 
 	// Find if user exists and if not, create it
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
 		resultFind := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_USERS).
-			FindOne(ctx, bson.M{"$or": []domain.User{
-				{Username: user.Username},
-				{Email: user.Email},
-			}})
-		if resultFind.Err() != mongo.ErrNoDocuments {
+			FindOne(ctx, bson.M{"$or": []bson.M{{"username": user.Username}, {"email": user.Email}}})
+		if err := resultFind.Err(); err != mongo.ErrNoDocuments {
 			if err == nil {
 				return nil, fmt.Errorf("%w", ErrUserAlreadyExists)
 			}
@@ -82,7 +80,10 @@ func CreateUser(user domain.User) error {
 			InsertOne(ctx,
 				user,
 			)
-		return resultInsert, fmt.Errorf("%w: %w", ErrInternal, err)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		}
+		return resultInsert, nil
 	})
 
 	return err

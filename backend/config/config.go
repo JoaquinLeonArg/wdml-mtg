@@ -9,11 +9,13 @@ import (
 )
 
 type ServerConfig struct {
-	ApiPort     int
-	SecretKey   string
-	DisableAuth bool
-	MongoURL    string
-	MongoPort   int
+	ApiPort       int
+	SecretKey     string
+	DisableAuth   bool
+	MongoURL      string
+	MongoPort     int
+	MongoUser     string
+	MongoPassword string
 }
 
 var Config = ServerConfig{}
@@ -46,12 +48,24 @@ func Load() error {
 		return fmt.Errorf("invalid MONGO_PORT env variable, got %v", os.Getenv("MONGO_PORT"))
 	}
 
+	mongoUser := os.Getenv("MONGO_USER")
+	if mongoUser == "" {
+		return fmt.Errorf("missing MONGO_USER env variable")
+	}
+
+	mongoPassword := os.Getenv("MONGO_PASSWORD")
+	if mongoPassword == "" {
+		return fmt.Errorf("missing MONGO_PASSWORD env variable")
+	}
+
 	Config = ServerConfig{
-		ApiPort:     apiPort,
-		SecretKey:   secretKey,
-		DisableAuth: disableAuth == "true",
-		MongoURL:    mongoURL,
-		MongoPort:   mongoPort,
+		ApiPort:       apiPort,
+		SecretKey:     secretKey,
+		DisableAuth:   disableAuth == "true",
+		MongoURL:      mongoURL,
+		MongoPort:     mongoPort,
+		MongoUser:     mongoUser,
+		MongoPassword: mongoPassword,
 	}
 	return nil
 }
