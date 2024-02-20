@@ -37,7 +37,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(nil)
 			return
 		}
 
@@ -47,32 +46,28 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
-			return []byte("secret"), nil
+			return []byte(config.Config.SecretKey), nil
 		})
 
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(nil)
 			return
 		}
 
 		if !token.Valid {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(nil)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(nil)
 			return
 		}
 
 		userID, ok := claims["user_id"].(string)
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(nil)
 			return
 		}
 

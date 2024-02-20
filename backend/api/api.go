@@ -19,7 +19,7 @@ func StartServer() {
 	users.RegisterEndpoints(r)
 
 	originsOk := handlers.AllowedOrigins([]string{"*"}) // TODO: Set to a more sensible value for security reasons
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
 	http.ListenAndServe(fmt.Sprintf(":%v", config.Config.ApiPort), handlers.CORS(originsOk, headersOk, methodsOk)(r))
