@@ -4,10 +4,13 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/api"
 	"github.com/joaquinleonarg/wdml_mtg/backend/config"
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
 	err := config.Load()
 	if err != nil {
 		log.Panic().

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,9 +26,7 @@ func GetUserByUsername(username string) (*domain.User, error) {
 		Database(DB_MAIN).
 		Collection(COLLECTION_USERS).
 		FindOne(ctx,
-			domain.User{
-				Username: username,
-			},
+			bson.M{"username": username},
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -46,6 +45,7 @@ func GetUserByUsername(username string) (*domain.User, error) {
 }
 
 func CreateUser(user domain.User) error {
+	log.Info().Msg("creating user")
 	if user.ID != primitive.NilObjectID {
 		return ErrObjectIDProvided
 	}

@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/buttons";
 import { TextFieldWithLabel } from "@/components/field";
 import { Checkbox } from "@/components/checkbox";
+import { useRouter } from "next/navigation";
 
 enum PageState {
     PS_LOGIN,
@@ -25,6 +26,7 @@ type LoginForm = {
 }
 
 export default function Login() {
+    let router = useRouter()
     let [currentState, setCurrentState] = useState<PageState>(PageState.PS_LOGIN)
     let [isLoading, setIsLoading] = useState<boolean>(false)
     let [registerForm, setRegisterForm] = useState<RegisterForm>({ username: "", email: "", password: "", repeatPassword: "" })
@@ -34,11 +36,23 @@ export default function Login() {
 
     let sendLoginRequest = () => {
 
-        fetch(`http://localhost:8080/auth/login`, { method: "POST" }).
-            then((res: Response) => res.json()).
-            then((body: any) => {
-
-            }).catch((reason) => { alert(reason) })
+        fetch(`http://localhost:8080/auth/login`,
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    username: loginForm.username,
+                    password: loginForm.password
+                })
+            }).
+            then(async (res: Response) => {
+                let text = await res.text()
+                if (res.status == 200) {
+                    router.push("/")
+                }
+                switch (text) {
+                    case "INVALID_AUTH":
+                }
+            }).catch((reason: string) => { setLoginError("Something went wrong: " + reason) })
     }
 
     let sendRegisterRequest = () => {
@@ -57,26 +71,26 @@ export default function Login() {
         }).
             then((res: Response) => res.text()).
             then((body: any) => {
-
-            }).catch((reason) => { alert(reason) })
+                // TODO: Redirect to confirmation email screen
+            }).catch((reason: string) => { setRegisterError("Something went wrong: " + reason) })
     }
 
     return (
         <div className='flex flex-row'>
             <div className='bg-background-300 relative w-full bg-[url(/intrude-on-the-mind.jpg)] bg-cover'>
             </div>
-            <div className='flex h-screen justify-center min-w-[50%]'>
+            <div className='flex h-screen justify-center'>
                 <div className='my-auto px-8 flex flex-col items-center'>
                     <Image src="/logo.png" alt="" width={100} height={100}></Image>
                     <h2 className="text-3xl mt-4 text-primary-50 font-sans">WDML</h2>
                     {
                         (currentState == PageState.PS_LOGIN) && (
-                            <div className="flex flex-col items-center justify-center px-6 py-8 my-8 mx-auto lg:py-0">
+                            <div className="flex flex-col items-center justify-center px-6 py-8 my-8 lg:py-0">
                                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
                                     <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">
                                         Sign in to your account
                                     </h1>
-                                    <form className="space-y-4 md:space-y-6" action="#">
+                                    <form className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
                                         <TextFieldWithLabel
                                             onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, username: e.target.value })}
                                             size={40}
@@ -93,6 +107,7 @@ export default function Login() {
                                             <Checkbox>Remember me</Checkbox>
                                             <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
                                         </div>
+                                        <div className="text-sm font-light text-gray-400">{loginError}</div>
                                         <Button fullWidth icon="arrow" onClick={sendLoginRequest}>Sign in</Button>
                                         <p className="text-sm font-light text-gray-400 justify-center flex items-center">
                                             {"New user?"}
@@ -113,7 +128,7 @@ export default function Login() {
                                     <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">
                                         Sign up
                                     </h1>
-                                    <form className="space-y-4 md:space-y-6" action="#">
+                                    <form className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
                                         <TextFieldWithLabel
                                             onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm({ ...registerForm, username: e.target.value })}
                                             size={40}
@@ -140,6 +155,7 @@ export default function Login() {
                                             id="repeatpassword"
                                             label="Repeat password"
                                             placeholder="**********" />
+                                        <p className="text-sm font-light text-gray-400 justify-center flex items-center">{registerError}</p>
                                         <Button
                                             onClick={sendRegisterRequest}
                                             fullWidth

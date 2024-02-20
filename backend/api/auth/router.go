@@ -13,12 +13,39 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("/auth/register", Register).Methods(http.MethodPost)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	// TODO: Logic
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
-	res, _ := json.Marshal("okay")
+func Login(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+	// Decode body data
+	var loginRequest LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&loginRequest)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Try to create user
+	jwt, err := LoginUser(loginRequest)
+
+	// Write response
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to login user")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Debug().
+		Str("username", loginRequest.Username).
+		Msg("logged in user")
+	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: jwt})
 	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	w.Write(nil)
 }
 
 type RegisterRequest struct {
@@ -46,8 +73,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to create user")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	log.Debug().
@@ -56,5 +82,4 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Msg("created new user")
 	w.WriteHeader(http.StatusOK)
 	w.Write(nil)
-
 }

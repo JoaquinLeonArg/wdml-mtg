@@ -17,6 +17,8 @@ var (
 	ErrPasswordWeak    = fmt.Errorf("PASSWORD_WEAK")
 	ErrPasswordTooLong = fmt.Errorf("PASSWORD_LONG")
 	ErrEmailInvalid    = fmt.Errorf("EMAIL_INVALID")
+	ErrInvalidAuth     = fmt.Errorf("INVALID_AUTH")
+	ErrInternal        = fmt.Errorf("INTERNAL_ERROR")
 )
 
 func CreateUser(registerRequest RegisterRequest) error {
@@ -32,20 +34,37 @@ func CreateUser(registerRequest RegisterRequest) error {
 	if _, err := mail.ParseAddress(registerRequest.Email); err != nil {
 		return ErrEmailInvalid
 	}
-
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), 30)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), 10)
 	if err != nil {
-		return err
+		return ErrInternal
 	}
 
 	err = db.CreateUser(domain.User{
 		Username:          registerRequest.Username,
 		Email:             registerRequest.Email,
-		Password:          string(passwordHash),
+		Password:          passwordHash,
 		Description:       "New user!",
 		CreatedAt:         primitive.NewDateTimeFromTime(time.Now()),
 		UpdatedAt:         primitive.NewDateTimeFromTime(time.Now()),
 		ProfilePictureURL: "",
 	})
 	return err
+}
+
+func LoginUser(loginRequest LoginRequest) (string, error) {
+	user, err := db.GetUserByUsername(loginRequest.Username)
+	if err != nil {
+		return "", ErrInvalidAuth
+	}
+
+	if bcrypt.CompareHashAndPassword(user.Password, []byte(loginRequest.Password)) != nil {
+		return "", ErrInvalidAuth
+	}
+
+	token, err := CreateToken(user.ID.String(), user.Username)
+	if err != nil {
+		return "", ErrInternal
+	}
+
+	return token, nil
 }
