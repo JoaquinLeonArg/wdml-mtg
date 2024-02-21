@@ -23,7 +23,7 @@ const (
 )
 
 type GameResources struct {
-	OwnedCards   []OwnedCard
+	OwnedCards   []Card
 	Decks        []Deck
 	Wildcards    OwnedWildcards
 	BoosterPacks []OwnedBoosterPack
@@ -31,12 +31,33 @@ type GameResources struct {
 	Coins        int
 }
 
-type OwnedCard struct {
-	CardID    primitive.ObjectID
-	Count     int
-	CreatedAt primitive.DateTime
-	UpdatedAt primitive.DateTime
+type Card struct {
+	SetCode         string
+	CollectorNumber int
+	Count           int
+	CardData        CardData
+	CreatedAt       primitive.DateTime
+	UpdatedAt       primitive.DateTime
 }
+
+type CardData struct {
+	Name       string
+	SuperTypes []string
+	Types      []string
+	SubTypes   []string
+	ManaValue  int
+	Colors     []Color
+}
+
+type Color string
+
+const (
+	ColorWhite Color = "c_white"
+	ColorBlue  Color = "c_blue"
+	ColorBlack Color = "c_black"
+	ColorRed   Color = "c_red"
+	ColorGreen Color = "c_green"
+)
 
 type OwnedWildcards struct {
 	// By rarity
@@ -50,14 +71,39 @@ type OwnedWildcards struct {
 }
 
 type OwnedBoosterPack struct {
-	SetCode   string
-	Available int
+	SetCode        string
+	SetName        string
+	BoosterType    BoosterType
+	BoosterGen     BoosterGen
+	BoosterGenData interface{}
+	Available      int
+}
+
+type BoosterType string
+
+const (
+	BoosterTypeDraft        BoosterType = "bt_draft"
+	BoosterTypeBlock        BoosterType = "bt_block"
+	BoosterTypeMasterpieces BoosterType = "bt_masterpieces"
+	BoosterTypeLands        BoosterType = "bt_lands"
+	BoosterTypeOther        BoosterType = "bt_other"
+)
+
+type BoosterGen string
+
+const (
+	BoosterGenVanilla BoosterGen = "bg_vanilla"
+	BoosterGenCustom  BoosterGen = "bg_custom"
+)
+
+type BoosterGenDataCustom struct {
+	CardPool []Card
 }
 
 type Deck struct {
 	Name        string
 	Description string
-	CardIDs     []primitive.ObjectID
+	Cards       []primitive.ObjectID
 	CreatedAt   primitive.DateTime
 	UpdatedAt   primitive.DateTime
 }

@@ -6,15 +6,9 @@ import (
 	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-)
-
-var (
-	ErrUserNotFound      = fmt.Errorf("user not found")
-	ErrUserAlreadyExists = fmt.Errorf("user already exists")
 )
 
 func GetUserByUsername(username string) (*domain.User, error) {
@@ -30,7 +24,7 @@ func GetUserByUsername(username string) (*domain.User, error) {
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: %w", ErrUserNotFound, err)
+			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
 		}
 		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
 	}
@@ -45,11 +39,12 @@ func GetUserByUsername(username string) (*domain.User, error) {
 }
 
 func CreateUser(user domain.User) error {
-	log.Info().Msg("creating user")
 	if user.ID != primitive.NilObjectID {
 		return ErrObjectIDProvided
 	}
 	user.ID = primitive.NewObjectID()
+	user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
+	user.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -69,7 +64,7 @@ func CreateUser(user domain.User) error {
 			FindOne(ctx, bson.M{"$or": []bson.M{{"username": user.Username}, {"email": user.Email}}})
 		if err := resultFind.Err(); err != mongo.ErrNoDocuments {
 			if err == nil {
-				return nil, fmt.Errorf("%w", ErrUserAlreadyExists)
+				return nil, fmt.Errorf("%w", ErrAlreadyExists)
 			}
 			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
 		}

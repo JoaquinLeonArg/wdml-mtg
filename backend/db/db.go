@@ -15,11 +15,16 @@ var MongoDatabaseClient *mongo.Client
 var (
 	ErrInternal         = fmt.Errorf("internal error")
 	ErrObjectIDProvided = fmt.Errorf("object id should not be provided")
+	ErrInvalidID        = fmt.Errorf("invalid object id provided")
+	ErrNotFound         = fmt.Errorf("not found")
+	ErrAlreadyExists    = fmt.Errorf("already exists")
 )
 
 const (
-	DB_MAIN          = "wdml_main"
-	COLLECTION_USERS = "users"
+	DB_MAIN                       = "wdml_main"
+	COLLECTION_USERS              = "users"
+	COLLECTION_TOURNAMENTS        = "tournaments"
+	COLLECTION_TOURNAMENT_PLAYERS = "tournament_players"
 )
 
 func InitDBConnection() error {
