@@ -39,6 +39,7 @@ export default function Login() {
         fetch(`http://localhost:8080/auth/login`,
             {
                 method: "POST",
+                credentials: 'include',
                 body: JSON.stringify({
                     username: loginForm.username,
                     password: loginForm.password
@@ -63,6 +64,7 @@ export default function Login() {
         }
         fetch(`http://localhost:8080/auth/register`, {
             method: "POST",
+            credentials: 'include',
             body: JSON.stringify({
                 username: registerForm.username,
                 email: registerForm.email,

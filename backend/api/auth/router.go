@@ -9,8 +9,8 @@ import (
 )
 
 func RegisterEndpoints(r *mux.Router) {
-	r.HandleFunc("/auth/login", Login).Methods(http.MethodPost)
-	r.HandleFunc("/auth/register", Register).Methods(http.MethodPost)
+	r.HandleFunc("/auth/login", LoginHandler).Methods(http.MethodPost)
+	r.HandleFunc("/auth/register", RegisterHandler).Methods(http.MethodPost)
 }
 
 type LoginRequest struct {
@@ -18,7 +18,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 	// Decode body data
 	var loginRequest LoginRequest
@@ -43,7 +43,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	log.Debug().
 		Str("username", loginRequest.Username).
 		Msg("logged in user")
-	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: jwt})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt",
+		Value:    jwt,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	w.WriteHeader(http.StatusOK)
 	w.Write(nil)
 }
@@ -54,7 +62,7 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
-func Register(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 	// Decode body data
 	var registerRequest RegisterRequest
