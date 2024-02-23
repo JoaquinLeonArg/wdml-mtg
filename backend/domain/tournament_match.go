@@ -4,13 +4,13 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // TournamentMatches collection
 type TournamentMatch struct {
-	ID             primitive.ObjectID
-	TournamentID   primitive.ObjectID
-	FirstPlayerID  primitive.ObjectID
-	SecondPlayerID primitive.ObjectID
-	DueDate        primitive.DateTime
-	Played         bool
-	Result         MatchResult
+	ID             primitive.ObjectID `bson:"_id"`
+	TournamentID   primitive.ObjectID `bson:"tournament_id"`
+	FirstPlayerID  primitive.ObjectID `bson:"first_player_id"`
+	SecondPlayerID primitive.ObjectID `bson:"second_player_id"`
+	BlockID        primitive.ObjectID `bson:"block_id"`
+	Played         bool               `bson:"played"`
+	Result         MatchResult        `bson:"result"`
 }
 
 type MatchResult string

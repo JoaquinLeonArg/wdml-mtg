@@ -4,14 +4,14 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // TournamentPlayers collection
 type TournamentPlayer struct {
-	ID               primitive.ObjectID
-	UserID           primitive.ObjectID
-	TournamentID     primitive.ObjectID
-	AccessLevel      AccessLevel
-	GameResources    GameResources
-	TournamentPoints int
-	CreatedAt        primitive.DateTime
-	UpdatedAt        primitive.DateTime
+	ID               primitive.ObjectID `bson:"_id"`
+	UserID           primitive.ObjectID `bson:"user_id"`
+	TournamentID     primitive.ObjectID `bson:"tournament_id"`
+	AccessLevel      AccessLevel        `bson:"access_level"`
+	GameResources    GameResources      `bson:"game_resources"`
+	TournamentPoints int                `bson:"tournament_points"`
+	CreatedAt        primitive.DateTime `bson:"created_at"`
+	UpdatedAt        primitive.DateTime `bson:"updated_at"`
 }
 
 type AccessLevel string
@@ -23,30 +23,30 @@ const (
 )
 
 type GameResources struct {
-	OwnedCards   []Card
-	Decks        []Deck
-	Wildcards    OwnedWildcards
-	BoosterPacks []OwnedBoosterPack
-	Rerolls      int
-	Coins        int
+	OwnedCards   []Card             `bson:"owned_cards"`
+	Decks        []Deck             `bson:"decks"`
+	Wildcards    OwnedWildcards     `bson:"wildcards"`
+	BoosterPacks []OwnedBoosterPack `bson:"booster_packs"`
+	Rerolls      int                `bson:"rerolls"`
+	Coins        int                `bson:"coins"`
 }
 
 type Card struct {
-	SetCode         string
-	CollectorNumber int
-	Count           int
-	CardData        CardData
-	CreatedAt       primitive.DateTime
-	UpdatedAt       primitive.DateTime
+	SetCode         string             `bson:"set_code"`
+	CollectorNumber int                `bson:"collector_number"`
+	Count           int                `bson:"count"`
+	CardData        CardData           `bson:"card_data"`
+	CreatedAt       primitive.DateTime `bson:"created_at"`
+	UpdatedAt       primitive.DateTime `bson:"updated_at"`
 }
 
 type CardData struct {
-	Name       string
-	SuperTypes []string
-	Types      []string
-	SubTypes   []string
-	ManaValue  int
-	Colors     []Color
+	Name       string   `bson:"name"`
+	SuperTypes []string `bson:"super_types"`
+	Types      []string `bson:"types"`
+	SubTypes   []string `bson:"sub_types"`
+	ManaValue  int      `bson:"mana_value"`
+	Colors     []Color  `bson:"colors"`
 }
 
 type Color string
@@ -61,22 +61,22 @@ const (
 
 type OwnedWildcards struct {
 	// By rarity
-	CommonCount     int
-	UncommonCount   int
-	RareCount       int
-	MythicRareCount int
+	CommonCount     int `bson:"common_count"`
+	UncommonCount   int `bson:"uncommon_count"`
+	RareCount       int `bson:"rare_count"`
+	MythicRareCount int `bson:"mythic_rare_count"`
 
 	// Special cards
-	MasterpieceCount int
+	MasterpieceCount int `bson:"masterpiece_count"`
 }
 
 type OwnedBoosterPack struct {
-	SetCode        string
-	SetName        string
-	BoosterType    BoosterType
-	BoosterGen     BoosterGen
-	BoosterGenData interface{}
-	Available      int
+	SetCode        string      `bson:"set_code"`
+	SetName        string      `bson:"set_name"`
+	BoosterType    BoosterType `bson:"booster_type"`
+	BoosterGen     BoosterGen  `bson:"booster_gen"`
+	BoosterGenData interface{} `bson:"booster_gen_data"`
+	Available      int         `bson:"available"`
 }
 
 type BoosterType string
@@ -97,13 +97,14 @@ const (
 )
 
 type BoosterGenDataCustom struct {
-	CardPool []Card
+	CardPool []Card `bson:"card_pool"`
+	// TODO: Extra customization
 }
 
 type Deck struct {
-	Name        string
-	Description string
-	Cards       []primitive.ObjectID
-	CreatedAt   primitive.DateTime
-	UpdatedAt   primitive.DateTime
+	Name        string             `bson:"name"`
+	Description string             `bson:"description"`
+	Cards       []Card             `bson:"cards"`
+	CreatedAt   primitive.DateTime `bson:"created_at"`
+	UpdatedAt   primitive.DateTime `bson:"updated_at"`
 }

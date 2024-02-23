@@ -4,10 +4,10 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // TournamentBlocks collection
 type TournamentBlock struct {
-	ID           primitive.ObjectID
-	TournamentID primitive.ObjectID
-	BlockNumber  int
-	Status       BlockStatus
+	ID           primitive.ObjectID `bson:"_id"`
+	TournamentID primitive.ObjectID `bson:"tournament_id"`
+	BlockNumber  int                `bson:"block_number"`
+	Status       BlockStatus        `bson:"status"`
 }
 
 type BlockStatus string

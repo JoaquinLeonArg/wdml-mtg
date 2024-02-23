@@ -11,9 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreateTournament(tournament domain.Tournament) error {
+func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) {
 	if tournament.ID != primitive.NilObjectID {
-		return ErrObjectIDProvided
+		return primitive.NilObjectID, ErrObjectIDProvided
 	}
 	tournament.ID = primitive.NewObjectID()
 	tournament.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
@@ -25,7 +25,7 @@ func CreateTournament(tournament domain.Tournament) error {
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInternal, err)
+		return primitive.NilObjectID, fmt.Errorf("%w: %w", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -34,7 +34,7 @@ func CreateTournament(tournament domain.Tournament) error {
 		resultFind := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENTS).
-			FindOne(ctx, bson.M{"title": tournament.Title})
+			FindOne(ctx, bson.M{"name": tournament.Name})
 		if err := resultFind.Err(); err != mongo.ErrNoDocuments {
 			if err == nil {
 				return nil, fmt.Errorf("%w", ErrAlreadyExists)
@@ -65,7 +65,7 @@ func CreateTournament(tournament domain.Tournament) error {
 		return resultInsert, nil
 	})
 
-	return err
+	return tournament.ID, err
 }
 
 func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
@@ -94,6 +94,33 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 	// Decode tournament
 	var tournament *domain.Tournament
 	err = result.Decode(&tournament)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+	return tournament, nil
+}
+
+func GetTournamentByInviteCode(inviteCode string) (*domain.Tournament, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// Find tournament
+	result := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENTS).
+		FindOne(ctx,
+			bson.M{"invite_code": inviteCode},
+		)
+	if err := result.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+		}
+		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+
+	// Decode tournament
+	var tournament *domain.Tournament
+	err := result.Decode(&tournament)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
 	}

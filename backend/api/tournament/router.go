@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,6 +14,10 @@ import (
 func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("/tournament/{tournamentId}", GetTournamentHandler).Methods(http.MethodGet)
 	r.HandleFunc("/tournament", CreateTournamentHandler).Methods(http.MethodPost)
+}
+
+type GetTournamentHandlerResponse struct {
+	Tournament domain.Tournament `json:"tournament"`
 }
 
 func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,14 +40,17 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Encode tournament data
-	data, err := json.Marshal(tournament)
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	w.Write(response.NewDataResponse(GetTournamentHandlerResponse{Tournament: *tournament}))
 }
 
 type CreateTournamentRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type CreateTournamentResponse struct {
+	TournamentID string `json:"tournament_id"`
 }
 
 func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,9 +78,9 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = CreateNewTournament(domain.Tournament{
+	tournamentID, err := CreateTournament(domain.Tournament{
 		OwnerID:     ownerID,
-		Title:       createTournamentRequest.Title,
+		Name:        createTournamentRequest.Name,
 		Description: createTournamentRequest.Description,
 	})
 
@@ -83,9 +91,6 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Encode tournament data
-	data, err := json.Marshal(tournament)
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	w.Write(response.NewDataResponse(CreateTournamentResponse{TournamentID: tournamentID}))
 }

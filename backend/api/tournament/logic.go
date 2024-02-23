@@ -9,6 +9,10 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 	return db.GetTournamentByID(tournamentID)
 }
 
-func CreateNewTournament(tournament domain.Tournament) error {
-	return db.CreateTournament(tournament)
+func CreateTournament(tournament domain.Tournament) (string, error) {
+	tournamentID, err := db.CreateTournament(tournament)
+	if err != nil {
+		return "", err
+	}
+	return tournamentID.Hex(), nil
 }
