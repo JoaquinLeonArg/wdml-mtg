@@ -11,9 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) error {
+func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive.ObjectID, error) {
 	if tournamentPlayer.ID != primitive.NilObjectID {
-		return ErrObjectIDProvided
+		return primitive.NilObjectID, ErrObjectIDProvided
 	}
 	tournamentPlayer.ID = primitive.NewObjectID()
 	tournamentPlayer.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
@@ -25,7 +25,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) error {
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInternal, err)
+		return primitive.NilObjectID, fmt.Errorf("%w: %w", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -54,7 +54,39 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) error {
 		return resultInsert, nil
 	})
 
-	return err
+	return tournamentPlayer.TournamentID, err
+}
+
+func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlayer, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+	}
+
+	// Find players on this tournament
+	result := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		FindOne(ctx,
+			bson.M{"_id": dbTournamentPlayerID},
+		)
+	if err := result.Err(); err == mongo.ErrNoDocuments {
+		if err == nil {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+
+	// Decode tournament players
+	var tournamentPlayer *domain.TournamentPlayer
+	if err := result.Decode(&tournamentPlayer); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+
+	return tournamentPlayer, nil
 }
 
 func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error) {

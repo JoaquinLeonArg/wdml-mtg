@@ -11,6 +11,11 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/config"
 )
 
+type ResponseWithError struct {
+	Data  interface{}
+	Error string
+}
+
 func StartServer() {
 	r := mux.NewRouter()
 	r.Use(auth.AuthMiddleware)
