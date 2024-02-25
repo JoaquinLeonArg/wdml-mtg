@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,6 +17,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 		return primitive.NilObjectID, ErrObjectIDProvided
 	}
 	tournament.ID = primitive.NewObjectID()
+	tournament.InviteCode = uuid.New().String()
 	tournament.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	tournament.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -25,7 +27,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return primitive.NilObjectID, fmt.Errorf("%w: %w", ErrInternal, err)
+		return primitive.NilObjectID, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -39,7 +41,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 			if err == nil {
 				return nil, fmt.Errorf("%w", ErrAlreadyExists)
 			}
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
 		resultFind = MongoDatabaseClient.
@@ -48,9 +50,9 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 			FindOne(ctx, bson.M{"_id": tournament.OwnerID})
 		if err := resultFind.Err(); err != nil {
 			if err == mongo.ErrNoDocuments {
-				return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 			}
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
 		resultInsert, err := MongoDatabaseClient.
@@ -60,7 +62,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 				tournament,
 			)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return resultInsert, nil
 	})
@@ -74,7 +76,7 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find tournament
@@ -86,16 +88,16 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+			return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 		}
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament
 	var tournament *domain.Tournament
 	err = result.Decode(&tournament)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	return tournament, nil
 }
@@ -113,16 +115,16 @@ func GetTournamentByInviteCode(inviteCode string) (*domain.Tournament, error) {
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+			return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 		}
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament
 	var tournament *domain.Tournament
 	err := result.Decode(&tournament)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	return tournament, nil
 }

@@ -12,8 +12,9 @@ import (
 )
 
 func RegisterEndpoints(r *mux.Router) {
-	r.HandleFunc("/tournament/{tournamentId}", GetTournamentHandler).Methods(http.MethodGet)
-	r.HandleFunc("/tournament", CreateTournamentHandler).Methods(http.MethodPost)
+	r = r.PathPrefix("/tournament").Subrouter()
+	r.HandleFunc("/{tournamentId}", GetTournamentHandler).Methods(http.MethodGet)
+	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
 }
 
 type GetTournamentHandlerResponse struct {
@@ -27,7 +28,7 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tournamentID, ok := vars["tournamentId"]
 	if !ok {
-		http.Error(w, "missing tournament id", http.StatusBadRequest)
+		http.Error(w, "", http.StatusBadRequest)
 	}
 
 	// Try to get tournament
@@ -36,7 +37,8 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get tournament")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -61,11 +63,16 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	if rawOwnerID == "" || !ok {
 		log.Debug().
 			Msg("failed to read user id from context")
-		http.Error(w, "auth failed", http.StatusForbidden)
+		http.Error(w, "", http.StatusForbidden)
 		return
 	}
 
 	ownerID, err := primitive.ObjectIDFromHex(rawOwnerID)
+	if err != nil {
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	// Decode body data
 	var createTournamentRequest CreateTournamentRequest
@@ -74,7 +81,8 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 		log.Debug().
 			Err(err).
 			Msg("failed to read request body")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -87,7 +95,8 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get tournament")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

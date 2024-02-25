@@ -1,26 +1,30 @@
 package response
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type ResponseWithError struct {
-	Data  interface{}
-	Error string
+	Data  interface{} `json:"data"`
+	Error string      `json:"error"`
 }
 
 func NewErrorResponse(err error) []byte {
-	if res, err := json.Marshal(ResponseWithError{
+	res, err := json.Marshal(ResponseWithError{
 		Error: err.Error(),
-	}); err != nil {
-		return res
+	})
+	if err != nil {
+		return nil
 	}
-	return nil
+	return res
 }
 
 func NewDataResponse(data interface{}) []byte {
-	if res, err := json.Marshal(ResponseWithError{
+	res, err := json.Marshal(ResponseWithError{
 		Data: data,
-	}); err != nil {
-		return res
+	})
+	if err != nil {
+		return nil
 	}
-	return nil
+	return res
 }

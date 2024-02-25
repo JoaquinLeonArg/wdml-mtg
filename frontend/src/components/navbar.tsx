@@ -11,10 +11,10 @@ export default function NavigationTopbar(props: NavigationTopbarProps) {
         <div className="flex flex-wrap justify-between items-center">
           <div className="flex justify-start items-center">
             <button onClick={() => props.toggleSidebarFn()} id="toggleSidebar" aria-expanded="true" aria-controls="sidebar" className="hidden p-2 mr-3 rounded cursor-pointer lg:inline text-gray-400 hover:text-white hover:bg-gray-700">
-              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12"> <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h14M1 6h14M1 11h7" /> </svg>
+              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12"> <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h14M1 6h14M1 11h7" /> </svg>
             </button>
             <button onClick={() => props.toggleSidebarFn()} aria-expanded="true" aria-controls="sidebar" className="p-2 mr-4 rounded-lg cursor-pointer lg:hidden  focus:bg-gray-700 focus:ring-2 focus:ring-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white">
-              <svg className="w-[18px] h-[18px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15" /></svg>
+              <svg className="w-[18px] h-[18px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" /></svg>
               <span className="sr-only">Toggle sidebar</span>
             </button>
             <a href="#" className="flex mr-4">

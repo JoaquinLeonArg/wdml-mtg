@@ -24,16 +24,16 @@ func GetUserByUsername(username string) (*domain.User, error) {
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+			return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 		}
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode user
 	var user *domain.User
 	err := result.Decode(&user)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	return user, nil
 }
@@ -52,7 +52,7 @@ func CreateUser(user domain.User) error {
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInternal, err)
+		return fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -66,7 +66,7 @@ func CreateUser(user domain.User) error {
 			if err == nil {
 				return nil, fmt.Errorf("%w", ErrAlreadyExists)
 			}
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
 		resultInsert, err := MongoDatabaseClient.
@@ -76,7 +76,7 @@ func CreateUser(user domain.User) error {
 				user,
 			)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return resultInsert, nil
 	})
