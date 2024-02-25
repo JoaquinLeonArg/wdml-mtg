@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/buttons";
 import { TextFieldWithLabel } from "@/components/field";
+import { ApiPostRequest } from "@/requests/requests";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
@@ -23,36 +24,41 @@ export default function Home() {
       setJoinError("Join code can't be empty")
       return
     }
-    fetch(`http://localhost:8080/tournament_player`, {
-      method: "POST",
-      credentials: 'include',
-      body: JSON.stringify({
+    ApiPostRequest({
+      route: "/tournament_player",
+      body: {
         username: joinCode,
-      }),
-    }).
-      then((res: Response) => res.json()).
-      then((res: JoinResponse) => {
-        router.push("/" + res.tournamentCode)
-      }).catch((reason: string) => { setJoinError("Something went wrong: " + reason) })
+      },
+      errorHandler: (err) => {
+        switch (err) {
+          case "NOT_FOUND":
+            setJoinError("Invite code is invalid")
+          case "INTERNAL":
+            setJoinError("An error ocurred")
+        }
+      },
+      responseHandler: (res) => {
+        router.push("/" + res.data.tournamentCode)
+      }
+    })
   }
 
   let sendCreateRequest = () => {
     setCreateError("")
-    if (joinCode == "") {
+    if (createName == "") {
       setCreateError("Tournament name can't be empty")
       return
     }
-    fetch(`http://localhost:8080/tournament`, {
-      method: "POST",
-      credentials: 'include',
-      body: JSON.stringify({
+    ApiPostRequest({
+      route: "/tournament",
+      body: {
         name: createName,
-      }),
-    }).
-      then((res: Response) => res.json()).
-      then((res: JoinResponse) => {
-        router.push("/" + res.tournamentCode)
-      }).catch((reason: string) => { setJoinError("Something went wrong: " + reason) })
+      },
+      errorHandler: (err) => { setCreateError(err) },
+      responseHandler: (res) => {
+        router.push("/" + res.tournament_id)
+      }
+    })
   }
 
   return (
@@ -66,6 +72,7 @@ export default function Home() {
             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             label="Invitation code"
             onChange={(e: ChangeEvent<HTMLInputElement>) => setJoinCode(e.target.value)} />
+          <div className="text-sm font-light text-red-400">{joinError}</div>
           <div className="h-4"></div>
           <Button onClick={() => sendJoinRequest()}>Join</Button>
         </div>
@@ -78,12 +85,13 @@ export default function Home() {
             placeholder="My cool tournament!"
             label="Tournament name"
             onChange={(e: ChangeEvent<HTMLInputElement>) => setCreateName(e.target.value)} />
+          <div className="text-sm font-light text-red-400">{createError}</div>
           <div className="h-4"></div>
           <Button onClick={() => sendCreateRequest()}>Create</Button>
         </div>
       </div>
       <div className="mt-2">
-        <Link href="#" className="font-medium ml-1 text-secondary-600 hover:underline"> Back to tournaments </Link>
+        <Link href="/" className="font-medium ml-1 text-secondary-600 hover:underline"> Back to tournaments </Link>
       </div>
     </div >
   )

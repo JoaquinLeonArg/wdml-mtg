@@ -1,8 +1,11 @@
-package tournament
+package tournament_player
 
 import (
+	"errors"
+
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -10,13 +13,20 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 	return db.GetTournamentPlayerByID(tournamentPlayerID)
 }
 
+func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
+	return db.GetTournamentPlayersForUser(userID)
+}
+
 func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest CreateTournamentPlayerRequest) (string, error) {
 	userID, err := primitive.ObjectIDFromHex(rawUserID)
 	if err != nil {
-		return "", db.ErrInvalidID
+		return "", apiErrors.ErrInternal
 	}
 	tournament, err := db.GetTournamentByInviteCode(createTournamentPlayerRequest.TournamentCode)
 	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return "", apiErrors.ErrNotFound
+		}
 		return "", err
 	}
 	tournamentID, err := db.CreateTournamentPlayer(domain.TournamentPlayer{

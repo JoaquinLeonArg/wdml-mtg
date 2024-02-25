@@ -1,42 +1,36 @@
 package auth
 
 import (
-	"fmt"
+	"errors"
 	"net/mail"
 	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrUsernameInvalid = fmt.Errorf("USERNAME_INVALID")
-	ErrPasswordWeak    = fmt.Errorf("PASSWORD_WEAK")
-	ErrPasswordTooLong = fmt.Errorf("PASSWORD_LONG")
-	ErrEmailInvalid    = fmt.Errorf("EMAIL_INVALID")
-	ErrInvalidAuth     = fmt.Errorf("INVALID_AUTH")
-	ErrInternal        = fmt.Errorf("INTERNAL_ERROR")
-)
+var ()
 
 func CreateUser(registerRequest RegisterRequest) error {
 	if len(registerRequest.Username) < 3 || len(registerRequest.Username) > 12 {
-		return ErrUsernameInvalid
+		return apiErrors.ErrUsernameInvalid
 	}
 	if passwordvalidator.GetEntropy(registerRequest.Password) < 50 {
-		return ErrPasswordWeak
+		return apiErrors.ErrPasswordWeak
 	}
 	if len(registerRequest.Password) > 64 {
-		return ErrPasswordTooLong
+		return apiErrors.ErrPasswordTooLong
 	}
 	if _, err := mail.ParseAddress(registerRequest.Email); err != nil {
-		return ErrEmailInvalid
+		return apiErrors.ErrEmailInvalid
 	}
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), 10)
 	if err != nil {
-		return ErrInternal
+		return apiErrors.ErrInternal
 	}
 
 	err = db.CreateUser(domain.User{
@@ -48,22 +42,25 @@ func CreateUser(registerRequest RegisterRequest) error {
 		UpdatedAt:         primitive.NewDateTimeFromTime(time.Now()),
 		ProfilePictureURL: "",
 	})
-	return err
+	if errors.Is(err, db.ErrAlreadyExists) {
+		return apiErrors.ErrDuplicatedResource
+	}
+	return nil
 }
 
 func LoginUser(loginRequest LoginRequest) (string, error) {
 	user, err := db.GetUserByUsername(loginRequest.Username)
 	if err != nil {
-		return "", ErrInvalidAuth
+		return "", apiErrors.ErrInvalidAuth
 	}
 
 	if bcrypt.CompareHashAndPassword(user.Password, []byte(loginRequest.Password)) != nil {
-		return "", ErrInvalidAuth
+		return "", apiErrors.ErrInvalidAuth
 	}
 
-	token, err := CreateToken(user.ID.String(), user.Username)
+	token, err := CreateToken(user.ID.Hex(), user.Username)
 	if err != nil {
-		return "", ErrInternal
+		return "", apiErrors.ErrInternal
 	}
 
 	return token, nil

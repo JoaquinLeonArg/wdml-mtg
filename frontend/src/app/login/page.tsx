@@ -1,12 +1,12 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
 import { ChangeEvent, useState } from 'react';
 import Image from "next/image"
 import { Button } from "@/components/buttons";
 import { TextFieldWithLabel } from "@/components/field";
 import { Checkbox } from "@/components/checkbox";
 import { useRouter } from "next/navigation";
+import { ApiPostRequest } from "@/requests/requests";
 
 enum PageState {
     PS_LOGIN,
@@ -35,25 +35,23 @@ export default function Login() {
     let [loginError, setLoginError] = useState<string>("")
 
     let sendLoginRequest = () => {
-
-        fetch(`http://localhost:8080/auth/login`,
-            {
-                method: "POST",
-                credentials: 'include',
-                body: JSON.stringify({
-                    username: loginForm.username,
-                    password: loginForm.password
-                })
-            }).
-            then(async (res: Response) => {
-                let text = await res.text()
-                if (res.status == 200) {
-                    router.push("/")
-                }
-                switch (text) {
+        setLoginError("")
+        ApiPostRequest({
+            body: {
+                username: loginForm.username,
+                password: loginForm.password
+            },
+            route: "/auth/login",
+            responseHandler: (res) => {
+                router.push("/")
+            },
+            errorHandler: (err) => {
+                switch (err) {
                     case "INVALID_AUTH":
+                        setLoginError("Invalid credentials")
                 }
-            }).catch((reason: string) => { setLoginError("Something went wrong: " + reason) })
+            }
+        })
     }
 
     let sendRegisterRequest = () => {
@@ -62,19 +60,29 @@ export default function Login() {
             setRegisterError("Passwords must match")
             return
         }
-        fetch(`http://localhost:8080/auth/register`, {
-            method: "POST",
-            credentials: 'include',
-            body: JSON.stringify({
+        ApiPostRequest({
+            body: {
                 username: registerForm.username,
                 email: registerForm.email,
                 password: registerForm.password
-            }),
-        }).
-            then((res: Response) => res.text()).
-            then((body: any) => {
-                // TODO: Redirect to confirmation email screen
-            }).catch((reason: string) => { setRegisterError("Something went wrong: " + reason) })
+            },
+            route: "/auth/register",
+            responseHandler: (res) => {
+                alert("User created succesfully!")
+            },
+            errorHandler: (err) => {
+                switch (err) {
+                    case "USERNAME_INVALID":
+                        setRegisterError("Invalid username")
+                    case "PASSWORD_WEAK":
+                        setRegisterError("Password is too weak")
+                    case "EMAIL_INVALID":
+                        setRegisterError("Email is invalid")
+                    case "DUPLICATED_RESOURCE":
+                        setRegisterError("User already exists")
+                }
+            }
+        })
     }
 
     return (
@@ -109,7 +117,7 @@ export default function Login() {
                                             <Checkbox>Remember me</Checkbox>
                                             <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
                                         </div>
-                                        <div className="text-sm font-light text-gray-400">{loginError}</div>
+                                        <div className="text-sm font-light text-red-400">{loginError}</div>
                                         <Button fullWidth icon="arrow" onClick={sendLoginRequest}>Sign in</Button>
                                         <p className="text-sm font-light text-gray-400 justify-center flex items-center">
                                             {"New user?"}
@@ -157,7 +165,7 @@ export default function Login() {
                                             id="repeatpassword"
                                             label="Repeat password"
                                             placeholder="**********" />
-                                        <p className="text-sm font-light text-gray-400 justify-center flex items-center">{registerError}</p>
+                                        <p className="text-sm font-light text-red-400">{registerError}</p>
                                         <Button
                                             onClick={sendRegisterRequest}
                                             fullWidth

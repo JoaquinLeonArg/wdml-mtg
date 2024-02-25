@@ -5,18 +5,23 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
 	"github.com/rs/zerolog/log"
 )
 
 func RegisterEndpoints(r *mux.Router) {
-	r.HandleFunc("/auth/login", LoginHandler).Methods(http.MethodPost)
-	r.HandleFunc("/auth/register", RegisterHandler).Methods(http.MethodPost)
+	r = r.PathPrefix("/auth").Subrouter()
+	r.HandleFunc("/login", LoginHandler).Methods(http.MethodPost)
+	r.HandleFunc("/register", RegisterHandler).Methods(http.MethodPost)
+	r.HandleFunc("/check", CheckHandler).Methods(http.MethodGet)
 }
 
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+
+type LoginResponse struct{}
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
@@ -27,7 +32,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Debug().
 			Err(err).
 			Msg("failed to read request body")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		// w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -37,7 +43,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to login user")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		// w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	log.Debug().
@@ -52,8 +59,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	w.WriteHeader(http.StatusOK)
-	w.Write(nil)
+	w.Write(response.NewDataResponse(LoginResponse{}))
+	// w.WriteHeader(http.StatusOK)
 }
 
 type RegisterRequest struct {
@@ -61,6 +68,8 @@ type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type RegisterResponse struct{}
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
@@ -71,7 +80,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		log.Debug().
 			Err(err).
 			Msg("failed to read request body")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
 		return
 	}
 
@@ -81,13 +91,19 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to create user")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
 		return
 	}
 	log.Debug().
 		Str("username", registerRequest.Username).
 		Str("email", registerRequest.Email).
 		Msg("created new user")
+	w.Write(response.NewDataResponse(RegisterResponse{}))
 	w.WriteHeader(http.StatusOK)
-	w.Write(nil)
+}
+
+func CheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write(response.NewDataResponse(nil))
+	w.WriteHeader(http.StatusOK)
 }

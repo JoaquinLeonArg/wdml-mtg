@@ -25,7 +25,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return primitive.NilObjectID, fmt.Errorf("%w: %w", ErrInternal, err)
+		return primitive.NilObjectID, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -39,7 +39,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive
 			if err == nil {
 				return nil, ErrAlreadyExists
 			}
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
 		resultInsert, err := MongoDatabaseClient.
@@ -49,7 +49,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive
 				tournamentPlayer,
 			)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return resultInsert, nil
 	})
@@ -63,7 +63,7 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 
 	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find players on this tournament
@@ -77,13 +77,13 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 		if err == nil {
 			return nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament players
 	var tournamentPlayer *domain.TournamentPlayer
 	if err := result.Decode(&tournamentPlayer); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	return tournamentPlayer, nil
@@ -95,7 +95,7 @@ func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find players on this tournament
@@ -103,17 +103,46 @@ func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error
 		Database(DB_MAIN).
 		Collection(COLLECTION_TOURNAMENT_PLAYERS).
 		Find(ctx,
-			bson.M{"tournamentID": dbTournamentID},
+			bson.M{"tournament_id": dbTournamentID},
 		)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament players
 	var tournamentPlayers []domain.TournamentPlayer
 	err = cursor.All(ctx, &tournamentPlayers)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	return tournamentPlayers, nil
+}
+
+func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Find tournament players for this user
+	cursor, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		Find(ctx,
+			bson.M{"user_id": dbUserID},
+		)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode tournament players
+	var tournamentPlayers []domain.TournamentPlayer
+	err = cursor.All(ctx, &tournamentPlayers)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	return tournamentPlayers, nil
 }
@@ -124,11 +153,11 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 	dbUserID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find packs for user
@@ -136,20 +165,20 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 		Database(DB_MAIN).
 		Collection(COLLECTION_TOURNAMENT_PLAYERS).
 		FindOne(ctx,
-			bson.M{"userID": dbUserID, "tournamentID": dbTournamentID},
+			bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+			return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 		}
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode user
 	var tournamentPlayer *domain.TournamentPlayer
 	err = result.Decode(&tournamentPlayer)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	return tournamentPlayer.GameResources.BoosterPacks, nil
 }
@@ -160,18 +189,18 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 	dbUserID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInvalidID, err)
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Begin transaction
 	session, err := MongoDatabaseClient.
 		StartSession()
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInternal, err)
+		return fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
 
@@ -182,19 +211,19 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
 			FindOne(ctx,
-				bson.M{"userID": dbUserID, "tournamentID": dbTournamentID},
+				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
 			)
 		if err := result.Err(); err != nil {
 			if err == mongo.ErrNoDocuments {
-				return nil, fmt.Errorf("%w: %w", ErrNotFound, err)
+				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
 			}
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		// Decode user
 		var tournamentPlayer *domain.TournamentPlayer
 		err = result.Decode(&tournamentPlayer)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		// Packs the user already has
 		seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
@@ -215,7 +244,7 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 			UpdateByID(ctx, dbUserID, tournamentPlayer)
 
 		if err != nil || updateResult.MatchedCount == 0 {
-			return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return nil, nil
 	})

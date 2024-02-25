@@ -4,6 +4,7 @@ import { BsMegaphoneFill, BsBoxSeamFill, BsCollectionFill, BsDiagram3Fill, BsEmo
 
 export type NavigationSidebarProps = {
     visible: boolean
+    tournamentID: string
 }
 
 export default function NavigationSidebar(props: NavigationSidebarProps) {
@@ -13,7 +14,7 @@ export default function NavigationSidebar(props: NavigationSidebarProps) {
                 <div className="overflow-y-auto py-5 px-3 h-full bg-gray-800 border-gray-700">
                     <ul className="space-y-2 pt-16">
                         <SidebarButton name="News" ><BsMegaphoneFill className="w-6 h-6" /></SidebarButton>
-                        <SidebarButton name="Packs" ><BsBoxSeamFill className="w-6 h-6" /></SidebarButton>
+                        <SidebarButton name="Packs" href={props.tournamentID + "/packs"} ><BsBoxSeamFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Cards" items={[{ name: "Collection", href: "#" }, { name: "Decks", href: "#" }]} ><BsCollectionFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Matches" ><BsDiagram3Fill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Players" ><BsEmojiSunglassesFill className="w-6 h-6" /></SidebarButton>
@@ -47,7 +48,7 @@ function SidebarButton(props: SidebarButtonProps) {
                 {props.children}
                 <span className="flex-1 ml-3 text-left whitespace-nowrap">{props.name}</span>
                 {/* Arrow */}
-                {(props.items && props.items.length > 0) && <svg aria-hidden="true" className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>}
+                {(props.items && props.items.length > 0) && <svg aria-hidden="true" className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>}
             </button>
             <ul id="dropdown-pages" className={`${!showItems && "hidden"} py-2 space-y-2`}>
                 {

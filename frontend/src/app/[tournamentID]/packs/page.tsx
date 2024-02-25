@@ -1,31 +1,33 @@
+"use client"
+
 import { CardDisplay, CardImage } from "@/components/card";
 import { Header } from "@/components/header";
 import Layout from "@/components/layout";
-import { PackList } from "@/components/packlist";
+import { Pack, PackList } from "@/components/packlist";
+import { ApiGetRequest } from "@/requests/requests";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function PacksPage() {
+export default function PacksPage(props: any) {
+  let [packs, setPacks] = useState<Pack[]>([])
+  let [packsError, setPacksError] = useState<string>("")
+
+  useEffect(() => {
+    ApiGetRequest({
+      route: "/tournament_player",
+      errorHandler: (err) => { setPacksError(err) },
+      responseHandler: (res) => {
+        console.log(res)
+      }
+    })
+  }, [])
+
   return (
-    <Layout>
+    <Layout tournamentID={props.params.tournamentID}>
       <div className="mx-16 my-16">
         <Header title="Open packs" />
         <div className="flex flex-row gap-2 justify-center">
-          <PackList packs={[
-            {
-              setName: "Khans of Tarkir",
-              setCode: "KTK",
-              count: 5
-            },
-            {
-              setName: "Murders at Karlov's Manor",
-              setCode: "MKM",
-              count: 1
-            },
-            {
-              setName: "Limited Edition Alpha",
-              setCode: "LEA",
-              count: 17
-            }
-          ]} />
+          <PackList packs={packs} />
           <CardDisplay cardImageURLs={[
             {
               cardImageURL: "https://cards.scryfall.io/png/front/3/4/343d01cf-9806-4c2d-a993-ddc9ed248d7f.png",
@@ -59,6 +61,6 @@ export default function PacksPage() {
           ]} />
         </div>
       </div >
-    </Layout>
+    </Layout >
   )
 }

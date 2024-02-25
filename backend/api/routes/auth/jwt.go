@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joaquinleonarg/wdml_mtg/backend/config"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,18 +32,17 @@ func GetUserIDFromContext(ctx context.Context) (string, error) {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if config.Config.DisableAuth {
+		if strings.HasSuffix(r.URL.Path, "api/auth/login") || strings.HasSuffix(r.URL.Path, "api/auth/register") {
 			next.ServeHTTP(w, r)
+			return
 		}
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
+		tokenString, err := r.Cookie("jwt")
+		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString.Value, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
@@ -70,6 +70,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		log.Info().Str("user_id", userID).Send()
 
 		ctx := context.WithValue(r.Context(), "user_id", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
