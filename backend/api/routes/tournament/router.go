@@ -15,6 +15,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/tournament").Subrouter()
 	r.HandleFunc("/{tournamentId}", GetTournamentHandler).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
+	r.HandleFunc("/{tournamentId}/boosters", GetTournamentBoosterPacksHandler).Methods(http.MethodGet)
 }
 
 type GetTournamentHandlerResponse struct {
@@ -102,4 +103,28 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(CreateTournamentResponse{TournamentID: tournamentID}))
+}
+
+type GetTournamentBoosterPacksResponse struct {
+	BoosterPacks []domain.BoosterPackData `json:"booster_packs"`
+}
+
+func GetTournamentBoosterPacksHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get id
+	vars := mux.Vars(r)
+	_, ok := vars["tournamentId"] // TODO: Use tournament ID to fetch custom booster packs
+	if !ok {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	boosterPacks, err := GetTournamentBoosterPacks()
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to get vanilla booster pack data")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(GetTournamentBoosterPacksResponse{BoosterPacks: boosterPacks}))
 }

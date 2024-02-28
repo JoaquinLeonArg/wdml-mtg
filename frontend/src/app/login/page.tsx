@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, SyntheticEvent, useState } from 'react';
 import Image from "next/image"
 import { Button } from "@/components/buttons";
 import { TextFieldWithLabel } from "@/components/field";
@@ -13,33 +13,21 @@ enum PageState {
     PS_REGISTER
 }
 
-type RegisterForm = {
-    username: string
-    email: string
-    password: string
-    repeatPassword: string
-}
-
-type LoginForm = {
-    username: string
-    password: string
-}
 
 export default function Login() {
     let router = useRouter()
     let [currentState, setCurrentState] = useState<PageState>(PageState.PS_LOGIN)
     let [isLoading, setIsLoading] = useState<boolean>(false)
-    let [registerForm, setRegisterForm] = useState<RegisterForm>({ username: "", email: "", password: "", repeatPassword: "" })
     let [registerError, setRegisterError] = useState<string>("")
-    let [loginForm, setLoginForm] = useState<LoginForm>({ username: "", password: "" })
     let [loginError, setLoginError] = useState<string>("")
 
-    let sendLoginRequest = () => {
+    let sendLoginRequest = (e: any) => {
+        e.preventDefault()
         setLoginError("")
         ApiPostRequest({
             body: {
-                username: loginForm.username,
-                password: loginForm.password
+                username: e.target.username.value,
+                password: e.target.password.value
             },
             route: "/auth/login",
             responseHandler: (res) => {
@@ -54,17 +42,18 @@ export default function Login() {
         })
     }
 
-    let sendRegisterRequest = () => {
+    let sendRegisterRequest = (e: any) => {
+        e.preventDefault()
         setRegisterError("")
-        if (registerForm.password != registerForm.repeatPassword) {
+        if (e.target.password.value != e.target.repeatPassword.value) {
             setRegisterError("Passwords must match")
             return
         }
         ApiPostRequest({
             body: {
-                username: registerForm.username,
-                email: registerForm.email,
-                password: registerForm.password
+                username: e.target.username.value,
+                email: e.target.email.value,
+                password: e.target.password.value
             },
             route: "/auth/register",
             responseHandler: (res) => {
@@ -100,25 +89,27 @@ export default function Login() {
                                     <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">
                                         Sign in to your account
                                     </h1>
-                                    <form className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
+                                    <form onSubmit={sendLoginRequest} className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, username: e.target.value })}
                                             size={40}
                                             id="username"
+                                            type="username"
                                             label="Username"
-                                            placeholder="Username" />
+                                            placeholder="Username"
+                                            required />
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, password: e.target.value })}
                                             size={40}
                                             id="password"
+                                            type="password"
                                             label="Password"
-                                            placeholder="**********" />
+                                            placeholder="**********"
+                                            required />
                                         <div className="flex items-center justify-between">
                                             <Checkbox>Remember me</Checkbox>
                                             <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
                                         </div>
                                         <div className="text-sm font-light text-red-400">{loginError}</div>
-                                        <Button fullWidth icon="arrow" onClick={sendLoginRequest}>Sign in</Button>
+                                        <Button fullWidth icon="arrow">Sign in</Button>
                                         <p className="text-sm font-light text-gray-400 justify-center flex items-center">
                                             {"New user?"}
                                             <a href="#" className="font-medium ml-1 text-secondary-600 hover:underline"
@@ -138,15 +129,13 @@ export default function Login() {
                                     <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">
                                         Sign up
                                     </h1>
-                                    <form className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
+                                    <form onSubmit={sendRegisterRequest} className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm({ ...registerForm, username: e.target.value })}
                                             size={40}
                                             id="username"
                                             label="Username"
                                             placeholder="Username" />
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm({ ...registerForm, email: e.target.value })}
                                             size={40}
                                             htmlFor="email"
                                             type="email"
@@ -154,20 +143,18 @@ export default function Login() {
                                             label="Email"
                                             placeholder="Email" />
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm({ ...registerForm, password: e.target.value })}
                                             size={40}
                                             id="password"
                                             label="Password"
                                             placeholder="**********" />
                                         <TextFieldWithLabel
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm({ ...registerForm, repeatPassword: e.target.value })}
                                             size={40}
                                             id="repeatpassword"
                                             label="Repeat password"
                                             placeholder="**********" />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>
                                         <Button
-                                            onClick={sendRegisterRequest}
+
                                             fullWidth
                                             icon="arrow">Sign up</Button>
                                         <a href="#" className="text-sm justify-center flex items-center font-medium ml-1 text-secondary-600 hover:underline"

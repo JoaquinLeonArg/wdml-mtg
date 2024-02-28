@@ -1,3 +1,5 @@
+github.com/MagicTheGathering/mtg-sdk-go v0.0.0-20190109105601-3aaea97721aa h1:OJtPSYA2qr4d+51NY3mR+cmpSvQoWSnTDjU0OkOtjg0=
+github.com/MagicTheGathering/mtg-sdk-go v0.0.0-20190109105601-3aaea97721aa/go.mod h1:N2gc+5YwVfphpjWbjtIfh8/XKQowEXSMNefQeyyQ/lk=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=

@@ -1,66 +1,101 @@
 "use client"
 
 import { CardDisplay, CardImage } from "@/components/card";
+import { ComboBox } from "@/components/combobox";
+import { CounterInput } from "@/components/counter";
+import { TextFieldWithLabel } from "@/components/field";
 import { Header } from "@/components/header";
 import Layout from "@/components/layout";
-import { Pack, PackList } from "@/components/packlist";
 import { ApiGetRequest } from "@/requests/requests";
-import { useRouter } from "next/navigation";
+import { BoosterPack, BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
 import { useEffect, useState } from "react";
 
+
+
 export default function PacksPage(props: any) {
-  let [packs, setPacks] = useState<Pack[]>([])
-  let [packsError, setPacksError] = useState<string>("")
+  let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
+  let [error, setError] = useState<string>("")
 
   useEffect(() => {
     ApiGetRequest({
       route: "/tournament_player",
-      errorHandler: (err) => { setPacksError(err) },
-      responseHandler: (res) => {
+      errorHandler: (err) => { setError(err) },
+      responseHandler: (res: { tournament_players: TournamentPlayer[] }) => {
         console.log(res)
+        let thisTournamentPlayer = res.tournament_players.filter((tp) => tp.tournament_id == props.params.tournamentID)[0]
+        if (!thisTournamentPlayer) {
+          setError("An error ocurred")
+          return
+        }
+        setTournamentPlayer(thisTournamentPlayer)
+      }
+    })
+  }, [])
+
+  if (!tournamentPlayer) {
+    return ""
+  }
+
+  return (
+    <Layout tournamentID={props.params.tournamentID}>
+      <div className="mx-16 my-16">
+        {
+          tournamentPlayer.access_level == "al_administrator" &&
+          (
+            <>
+              <Header title="Add packs" />
+              <div className="flex flex-row gap-2 justify-left">
+                {/* <PackList packs={tournamentPlayer} /> */}
+                <AddPacks tournamentID={props.params.tournamentID} />
+              </div>
+            </>
+          )
+        }
+        <Header title="Open packs" />
+        <div className="flex flex-row gap-2 justify-center">
+          {/* <PackList packs={tournamentPlayer} /> */}
+          <CardDisplay cardImageURLs={[]} />
+        </div>
+      </div >
+    </Layout >
+  )
+}
+
+type AddPacksProps = {
+  tournamentID: string
+}
+
+type AddedPacks = {
+  count: number
+  pack: BoosterPack
+}[]
+
+function AddPacks(props: AddPacksProps) {
+  let [availablePacks, setAvailablePacks] = useState<BoosterPack[]>([])
+  let [error, setError] = useState<string>("")
+  let [addedPacks, setAddedPacks] = useState<AddedPacks>([])
+
+  useEffect(() => {
+    ApiGetRequest({
+      route: "/tournament/" + props.tournamentID + "/boosters",
+      responseHandler: (res: { booster_packs: BoosterPack[] }) => {
+        setAvailablePacks(res.booster_packs)
+      },
+      errorHandler: (err) => {
+        setError(err)
       }
     })
   }, [])
 
   return (
-    <Layout tournamentID={props.params.tournamentID}>
-      <div className="mx-16 my-16">
-        <Header title="Open packs" />
-        <div className="flex flex-row gap-2 justify-center">
-          <PackList packs={packs} />
-          <CardDisplay cardImageURLs={[
-            {
-              cardImageURL: "https://cards.scryfall.io/png/front/3/4/343d01cf-9806-4c2d-a993-ddc9ed248d7f.png",
-              cardRarity: "rare"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/large/front/4/3/434515bf-de57-4c00-b0b4-c9579cc1b84c.jpg",
-              cardRarity: "uncommon"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/large/front/4/3/434515bf-de57-4c00-b0b4-c9579cc1b84c.jpg",
-              cardRarity: "uncommon"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/png/front/9/a/9afe8b9e-bb14-44d5-b5da-627835ee457f.png",
-              cardRarity: "common"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/png/front/9/a/9afe8b9e-bb14-44d5-b5da-627835ee457f.png",
-              cardRarity: "common"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/png/front/9/a/9afe8b9e-bb14-44d5-b5da-627835ee457f.png",
-              cardRarity: "common"
-            },
-            {
-              cardImageURL: "https://cards.scryfall.io/large/front/c/3/c3f1f41e-98fc-4f6b-b287-c8899dff8ab0.jpg?1562563557",
-              cardRarity: "common"
-            },
-
-          ]} />
+    <div>
+      <form>
+        {/* TODO: Add more options, like players to add it to */}
+        <div className="flex flex-row">
+          <CounterInput id="" initial={1} label="" max={99} min={1} onChange={(value) => console.log(value)} />
+          <ComboBox default="test" data={["test", "test2", "other"]} />
         </div>
-      </div >
-    </Layout >
+      </form>
+    </div>
   )
 }
