@@ -1,18 +1,14 @@
-export type PackListProps = {
-  packs: Pack[]
-}
+import { BoosterPack } from "@/types/tournamentPlayer"
 
-export type Pack = {
-  setName: string
-  setCode: string
-  count: number
+export type PackListProps = {
+  packs: BoosterPack[]
 }
 
 export function PackList(props: PackListProps) {
   return (
     <div className="">
       {
-        props.packs.map((pack: Pack, i: number) => {
+        props.packs.map((pack: BoosterPack, i: number) => {
           return (
             <BoosterPack key={i} pack={pack} />
           )
@@ -23,7 +19,7 @@ export function PackList(props: PackListProps) {
 }
 
 type BoosterPackProps = {
-  pack: Pack
+  pack: BoosterPack
 }
 
 function BoosterPack(props: BoosterPackProps) {

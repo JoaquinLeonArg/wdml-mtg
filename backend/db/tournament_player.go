@@ -228,10 +228,10 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 		// Packs the user already has
 		seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
 		for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
-			seenPacks[pack.SetCode] = index
+			seenPacks[pack.Data.SetCode] = index
 		}
 		for _, pack := range packs {
-			if index, ok := seenPacks[pack.SetCode]; ok {
+			if index, ok := seenPacks[pack.Data.SetCode]; ok {
 				tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
 			} else {
 				tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)

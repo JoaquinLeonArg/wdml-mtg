@@ -14,6 +14,7 @@ require (
 require github.com/felixge/httpsnoop v1.0.3 // indirect
 
 require (
+	github.com/MagicTheGathering/mtg-sdk-go v0.0.0-20190109105601-3aaea97721aa
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/handlers v1.5.2
 	github.com/klauspost/compress v1.13.6 // indirect

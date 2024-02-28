@@ -2,7 +2,9 @@ module.exports = {
   darkMode: 'class',
   content: [
     './src/**/*.{html,js,ts,tsx}',
+    require.resolve('react-widgets/styles.css'),
   ],
+  plugins: [require('react-widgets-tailwind')],
   theme: {
     extend: {
       colors: {

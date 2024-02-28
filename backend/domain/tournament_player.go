@@ -71,12 +71,16 @@ type OwnedWildcards struct {
 }
 
 type OwnedBoosterPack struct {
-	SetCode        string      `bson:"set_code" json:"set_code"`
-	SetName        string      `bson:"set_name" json:"set_name"`
-	BoosterType    BoosterType `bson:"booster_type" json:"booster_type"`
-	BoosterGen     BoosterGen  `bson:"booster_gen" json:"booster_gen"`
-	BoosterGenData interface{} `bson:"booster_gen_data" json:"booster_gen_data"`
-	Available      int         `bson:"available" json:"available"`
+	BoosterGen     BoosterGen      `bson:"booster_gen" json:"booster_gen"`
+	BoosterGenData interface{}     `bson:"booster_gen_data" json:"booster_gen_data"`
+	Available      int             `bson:"available" json:"available"`
+	Data           BoosterPackData `bson:"data" json:"data"`
+}
+
+type BoosterPackData struct {
+	SetCode     string      `bson:"set_code" json:"set_code"`
+	SetName     string      `bson:"set_name" json:"set_name"`
+	BoosterType BoosterType `bson:"booster_type" json:"booster_type"`
 }
 
 type BoosterType string
