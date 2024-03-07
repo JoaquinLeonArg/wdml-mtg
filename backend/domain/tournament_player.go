@@ -81,6 +81,7 @@ type BoosterPackData struct {
 	SetCode     string      `bson:"set_code" json:"set_code"`
 	SetName     string      `bson:"set_name" json:"set_name"`
 	BoosterType BoosterType `bson:"booster_type" json:"booster_type"`
+	Expansion   string      `bson:"expansion" json:"expansion"`
 }
 
 type BoosterType string

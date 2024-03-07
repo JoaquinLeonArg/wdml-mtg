@@ -8,6 +8,7 @@ var (
 	ErrInvalidAuth        = fmt.Errorf("INVALID_AUTH")
 	ErrDuplicatedResource = fmt.Errorf("DUPLICATED_RESOURCE")
 	ErrNotFound           = fmt.Errorf("NOT_FOUND")
+	ErrUnauthorized       = fmt.Errorf("UNAUTHORIZED")
 
 	// Auth
 	ErrUsernameInvalid = fmt.Errorf("USERNAME_INVALID")

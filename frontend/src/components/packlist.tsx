@@ -27,10 +27,10 @@ function BoosterPack(props: BoosterPackProps) {
     <div className="w-72 h-16 bg-primary-400 rounded-lg my-2 pl-4 text-base flex flex-row items-center justify-between">
       <div className="flex flex-col">
         <span className="mt-2">
-          {props.pack.setName}
+          {props.pack.set_name}
         </span>
         <span className="font-bold text-2xl">
-          {props.pack.setCode}
+          {props.pack.set_code}
         </span>
 
       </div>

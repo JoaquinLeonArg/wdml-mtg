@@ -1,14 +1,13 @@
 "use client"
 
 import { CardDisplay, CardImage } from "@/components/card";
-import { ComboBox } from "@/components/combobox";
-import { CounterInput } from "@/components/counter";
-import { TextFieldWithLabel } from "@/components/field";
 import { Header } from "@/components/header";
 import Layout from "@/components/layout";
-import { ApiGetRequest } from "@/requests/requests";
+import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { BoosterPack, BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
+import { Autocomplete, AutocompleteItem, Button, Input } from "@nextui-org/react";
 import { useEffect, useState } from "react";
+import { BsFillTrashFill } from "react-icons/bs";
 
 
 
@@ -67,7 +66,7 @@ type AddPacksProps = {
 
 type AddedPacks = {
   count: number
-  pack: BoosterPack
+  set: string
 }[]
 
 function AddPacks(props: AddPacksProps) {
@@ -75,27 +74,74 @@ function AddPacks(props: AddPacksProps) {
   let [error, setError] = useState<string>("")
   let [addedPacks, setAddedPacks] = useState<AddedPacks>([])
 
+  let sendAddPacksRequest = () => {
+    setError("")
+    ApiPostRequest({
+      body: {
+        booster_packs: addedPacks
+      },
+      route: "/tournament/" + props.tournamentID + "/boosters",
+      responseHandler: (res) => {
+        console.log(res)
+      },
+      errorHandler: (err) => {
+        switch (err) {
+          case "INVALID_AUTH":
+            setError("Invalid credentials")
+        }
+      }
+    })
+  }
+
   useEffect(() => {
     ApiGetRequest({
       route: "/tournament/" + props.tournamentID + "/boosters",
       responseHandler: (res: { booster_packs: BoosterPack[] }) => {
+        console.log(res)
         setAvailablePacks(res.booster_packs)
       },
       errorHandler: (err) => {
         setError(err)
       }
     })
-  }, [])
+  }, [props.tournamentID])
 
   return (
     <div>
-      <form>
+      <form onSubmit={sendAddPacksRequest} className="flex flex-col gap-2 items-center">
         {/* TODO: Add more options, like players to add it to */}
-        <div className="flex flex-row">
-          <CounterInput id="" initial={1} label="" max={99} min={1} onChange={(value) => console.log(value)} />
-          <ComboBox default="test" data={["test", "test2", "other"]} />
+        <div className="flex flex-row gap-2 items-center">
+          <Input
+            onChange={(e) => setAddedPacks([{ ...addedPacks[0], count: Number(e.target.value) }])}
+            variant="bordered"
+            type="number"
+            label="Amount"
+            placeholder="Number of packs"
+            labelPlacement="inside"
+            className="text-white"
+            endContent={
+              <div className="pointer-events-none flex items-center">
+                <span className="text-gray-300 text-small">packs</span>
+              </div>
+            }
+          />
+          <Autocomplete
+            onInputChange={(value) => setAddedPacks([{ ...addedPacks[0], set: availablePacks.find(v => `${v.set_code} - ${v.set_name}` == value)?.set_code || "" }])}
+            id="set"
+            label="Booster pack"
+            labelPlacement="inside"
+            placeholder="Select a boster pack"
+            className="text-white max-w-xs"
+            defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.set_name}` } })}
+          >
+            {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
+          </Autocomplete>
+          <Button size="md" isIconOnly color="danger" aria-label="Like" disabled>
+            <BsFillTrashFill className="w-6 h-6" />
+          </Button>
         </div>
-      </form>
-    </div>
+        <Button onPress={sendAddPacksRequest} size="md" className="w-full bg-primary-500" aria-label="Like">Add packs</Button>
+      </form >
+    </div >
   )
 }

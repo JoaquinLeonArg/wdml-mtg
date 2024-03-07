@@ -1,10 +1,12 @@
+const { nextui } = require("@nextui-org/react");
+
 module.exports = {
   darkMode: 'class',
   content: [
     './src/**/*.{html,js,ts,tsx}',
-    require.resolve('react-widgets/styles.css'),
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
-  plugins: [require('react-widgets-tailwind')],
+  plugins: [nextui()],
   theme: {
     extend: {
       colors: {
