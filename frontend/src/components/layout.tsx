@@ -14,7 +14,7 @@ export default function Layout(props: LayoutProps) {
         <>
             <NavigationTopbar toggleSidebarFn={() => setSidebarVisible(!sidebarVisible)} />
             <NavigationSidebar tournamentID={props.tournamentID} visible={sidebarVisible} />
-            <main className={`${sidebarVisible && "ml-64"} p-8`}>
+            <main className={`${sidebarVisible && "ml-64"} p-8 min-h-[100vh]`}>
                 {props.children}
             </main>
         </>

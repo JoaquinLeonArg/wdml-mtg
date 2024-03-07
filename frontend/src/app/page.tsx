@@ -21,5 +21,5 @@ export default function Home() {
         console.log(err)
       }
     })
-  }, [])
+  }, [router])
 }

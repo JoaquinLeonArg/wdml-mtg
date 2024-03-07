@@ -154,7 +154,6 @@ export default function Login() {
                                             placeholder="**********" />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>
                                         <Button
-
                                             fullWidth
                                             icon="arrow">Sign up</Button>
                                         <a href="#" className="text-sm justify-center flex items-center font-medium ml-1 text-secondary-600 hover:underline"

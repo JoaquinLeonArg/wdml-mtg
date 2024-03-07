@@ -183,15 +183,11 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 	return tournamentPlayer.GameResources.BoosterPacks, nil
 }
 
-func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.OwnedBoosterPack) error {
+func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedBoosterPack) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidID, err)
-	}
-	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
@@ -211,7 +207,7 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
 			FindOne(ctx,
-				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
+				bson.M{"_id": dbTournamentPlayerID},
 			)
 		if err := result.Err(); err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -241,7 +237,7 @@ func AddPacksToTournamentPlayer(tournamentID, userID string, packs []domain.Owne
 		updateResult, err := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
-			UpdateByID(ctx, dbUserID, tournamentPlayer)
+			UpdateByID(ctx, dbTournamentPlayerID, tournamentPlayer)
 
 		if err != nil || updateResult.MatchedCount == 0 {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
