@@ -2,13 +2,14 @@ package boostergen
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
@@ -35,22 +36,27 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	// Vanilla gen
 
 	var boosterData BoosterData
-
-	jsonData, err := os.ReadFile("./sets/" + setCode + ".json")
+	path, err := filepath.Abs("./internal/booster_gen/sets/" + strings.ToLower(setCode) + ".json")
 	if err != nil {
-		return nil, apiErrors.ErrInternal
+		return nil, err
+	}
+	jsonData, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
 	}
 	err = json.Unmarshal(jsonData, &boosterData)
 	if err != nil {
-		return nil, apiErrors.ErrInternal
+		return nil, fmt.Errorf("Json read error but again")
 	}
+
+	log.Debug().Interface("data", boosterData).Send()
 
 	cardList := make(map[string][]scryfallapi.Card)
 
 	for _, sc := range boosterData.Sets {
 		cards, err := scryfall.GetSetCards(sc)
 		if err != nil {
-			return nil, apiErrors.ErrInternal
+			return nil, fmt.Errorf("scryfall error")
 		}
 		if _, ok := cardList[sc]; !ok {
 			cardList[sc] = []scryfallapi.Card{}
@@ -60,7 +66,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 
 	if err != nil || len(cardList) == 0 {
 		log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
-		return nil, apiErrors.ErrInternal
+		return nil, fmt.Errorf("No cards error")
 	}
 
 	boosterPack := make([]domain.CardData, 0, boosterData.CardCount)
