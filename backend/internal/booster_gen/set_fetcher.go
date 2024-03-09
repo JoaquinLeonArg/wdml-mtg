@@ -1,4 +1,4 @@
-package boosterpacks
+package boostergen
 
 func fetchSets() {
 

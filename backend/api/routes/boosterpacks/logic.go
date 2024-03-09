@@ -11,6 +11,7 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	boostergen "github.com/joaquinleonarg/wdml_mtg/backend/internal/booster_gen"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
@@ -119,7 +120,7 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 	var err error
 	if boosterPackData.BoosterType == domain.BoosterTypeDraft {
 		// Vanilla booster
-		cards, err = GenerateVanillaBoosterPack(boosterPackData)
+		cards, err = boostergen.GenerateBoosterFromJson(boosterPackData.Expansion)
 		if err != nil {
 			return nil, apiErrors.ErrInternal
 		}
