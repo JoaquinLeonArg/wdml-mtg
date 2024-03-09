@@ -41,23 +41,12 @@ type Card struct {
 }
 
 type CardData struct {
-	Name       string   `bson:"name" json:"name"`
-	SuperTypes []string `bson:"super_types" json:"super_types"`
-	Types      []string `bson:"types" json:"types"`
-	SubTypes   []string `bson:"sub_types" json:"sub_types"`
-	ManaValue  int      `bson:"mana_value" json:"mana_value"`
-	Colors     []Color  `bson:"colors" json:"colors"`
+	Name      string   `bson:"name" json:"name"`
+	Typeline  string   `bson:"types" json:"typeline"`
+	ManaValue int      `bson:"mana_value" json:"mana_value"`
+	Colors    []string `bson:"colors" json:"colors"`
+	ImageURL  string   `bson:"image_url" json:"image_url"`
 }
-
-type Color string
-
-const (
-	ColorWhite Color = "c_white"
-	ColorBlue  Color = "c_blue"
-	ColorBlack Color = "c_black"
-	ColorRed   Color = "c_red"
-	ColorGreen Color = "c_green"
-)
 
 type OwnedWildcards struct {
 	// By rarity

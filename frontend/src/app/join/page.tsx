@@ -1,8 +1,8 @@
 "use client"
 
-import { Button } from "@/components/buttons";
 import { TextFieldWithLabel } from "@/components/field";
 import { ApiPostRequest } from "@/requests/requests";
+import { Button } from "@nextui-org/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
@@ -27,7 +27,7 @@ export default function Home() {
     ApiPostRequest({
       route: "/tournament_player",
       body: {
-        username: joinCode,
+        tournament_code: joinCode,
       },
       errorHandler: (err) => {
         switch (err) {
@@ -74,7 +74,7 @@ export default function Home() {
             onChange={(e: ChangeEvent<HTMLInputElement>) => setJoinCode(e.target.value)} />
           <div className="text-sm font-light text-red-400">{joinError}</div>
           <div className="h-4"></div>
-          <Button onClick={() => sendJoinRequest()}>Join</Button>
+          <Button onClick={sendJoinRequest}>Join</Button>
         </div>
         <div className="w-1 mx-2 h-[90%] bg-white opacity-20"></div>
         <div className="flex flex-col w-[50%] h-full p-2">
@@ -87,7 +87,7 @@ export default function Home() {
             onChange={(e: ChangeEvent<HTMLInputElement>) => setCreateName(e.target.value)} />
           <div className="text-sm font-light text-red-400">{createError}</div>
           <div className="h-4"></div>
-          <Button onClick={() => sendCreateRequest()}>Create</Button>
+          <Button onClick={sendCreateRequest}>Create</Button>
         </div>
       </div>
       <div className="mt-2">

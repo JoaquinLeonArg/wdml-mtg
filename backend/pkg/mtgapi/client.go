@@ -4,6 +4,7 @@ import (
 	"time"
 
 	client "github.com/MagicTheGathering/mtg-sdk-go"
+	"github.com/rs/zerolog/log"
 )
 
 var sets []*client.Set
@@ -20,4 +21,13 @@ func GetAllSets() ([]*client.Set, error) {
 	lastUpdated = time.Now()
 	sets = newSets
 	return sets, nil
+}
+
+func GenerateBooster(set client.SetCode) ([]*client.Card, error) {
+	log.Debug().Interface("set", set).Send()
+	cards, err := set.GenerateBooster()
+	if err != nil {
+		return nil, err
+	}
+	return cards, nil
 }
