@@ -149,7 +149,7 @@ export default function Login() {
                                             placeholder="**********" />
                                         <TextFieldWithLabel
                                             size={40}
-                                            id="repeatpassword"
+                                            id="repeatPassword"
                                             label="Repeat password"
                                             placeholder="**********" />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>

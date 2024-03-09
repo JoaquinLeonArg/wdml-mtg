@@ -15,12 +15,13 @@ export type ApiPostRequestConfig = {
   route: string,
   noCredentials?: boolean
   body: any
+  query?: any
   responseHandler: (res: any) => void
   errorHandler: (err: string) => void
 }
 
 export function ApiPostRequest(r: ApiPostRequestConfig) {
-  fetch(API_URL + r.route, {
+  fetch(API_URL + r.route + "?" + new URLSearchParams(r.query), {
     method: "POST",
     credentials: r.noCredentials ? "omit" : 'include',
     body: JSON.stringify(r.body),
@@ -45,14 +46,16 @@ export function ApiPostRequest(r: ApiPostRequestConfig) {
 export type ApiGetRequestConfig = {
   route: string,
   noCredentials?: boolean
+  query?: any
   responseHandler: (res: any) => void
   errorHandler: (err: string) => void
 }
 
 export function ApiGetRequest(r: ApiGetRequestConfig) {
-  fetch(API_URL + r.route, {
+  fetch(API_URL + r.route + "?" + new URLSearchParams(r.query), {
     method: "GET",
     credentials: r.noCredentials ? "omit" : 'include',
+
   })
     .then(async (res: Response) => {
       if (res.status == 401) {

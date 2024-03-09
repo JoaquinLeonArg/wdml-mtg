@@ -10,12 +10,11 @@ export type TournamentPlayer = {
 }
 
 export type BoosterPack = {
-  set_name: string
-  set_code: string
-  count: number
+  available: number
   data: BoosterPackData
 }
 
 export type BoosterPackData = {
-
+  set_name: string
+  set_code: string
 }
