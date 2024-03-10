@@ -23,29 +23,11 @@ const (
 )
 
 type GameResources struct {
-	OwnedCards   []Card             `bson:"owned_cards" json:"owned_cards"`
 	Decks        []Deck             `bson:"decks" json:"decks"`
 	Wildcards    OwnedWildcards     `bson:"wildcards" json:"wildcards"`
 	BoosterPacks []OwnedBoosterPack `bson:"booster_packs" json:"booster_packs"`
 	Rerolls      int                `bson:"rerolls" json:"rerolls"`
 	Coins        int                `bson:"coins" json:"coins"`
-}
-
-type Card struct {
-	SetCode         string             `bson:"set_code" json:"set_code"`
-	CollectorNumber int                `bson:"collector_number" json:"collector_number"`
-	Count           int                `bson:"count" json:"count"`
-	CardData        CardData           `bson:"card_data" json:"card_data"`
-	CreatedAt       primitive.DateTime `bson:"created_at" json:"created_at"`
-	UpdatedAt       primitive.DateTime `bson:"updated_at" json:"updated_at"`
-}
-
-type CardData struct {
-	Name      string   `bson:"name" json:"name"`
-	Typeline  string   `bson:"types" json:"typeline"`
-	ManaValue int      `bson:"mana_value" json:"mana_value"`
-	Colors    []string `bson:"colors" json:"colors"`
-	ImageURL  string   `bson:"image_url" json:"image_url"`
 }
 
 type OwnedWildcards struct {
@@ -91,14 +73,14 @@ const (
 )
 
 type BoosterGenDataCustom struct {
-	CardPool []Card `bson:"card_pool" json:"card_pool"`
+	CardPool []OwnedCard `bson:"card_pool" json:"card_pool"`
 	// TODO: Extra customization
 }
 
 type Deck struct {
 	Name        string             `bson:"name" json:"name"`
 	Description string             `bson:"description" json:"description"`
-	Cards       []Card             `bson:"cards" json:"cards"`
+	Cards       []OwnedCard        `bson:"cards" json:"cards"`
 	CreatedAt   primitive.DateTime `bson:"created_at" json:"created_at"`
 	UpdatedAt   primitive.DateTime `bson:"updated_at" json:"updated_at"`
 }

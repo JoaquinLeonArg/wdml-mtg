@@ -29,8 +29,7 @@ func CreateTournament(tournament domain.Tournament) (string, error) {
 			TournamentID: tournamentID,
 			AccessLevel:  domain.AccessLevelAdministrator,
 			GameResources: domain.GameResources{
-				OwnedCards: []domain.Card{},
-				Decks:      []domain.Deck{},
+				Decks: []domain.Deck{},
 				Wildcards: domain.OwnedWildcards{
 					CommonCount:      0,
 					UncommonCount:    0,

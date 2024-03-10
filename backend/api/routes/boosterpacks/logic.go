@@ -174,16 +174,32 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 			for _, col := range card.Colors {
 				colors = append(colors, string(col))
 			}
+			var types []string
+			for _, rawType1 := range strings.Split(card.TypeLine, "—") {
+				for _, rawType2 := range strings.Split(rawType1, " ") {
+					rawType3 := strings.Trim(rawType2, " ")
+					if rawType3 != "" && rawType3 != "//" {
+						types = append(types, rawType3)
+					}
+				}
+			}
 
-			newCards = append(newCards,
-				domain.CardData{
-					Name:      card.Name,
-					Typeline:  card.TypeLine,
-					ManaValue: int(card.CMC),
-					Colors:    colors,
-					ImageURL:  card.ImageURIs.Large,
-				},
-			)
+			newCard := domain.CardData{
+				SetCode:         strings.ToUpper(card.Set),
+				CollectorNumber: card.CollectorNumber,
+				Name:            card.Name,
+				Types:           types,
+				ManaValue:       int(card.CMC),
+				Colors:          colors,
+			}
+			if card.CardFaces != nil {
+				newCard.ImageURL = card.CardFaces[0].ImageURIs.Normal
+				newCard.BackImageURL = card.CardFaces[1].ImageURIs.Normal
+			} else {
+				newCard.ImageURL = card.ImageURIs.Normal
+			}
+
+			newCards = append(newCards, newCard)
 		}
 		return newCards
 	}

@@ -34,8 +34,7 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 		TournamentID: tournament.ID,
 		AccessLevel:  domain.AccessLevelPlayer,
 		GameResources: domain.GameResources{
-			OwnedCards: []domain.Card{},
-			Decks:      []domain.Deck{},
+			Decks: []domain.Deck{},
 			Wildcards: domain.OwnedWildcards{
 				CommonCount:      0,
 				UncommonCount:    0,
