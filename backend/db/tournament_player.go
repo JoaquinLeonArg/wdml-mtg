@@ -224,6 +224,8 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
+	log.Debug().Interface("cards", cards).Send()
+
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalidID, err)
@@ -242,7 +244,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	defer session.EndSession(ctx)
 
 	// Find if user has packs of the same type and add them, or create new
-	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
 		// Find tournament user
 		result := MongoDatabaseClient.
 			Database(DB_MAIN).
@@ -286,29 +288,6 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 		}
 		tournamentPlayer.GameResources.BoosterPacks = newPacks
 
-		// Cards the user already has
-		seenCards := make(map[string]int, len(tournamentPlayer.GameResources.OwnedCards))
-		for index, card := range tournamentPlayer.GameResources.OwnedCards {
-			seenCards[card.SetCode+card.CardData.Name] = index
-		}
-		for _, card := range cards {
-			if index, ok := seenCards[boosterPackData.SetCode+card.Name]; ok {
-				tournamentPlayer.GameResources.OwnedCards[index].Count += 1
-				tournamentPlayer.GameResources.OwnedCards[index].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-			} else {
-				seenCards[boosterPackData.SetCode+card.Name] = len(tournamentPlayer.GameResources.OwnedCards)
-				tournamentPlayer.GameResources.OwnedCards = append(
-					tournamentPlayer.GameResources.OwnedCards,
-					domain.Card{
-						SetCode:   boosterPackData.SetCode,
-						Count:     1,
-						CardData:  card,
-						CreatedAt: primitive.NewDateTimeFromTime(time.Now()),
-						UpdatedAt: primitive.NewDateTimeFromTime(time.Now()),
-					},
-				)
-			}
-		}
 		// Update the tournament player
 		updateResult, err := MongoDatabaseClient.
 			Database(DB_MAIN).
@@ -318,6 +297,64 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 		if err != nil || updateResult.MatchedCount == 0 {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
+
+		// Add the cards to the tournament player's collection
+		// For each card, find if the user already has some of that card, and update or add it accordingly
+		for _, card := range cards {
+			result, err := MongoDatabaseClient.
+				Database(DB_MAIN).
+				Collection(COLLECTION_CARD_COLLECTION).
+				Find(ctx,
+					bson.M{
+						"tournament_id":              tournamentPlayer.TournamentID,
+						"user_id":                    tournamentPlayer.UserID,
+						"card_data.set_code":         card.SetCode,
+						"card_data.collector_number": card.CollectorNumber,
+					},
+				)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+			}
+			var foundCards []domain.OwnedCard
+			if err := result.All(ctx, &foundCards); err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+			}
+			if len(foundCards) == 0 {
+				// Add a new card
+				_, err := MongoDatabaseClient.
+					Database(DB_MAIN).
+					Collection(COLLECTION_CARD_COLLECTION).
+					InsertOne(ctx, domain.OwnedCard{
+						ID:           primitive.NewObjectID(),
+						TournamentID: tournamentPlayer.TournamentID,
+						UserID:       tournamentPlayer.UserID,
+						Count:        1,
+						CardData:     card,
+						CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+						UpdatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+					})
+
+				if err != nil {
+					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+				}
+			} else if len(foundCards) == 1 {
+				// Update count of existing card
+				foundCards[0].Count += 1
+				foundCards[0].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+				_, err := MongoDatabaseClient.
+					Database(DB_MAIN).
+					Collection(COLLECTION_CARD_COLLECTION).
+					UpdateByID(ctx, foundCards[0].ID, bson.M{"$set": foundCards[0]})
+				if err != nil {
+					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+				}
+
+			} else {
+				// TODO: Consolidate duplicate entries just in case
+				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+			}
+		}
+
 		return nil, nil
 	})
 

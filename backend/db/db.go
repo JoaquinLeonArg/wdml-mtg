@@ -25,6 +25,7 @@ const (
 	COLLECTION_USERS              = "users"
 	COLLECTION_TOURNAMENTS        = "tournaments"
 	COLLECTION_TOURNAMENT_PLAYERS = "tournament_players"
+	COLLECTION_CARD_COLLECTION    = "card_collection"
 )
 
 func InitDBConnection() error {
