@@ -5,14 +5,97 @@
     "slots": [
         {
             "options": [
-                {   
-                    "layout": "modal_dfc",
-                    "rarity": "rare",
+                {
+                    "skippedTypes": ["Basic", "Lesson"],
+                    "rarity": "common",
                     "weight": 1
+                }
+            ],
+            "count": 8
+        },
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "common",
+                    "weight": 10
                 },
-                {   
-                    "layout": "modal_dfc",
+                
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "uncommon",
+                    "weight": 5
+                },
+                
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "rare",
+                    "weight": 2
+                },
+                
+                {
+                    "skippedTypes": ["Basic"],
                     "rarity": "mythic",
+                    "weight": 11
+                }
+            ],
+            "count": 1
+        },        
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Lesson"],
+                    "rarity": "uncommon",
+                    "weight": 1
+                }
+            ],
+            "count": 3
+        },
+        {
+            "options": [
+                {
+                    "types": ["Lesson"],
+                    "rarity": "common",
+                    "weight": 10
+                },
+                {
+                    "types": ["Lesson"],
+                    "rarity": "uncommon",
+                    "weight": 5
+                },
+                {
+                    "types": ["Lesson"],
+                    "rarity": "rare",
+                    "weight": 2
+                },
+                {
+                    "types": ["Lesson"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },   
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Lesson"],
+                    "rarity": "rare",
+                    "weight": 7
+                },
+                {
+                    "skippedTypes": ["Lesson"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },
+        {
+            "options": [
+                {
+                    "types": ["Basic"],
+                    "rarity": "common",
                     "weight": 1
                 }
             ],

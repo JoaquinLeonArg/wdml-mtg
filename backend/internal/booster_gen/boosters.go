@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
@@ -25,11 +26,12 @@ type BoosterData struct {
 }
 
 type Option struct {
-	Rarity string `json:"rarity"`
-	Weight int    `json:"weight"`
-	Type   string `json:"type"`
-	Layout string `json:"layout"`
-	Set    string `json:"set"`
+	Rarity       string   `json:"rarity"`
+	Weight       int      `json:"weight"`
+	Types        []string `json:"types"`
+	SkippedTypes []string `json:"skippedTypes"`
+	Layout       string   `json:"layout"`
+	Set          string   `json:"set"`
 }
 
 func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
@@ -97,16 +99,32 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 			}
 			possibleCards := make([]scryfallapi.Card, 0)
 			for _, card := range cardList[set] {
-				if card.Rarity == chosenOption.Rarity {
-					if chosenOption.Type != "" && !strings.Contains(card.TypeLine, chosenOption.Type) {
-						continue
-					} else {
-						if chosenOption.Layout != "" && card.Layout != scryfallapi.Layout(chosenOption.Layout) {
-							continue
-						} else {
-							possibleCards = append(possibleCards, card)
+				skip := false
+				if card.Rarity != chosenOption.Rarity {
+					skip = true
+				}
+				if !skip && chosenOption.Layout != "" && card.Layout != scryfallapi.Layout(chosenOption.Layout) {
+					skip = true
+				}
+				if !skip {
+					cardTypes := scryfall.ParseScryfallTypeline(card.TypeLine)
+					// Check Types
+					for _, chosenType := range chosenOption.SkippedTypes {
+						if slices.Contains(cardTypes, chosenType) {
+							skip = true
 						}
 					}
+					if !skip {
+						for _, chosenType := range chosenOption.Types {
+							if !slices.Contains(cardTypes, chosenType) {
+								skip = true
+							}
+						}
+					}
+				}
+
+				if !skip {
+					possibleCards = append(possibleCards, card)
 				}
 			}
 
@@ -116,14 +134,16 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 				colors = append(colors, string(col))
 			}
 
+			cardFront, cardBack := scryfall.GetImageFromFaces(card)
 			log.Debug().Interface("Selected card ", card.Name).Send()
 			boosterPack = append(boosterPack,
 				domain.CardData{
-					Name:      card.Name,
-					Typeline:  card.TypeLine,
-					ManaValue: int(card.CMC),
-					Colors:    colors,
-					ImageURL:  card.ImageURIs.Large,
+					Name:         card.Name,
+					Types:        scryfall.ParseScryfallTypeline(card.TypeLine),
+					ManaValue:    int(card.CMC),
+					Colors:       colors,
+					ImageURL:     cardFront,
+					BackImageURL: cardBack,
 				},
 			)
 		}
