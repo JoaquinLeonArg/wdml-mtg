@@ -28,7 +28,7 @@ type Option struct {
 	Rarity string `json:"rarity"`
 	Weight int    `json:"weight"`
 	Type   string `json:"type"`
-	Frame  string `json:"dfc"`
+	Layout string `json:"layout"`
 	Set    string `json:"set"`
 }
 
@@ -42,14 +42,14 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	}
 	jsonData, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Json read error")
 	}
 	err = json.Unmarshal(jsonData, &boosterData)
 	if err != nil {
-		return nil, fmt.Errorf("Json read error but again")
+		return nil, fmt.Errorf("Json unmarshal error")
 	}
 
-	log.Debug().Interface("data", boosterData).Send()
+	// log.Debug().Interface("data", boosterData).Send()
 
 	cardList := make(map[string][]scryfallapi.Card)
 
@@ -64,7 +64,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 		cardList[sc] = append(cardList[sc], cards...)
 	}
 
-	if err != nil || len(cardList) == 0 {
+	if err != nil || len(cardList[strings.ToLower(setCode)]) == 0 {
 		log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
 		return nil, fmt.Errorf("No cards error")
 	}
@@ -101,7 +101,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 					if chosenOption.Type != "" && !strings.Contains(card.TypeLine, chosenOption.Type) {
 						continue
 					} else {
-						if chosenOption.Frame != "" && card.Frame != scryfallapi.Frame(chosenOption.Frame) {
+						if chosenOption.Layout != "" && card.Layout != scryfallapi.Layout(chosenOption.Layout) {
 							continue
 						} else {
 							possibleCards = append(possibleCards, card)
@@ -116,6 +116,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 				colors = append(colors, string(col))
 			}
 
+			log.Debug().Interface("Selected card ", card.Name).Send()
 			boosterPack = append(boosterPack,
 				domain.CardData{
 					Name:      card.Name,
