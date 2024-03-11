@@ -1,0 +1,119 @@
+{
+    "cardCount": 15,
+    "sets": ["stx", "sta"],
+    "defaultSet": "stx",
+    "slots": [
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "common",
+                    "weight": 1
+                }
+            ],
+            "count": 8
+        },
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "common",
+                    "weight": 10
+                },
+                
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "uncommon",
+                    "weight": 5
+                },
+                
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "rare",
+                    "weight": 2
+                },
+                
+                {
+                    "skippedTypes": ["Basic"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },        
+        {
+            "options": [
+                {
+                    "rarity": "uncommon",
+                    "weight": 1
+                }
+            ],
+            "count": 3
+        },
+        {
+            "options": [
+                {
+                    "types": ["Lesson"],
+                    "rarity": "common",
+                    "weight": 10
+                },
+                {
+                    "types": ["Lesson"],
+                    "rarity": "rare",
+                    "weight": 2
+                },
+                {
+                    "types": ["Lesson"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },   
+        {
+            "options": [
+                {
+                    "skippedTypes": ["Lesson"],
+                    "rarity": "rare",
+                    "weight": 7
+                },
+                {
+                    "skippedTypes": ["Lesson"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },   
+        {
+            "options": [
+                {
+                    "set": "sta",
+                    "rarity": "uncommon",
+                    "weight": 15
+                },
+                {
+                    "set": "sta",
+                    "rarity": "rare",
+                    "weight": 7
+                },
+                {
+                    "set": "sta",
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },
+        {
+            "options": [
+                {
+                    "types": ["Basic"],
+                    "rarity": "common",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        }
+    ]
+}

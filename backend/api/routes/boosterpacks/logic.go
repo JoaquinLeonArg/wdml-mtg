@@ -11,6 +11,7 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	boostergen "github.com/joaquinleonarg/wdml_mtg/backend/internal/booster_gen"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
@@ -119,8 +120,15 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 	var err error
 	if boosterPackData.BoosterType == domain.BoosterTypeDraft {
 		// Vanilla booster
-		cards, err = GenerateVanillaBoosterPack(boosterPackData)
+		_, err := boostergen.CheckIfBoosterExists(boosterPackData.SetCode)
 		if err != nil {
+			log.Debug().Str("set", boosterPackData.SetCode).Err(err).Msg("booster pack does not exist")
+			return nil, apiErrors.ErrNotFound
+		}
+		cards, err = boostergen.GenerateBoosterFromJson(boosterPackData.SetCode)
+
+		if err != nil {
+			log.Debug().Err(err).Msg("failed to generate booster pack")
 			return nil, apiErrors.ErrInternal
 		}
 	} else {
@@ -174,15 +182,7 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 			for _, col := range card.Colors {
 				colors = append(colors, string(col))
 			}
-			var types []string
-			for _, rawType1 := range strings.Split(card.TypeLine, "—") {
-				for _, rawType2 := range strings.Split(rawType1, " ") {
-					rawType3 := strings.Trim(rawType2, " ")
-					if rawType3 != "" && rawType3 != "//" {
-						types = append(types, rawType3)
-					}
-				}
-			}
+			types := scryfall.ParseScryfallTypeline(card.TypeLine)
 
 			newCard := domain.CardData{
 				SetCode:         strings.ToUpper(card.Set),
@@ -192,12 +192,9 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 				ManaValue:       int(card.CMC),
 				Colors:          colors,
 			}
-			if card.CardFaces != nil {
-				newCard.ImageURL = card.CardFaces[0].ImageURIs.Normal
-				newCard.BackImageURL = card.CardFaces[1].ImageURIs.Normal
-			} else {
-				newCard.ImageURL = card.ImageURIs.Normal
-			}
+			cardFront, cardBack := scryfall.GetImageFromFaces(card)
+			newCard.ImageURL = cardFront
+			newCard.BackImageURL = cardBack
 
 			newCards = append(newCards, newCard)
 		}

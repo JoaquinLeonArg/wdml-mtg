@@ -1,0 +1,30 @@
+package scryfall
+
+import (
+	"strings"
+
+	"github.com/BlueMonday/go-scryfall"
+)
+
+func ParseScryfallTypeline(rawType string) []string {
+	var types []string
+
+	for _, rawType1 := range strings.Split(rawType, "—") {
+		for _, rawType2 := range strings.Split(rawType1, " ") {
+			rawType3 := strings.Trim(rawType2, " ")
+			if rawType3 != "" && rawType3 != "//" {
+				types = append(types, rawType3)
+			}
+		}
+	}
+
+	return types
+}
+
+func GetImageFromFaces(card scryfall.Card) (string, string) {
+	if card.CardFaces != nil {
+		return card.CardFaces[0].ImageURIs.Normal, card.CardFaces[1].ImageURIs.Normal
+	} else {
+		return card.ImageURIs.Normal, ""
+	}
+}
