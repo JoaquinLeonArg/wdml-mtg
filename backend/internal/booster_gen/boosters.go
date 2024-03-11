@@ -108,6 +108,10 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 			possibleCards := make([]scryfallapi.Card, 0)
 			for _, card := range cardList[set] {
 				skip := false
+				// Check rarity, legality and layout
+				if card.Digital {
+					skip = true
+				}
 				if card.Rarity != chosenOption.Rarity {
 					skip = true
 				}
