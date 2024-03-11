@@ -6,7 +6,7 @@
         {
             "options": [
                 {
-                    "skippedTypes": ["Basic", "Lesson"],
+                    "skippedTypes": ["Basic"],
                     "rarity": "common",
                     "weight": 1
                 }
@@ -36,7 +36,7 @@
                 {
                     "skippedTypes": ["Basic"],
                     "rarity": "mythic",
-                    "weight": 11
+                    "weight": 1
                 }
             ],
             "count": 1
@@ -44,7 +44,6 @@
         {
             "options": [
                 {
-                    "skippedTypes": ["Lesson"],
                     "rarity": "uncommon",
                     "weight": 1
                 }
@@ -57,11 +56,6 @@
                     "types": ["Lesson"],
                     "rarity": "common",
                     "weight": 10
-                },
-                {
-                    "types": ["Lesson"],
-                    "rarity": "uncommon",
-                    "weight": 5
                 },
                 {
                     "types": ["Lesson"],
@@ -85,6 +79,26 @@
                 },
                 {
                     "skippedTypes": ["Lesson"],
+                    "rarity": "mythic",
+                    "weight": 1
+                }
+            ],
+            "count": 1
+        },   
+        {
+            "options": [
+                {
+                    "set": "sta",
+                    "rarity": "uncommon",
+                    "weight": 15
+                },
+                {
+                    "set": "sta",
+                    "rarity": "rare",
+                    "weight": 7
+                },
+                {
+                    "set": "sta",
                     "rarity": "mythic",
                     "weight": 1
                 }

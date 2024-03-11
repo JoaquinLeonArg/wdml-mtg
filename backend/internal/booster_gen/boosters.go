@@ -34,9 +34,19 @@ type Option struct {
 	Set          string   `json:"set"`
 }
 
-func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
-	// Vanilla gen
+func CheckIfBoosterExists(setCode string) (bool, error) {
+	path, err := filepath.Abs("./internal/booster_gen/sets/" + strings.ToLower(setCode) + ".json")
+	if err != nil {
+		return false, err
+	}
+	_, err = os.ReadFile(path)
+	if err != nil {
+		return false, fmt.Errorf("Json read error")
+	}
+	return true, nil
+}
 
+func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	var boosterData BoosterData
 	path, err := filepath.Abs("./internal/booster_gen/sets/" + strings.ToLower(setCode) + ".json")
 	if err != nil {
@@ -50,8 +60,6 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Json unmarshal error")
 	}
-
-	// log.Debug().Interface("data", boosterData).Send()
 
 	cardList := make(map[string][]scryfallapi.Card)
 
