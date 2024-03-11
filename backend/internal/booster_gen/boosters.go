@@ -41,7 +41,7 @@ func CheckIfBoosterExists(setCode string) (bool, error) {
 	}
 	_, err = os.ReadFile(path)
 	if err != nil {
-		return false, fmt.Errorf("Json read error")
+		return false, fmt.Errorf("json read error")
 	}
 	return true, nil
 }
@@ -54,11 +54,11 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	}
 	jsonData, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("Json read error")
+		return nil, fmt.Errorf("json read error")
 	}
 	err = json.Unmarshal(jsonData, &boosterData)
 	if err != nil {
-		return nil, fmt.Errorf("Json unmarshal error")
+		return nil, fmt.Errorf("json unmarshal error")
 	}
 
 	cardList := make(map[string][]scryfallapi.Card)
@@ -76,7 +76,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 
 	if err != nil || len(cardList[strings.ToLower(setCode)]) == 0 {
 		log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
-		return nil, fmt.Errorf("No cards error")
+		return nil, fmt.Errorf("no cards error")
 	}
 
 	boosterPack := make([]domain.CardData, 0, boosterData.CardCount)
