@@ -41,24 +41,24 @@ func CheckIfBoosterExists(setCode string) (bool, error) {
 	}
 	_, err = os.ReadFile(path)
 	if err != nil {
-		return false, fmt.Errorf("json read error")
+		return false, err
 	}
 	return true, nil
 }
 
 func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	var boosterData BoosterData
-	path, err := filepath.Abs("./internal/booster_gen/sets/" + strings.ToLower(setCode) + ".json")
+	path, err := filepath.Abs(fmt.Sprintf(("./internal/booster_gen/sets/%s.json"), strings.ToLower(setCode)))
 	if err != nil {
 		return nil, err
 	}
 	jsonData, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("json read error")
+		return nil, err
 	}
 	err = json.Unmarshal(jsonData, &boosterData)
 	if err != nil {
-		return nil, fmt.Errorf("json unmarshal error")
+		return nil, err
 	}
 
 	cardList := make(map[string][]scryfallapi.Card)
@@ -66,7 +66,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 	for _, sc := range boosterData.Sets {
 		cards, err := scryfall.GetSetCards(sc)
 		if err != nil {
-			return nil, fmt.Errorf("scryfall error")
+			return nil, err
 		}
 		if _, ok := cardList[sc]; !ok {
 			cardList[sc] = []scryfallapi.Card{}

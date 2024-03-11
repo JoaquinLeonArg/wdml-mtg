@@ -120,17 +120,15 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 	var err error
 	if boosterPackData.BoosterType == domain.BoosterTypeDraft {
 		// Vanilla booster
-		exists, err := boostergen.CheckIfBoosterExists(boosterPackData.SetCode)
+		_, err := boostergen.CheckIfBoosterExists(boosterPackData.SetCode)
 		if err != nil {
-			log.Debug().Err(err).Send()
+			log.Debug().Str("set", boosterPackData.SetCode).Err(err).Msg("booster pack does not exist")
+			return nil, apiErrors.ErrNotFound
 		}
-		if exists {
-			cards, err = boostergen.GenerateBoosterFromJson(boosterPackData.SetCode)
-		} else {
-			cards, err = GenerateVanillaBoosterPack(boosterPackData)
-		}
+		cards, err = boostergen.GenerateBoosterFromJson(boosterPackData.SetCode)
+
 		if err != nil {
-			log.Debug().Err(err).Send()
+			log.Debug().Err(err).Msg("failed to generate booster pack")
 			return nil, apiErrors.ErrInternal
 		}
 	} else {
