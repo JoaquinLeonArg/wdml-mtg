@@ -16,7 +16,7 @@ import (
 var ()
 
 func CreateUser(registerRequest RegisterRequest) error {
-	if len(registerRequest.Username) < 3 || len(registerRequest.Username) > 12 {
+	if len(registerRequest.Username) < 3 || len(registerRequest.Username) > 32 {
 		return apiErrors.ErrUsernameInvalid
 	}
 	if passwordvalidator.GetEntropy(registerRequest.Password) < 50 {
