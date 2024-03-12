@@ -1,118 +1,90 @@
 {
     "cardCount": 15,
-    "sets": ["stx", "sta"],
-    "defaultSet": "stx",
+    "description": "Strixhaven Draft Booster Pack",
+    "name": "Strixhaven, School of Mages",
     "slots": [
         {
-            "options": [
-                {
-                    "skippedTypes": ["Basic"],
-                    "rarity": "common",
-                    "weight": 1
-                }
-            ],
+            "filter": "set:stx rarity:c -type:basic",
             "count": 8
         },
         {
             "options": [
                 {
-                    "skippedTypes": ["Basic"],
-                    "rarity": "common",
+                    "filter": "rarity:c -type:basic",
+                    "weight": 66
+                },
+                {
+                    "filter": "rarity:c",
+                    "weight": 20
+                },
+                {
+                    "filter": "rarity:u",
                     "weight": 10
                 },
-                
                 {
-                    "skippedTypes": ["Basic"],
-                    "rarity": "uncommon",
-                    "weight": 5
+                    "filter": "rarity:r",
+                    "weight": 3
                 },
-                
                 {
-                    "skippedTypes": ["Basic"],
-                    "rarity": "rare",
-                    "weight": 2
-                },
-                
-                {
-                    "skippedTypes": ["Basic"],
-                    "rarity": "mythic",
+                    "filter": "rarity:m",
                     "weight": 1
                 }
             ],
+            "filter": "set:stx",
             "count": 1
-        },        
+        },
         {
-            "options": [
-                {
-                    "rarity": "uncommon",
-                    "weight": 1
-                }
-            ],
+            "filter": "set:stx rarity:u",
             "count": 3
         },
         {
             "options": [
                 {
-                    "types": ["Lesson"],
-                    "rarity": "common",
-                    "weight": 10
+                    "filter": "rarity:c",
+                    "weight": 30
                 },
                 {
-                    "types": ["Lesson"],
-                    "rarity": "rare",
-                    "weight": 2
-                },
-                {
-                    "types": ["Lesson"],
-                    "rarity": "mythic",
-                    "weight": 1
-                }
-            ],
-            "count": 1
-        },   
-        {
-            "options": [
-                {
-                    "skippedTypes": ["Lesson"],
-                    "rarity": "rare",
+                    "filter": "rarity:r",
                     "weight": 7
                 },
                 {
-                    "skippedTypes": ["Lesson"],
-                    "rarity": "mythic",
+                    "filter": "rarity:m",
                     "weight": 1
                 }
             ],
-            "count": 1
-        },   
-        {
-            "options": [
-                {
-                    "set": "sta",
-                    "rarity": "uncommon",
-                    "weight": 15
-                },
-                {
-                    "set": "sta",
-                    "rarity": "rare",
-                    "weight": 7
-                },
-                {
-                    "set": "sta",
-                    "rarity": "mythic",
-                    "weight": 1
-                }
-            ],
+            "filter": "set:stx type:Lesson",
             "count": 1
         },
         {
             "options": [
                 {
-                    "types": ["Basic"],
-                    "rarity": "common",
+                    "filter": "rarity:r",
+                    "weight": 7
+                },
+                {
+                    "filter": "rarity:m",
                     "weight": 1
                 }
             ],
+            "filter": "set:stx",
+            "count": 1
+        },
+        {
+            "options": [
+                {
+                    "filter": "rarity:u",
+                    "weight": 30
+                },
+                {
+                    "filter": "rarity:r",
+                    "weight": 7
+                },
+                {
+                    "filter": "rarity:m",
+                    "weight": 1
+                }
+            ],
+            "filter": "set:sta",
             "count": 1
         }
     ]

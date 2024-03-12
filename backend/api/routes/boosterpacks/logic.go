@@ -125,7 +125,7 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 			log.Debug().Str("set", boosterPackData.SetCode).Err(err).Msg("booster pack does not exist")
 			return nil, apiErrors.ErrNotFound
 		}
-		cards, err = boostergen.GenerateBoosterFromJson(boosterPackData.SetCode)
+		cards, err = boostergen.GenerateBooster(boosterPackData.SetCode, boostergen.GetBoosterDataFromJson)
 
 		if err != nil {
 			log.Debug().Err(err).Msg("failed to generate booster pack")
