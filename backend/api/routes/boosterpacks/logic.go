@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"slices"
 	"strings"
+	"time"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
@@ -14,24 +14,23 @@ import (
 	boostergen "github.com/joaquinleonarg/wdml_mtg/backend/internal/booster_gen"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetTournamentBoosterPacks() ([]domain.BoosterPackData, error) {
-	sets, err := scryfall.GetAllSets()
+	packs, err := db.GetAllBoosterPacks()
 	if err != nil {
 		return nil, apiErrors.ErrInternal
 	}
 	var boosterPacks []domain.BoosterPackData
 
-	for _, set := range sets {
-		if slices.Contains([]string{"core", "expansion"}, string(set.SetType)) && !set.Digital {
-			boosterPacks = append(boosterPacks, domain.BoosterPackData{
-				SetCode:     strings.ToUpper(set.Code),
-				SetName:     set.Name,
-				Expansion:   string(set.SetType),
-				BoosterType: domain.BoosterTypeDraft,
-			})
-		}
+	for _, pack := range packs {
+		boosterPacks = append(boosterPacks, domain.BoosterPackData{
+			SetCode:     strings.ToUpper(pack.SetCode),
+			SetName:     pack.Name,
+			Description: pack.Description,
+			BoosterType: domain.BoosterTypeDraft,
+		})
 	}
 
 	return boosterPacks, nil
@@ -53,17 +52,17 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPacks AddTour
 	// Check that all set codes exist
 	// TODO: Custom boosters
 	setNames := make(map[string]string, len(boosterPacks.BoosterPacks))
-	setTypes := make(map[string]string, len(boosterPacks.BoosterPacks))
-	sets, err := scryfall.GetAllSets()
+	setDescriptions := make(map[string]string, len(boosterPacks.BoosterPacks))
+	packs, err := db.GetAllBoosterPacks()
 	if err != nil {
 		return apiErrors.ErrInternal
 	}
 	for _, boosterPacks := range boosterPacks.BoosterPacks {
 		found := false
-		for _, set := range sets {
-			if set.Code == boosterPacks.Set {
-				setNames[set.Code] = set.Name
-				setTypes[set.Code] = string(set.SetType)
+		for _, pack := range packs {
+			if pack.SetCode == strings.ToLower(boosterPacks.Set) {
+				setNames[pack.SetCode] = pack.Name
+				setDescriptions[pack.SetCode] = string(pack.Description)
 				found = true
 				break
 			}
@@ -95,7 +94,7 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPacks AddTour
 					SetCode:     boosterPack.Set,
 					SetName:     setNames[boosterPack.Set],
 					BoosterType: domain.BoosterType(boosterPack.Type),
-					Expansion:   setTypes[boosterPack.Set],
+					Description: setDescriptions[boosterPack.Set],
 				},
 			},
 		)
@@ -125,7 +124,7 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 			log.Debug().Str("set", boosterPackData.SetCode).Err(err).Msg("booster pack does not exist")
 			return nil, apiErrors.ErrNotFound
 		}
-		cards, err = boostergen.GenerateBooster(boosterPackData.SetCode, boostergen.GetBoosterDataFromJson)
+		cards, err = boostergen.GenerateBooster(strings.ToLower(boosterPackData.SetCode), boostergen.GetBoosterDataFromDb)
 
 		if err != nil {
 			log.Debug().Err(err).Msg("failed to generate booster pack")
@@ -208,4 +207,20 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 	log.Debug().Interface("booster", boosterPack).Send()
 
 	return boosterPack, nil
+}
+
+func CreateNewBoosterPack(boosterPack domain.BoosterPack) error {
+	err := db.CreateBoosterPack(domain.BoosterPack{
+		SetCode:     boosterPack.SetCode,
+		Name:        boosterPack.Name,
+		Description: boosterPack.Description,
+		CardCount:   boosterPack.CardCount,
+		Slots:       boosterPack.Slots,
+		CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+	})
+	if errors.Is(err, db.ErrAlreadyExists) {
+		return apiErrors.ErrDuplicatedResource
+	}
+	return nil
 }

@@ -1,7 +1,8 @@
 {
-    "cardCount": 15,
+    "card_count": 15,
     "description": "Strixhaven Draft Booster Pack",
     "name": "Strixhaven, School of Mages",
+    "set_code": "stx",
     "slots": [
         {
             "filter": "set:stx rarity:c -type:basic",

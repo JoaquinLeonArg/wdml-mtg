@@ -16,6 +16,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("", GetTournamentBoosterPacksHandler).Methods(http.MethodGet)
 	r.HandleFunc("", AddTournamentBoosterPacksHandler).Methods(http.MethodPost)
 	r.HandleFunc("/open", OpenBoosterPackHandler).Methods(http.MethodPost)
+	r.HandleFunc("/new", CreateBoosterPackHandler).Methods(http.MethodPost)
 }
 
 //
@@ -155,4 +156,33 @@ func OpenBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(OpenBoosterPackResponse{CardData: cards}))
+}
+
+// Endpoint: Create new booster pack
+func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Decode body data
+	var boosterPack domain.BoosterPack
+	err := json.NewDecoder(r.Body).Decode(&boosterPack)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Add the booster packs
+	err = CreateNewBoosterPack(boosterPack)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(AddTournamentBoosterPacksResponse{}))
 }

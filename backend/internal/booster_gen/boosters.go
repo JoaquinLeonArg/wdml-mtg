@@ -9,30 +9,15 @@ import (
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
+	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
 
-type BoosterData struct {
-	CardCount   int    `json:"cardCount"`
-	Description string `json:"description"`
-	Name        string `json:"name"`
-	Slots       []struct {
-		Options []Option `json:"options"`
-		Filter  string   `json:"filter"`
-		Count   int      `json:"count"`
-	} `json:"slots"`
-}
-
-type Option struct {
-	Filter string `json:"filter"`
-	Weight int    `json:"weight"`
-}
-
 type CardListsBySet map[string][]scryfallapi.Card
 
-type BoosterDataGetter func(setCode string) (*BoosterData, error)
+type BoosterDataGetter func(setCode string) (*domain.BoosterPack, error)
 
 func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardData, error) {
 	boosterData, err := genFunc(setCode)
@@ -42,14 +27,14 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 	boosterPack := make([]domain.CardData, 0, boosterData.CardCount)
 
 	for _, slot := range boosterData.Slots {
-		optionsByWeight := make(map[int]Option)
+		optionsByWeight := make(map[int]domain.Option)
 		currentWeight := 0
 		for _, option := range slot.Options {
 			currentWeight += option.Weight
 			optionsByWeight[currentWeight] = option
 		}
 		for i := 0; i < slot.Count; i++ {
-			chosenOption := Option{}
+			chosenOption := domain.Option{}
 			if currentWeight > 0 {
 				chosenWeight := rand.Int() % currentWeight
 				for w, option := range optionsByWeight {
@@ -93,8 +78,8 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 	return boosterPack, nil
 }
 
-func GetBoosterDataFromJson(setCode string) (*BoosterData, error) {
-	var boosterData BoosterData
+func GetBoosterDataFromJson(setCode string) (*domain.BoosterPack, error) {
+	var boosterData domain.BoosterPack
 	path, err := filepath.Abs(fmt.Sprintf(("./internal/booster_gen/sets/%s.json"), strings.ToLower(setCode)))
 	if err != nil {
 		return nil, err
@@ -108,6 +93,14 @@ func GetBoosterDataFromJson(setCode string) (*BoosterData, error) {
 		return nil, err
 	}
 	return &boosterData, nil
+}
+
+func GetBoosterDataFromDb(setCode string) (*domain.BoosterPack, error) {
+	boosterPack, err := db.GetPackBySetCode(setCode)
+	if err != nil {
+		return nil, err
+	}
+	return boosterPack, nil
 }
 
 func CheckIfBoosterExists(setCode string) (bool, error) {
