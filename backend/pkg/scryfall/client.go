@@ -77,3 +77,30 @@ func GetSetCards(set string) ([]scryfallapi.Card, error) {
 
 	return allCards, nil
 }
+
+func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
+	var err error
+	if client == nil {
+		client, err = scryfallapi.NewClient()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	page := 1
+	ctx := context.Background()
+	allCards := []scryfall.Card{}
+
+	for {
+		setData, err := client.SearchCards(ctx, filter, scryfallapi.SearchCardsOptions{Page: page})
+		if err != nil {
+			return nil, err
+		}
+		allCards = append(allCards, setData.Cards...)
+		if !setData.HasMore {
+			break
+		}
+		page += 1
+	}
+	return allCards, nil
+}
