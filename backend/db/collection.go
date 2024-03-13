@@ -184,7 +184,6 @@ func GetCardsFromTournamentPlayer(userID, tournamentID string, filters []CardFil
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
-		// log.Debug().Interface("queryResult", queryResult).Send()
 		return map[string]interface{}{"count": int(count), "cards": queryResult}, nil
 	})
 
