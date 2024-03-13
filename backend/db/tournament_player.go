@@ -328,6 +328,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 						ID:           primitive.NewObjectID(),
 						TournamentID: tournamentPlayer.TournamentID,
 						UserID:       tournamentPlayer.UserID,
+						Tags:         []string{},
 						Count:        1,
 						CardData:     card,
 						CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),

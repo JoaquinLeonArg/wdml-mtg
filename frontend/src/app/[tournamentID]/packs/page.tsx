@@ -81,7 +81,6 @@ type AddedPacks = {
 }[]
 
 function AddPacks(props: AddPacksProps) {
-  let router = useRouter()
   let [availablePacks, setAvailablePacks] = useState<BoosterPackData[]>([])
   let [error, setError] = useState<string>("")
   let [addedPacks, setAddedPacks] = useState<AddedPacks>([{ type: "bt_draft", count: 0, set: "" }])

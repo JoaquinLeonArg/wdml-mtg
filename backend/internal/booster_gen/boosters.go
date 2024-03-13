@@ -3,6 +3,7 @@ package boostergen
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -63,12 +64,16 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 			log.Debug().Interface("Selected card ", card.Name).Send()
 			boosterPack = append(boosterPack,
 				domain.CardData{
-					Name:         card.Name,
-					Types:        scryfall.ParseScryfallTypeline(card.TypeLine),
-					ManaValue:    int(card.CMC),
-					Colors:       colors,
-					ImageURL:     cardFront,
-					BackImageURL: cardBack,
+					SetCode:         strings.ToUpper(card.Set),
+					CollectorNumber: card.CollectorNumber,
+					Name:            card.Name,
+					Oracle:          card.OracleText,
+					Rarity:          domain.CardRarity(card.Rarity),
+					Types:           scryfall.ParseScryfallTypeline(card.TypeLine),
+					ManaValue:       int(math.Floor(card.CMC)),
+					Colors:          colors,
+					ImageURL:        cardFront,
+					BackImageURL:    cardBack,
 				},
 			)
 		}

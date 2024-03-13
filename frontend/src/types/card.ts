@@ -1,5 +1,5 @@
 export type CardData = {
-  card_rarity: string
+  rarity: string
   image_url: string
 }
 

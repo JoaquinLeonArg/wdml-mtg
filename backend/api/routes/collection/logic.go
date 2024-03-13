@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func GetCollectionCards(userID, tournamentID, filters string, count, page int) ([]domain.OwnedCard, error) {
+func GetCollectionCards(userID, tournamentID, filters string, count, page int) ([]domain.OwnedCard, int, error) {
 	log.Debug().Str("filters", filters).Send()
 	dbFilters := []db.CardFilter{}
 	for _, filter := range strings.Split(filters, "+") {
@@ -18,18 +18,28 @@ func GetCollectionCards(userID, tournamentID, filters string, count, page int) (
 			db.CardFilterOperationGt,
 		} {
 			for _, filterType := range []db.CardFilterType{
+				db.CardFilterTypeName,
+				db.CardFilterTypeTags,
+				db.CardFilterTypeRarity,
 				db.CardFilterTypeColor,
+				db.CardFilterTypeTypes,
+				db.CardFilterTypeOracle,
+				db.CardFilterTypeSetCode,
+				db.CardFilterTypeMV,
 			} {
 				if strings.Contains(filter, string(filterOperation)) {
 					splitted := strings.Split(filter, string(filterOperation))
+					if splitted[1] == "" {
+						continue
+					}
 					if splitted[0] == string(filterType) {
 						dbFilters = append(dbFilters, db.CardFilter{
 							Type:      filterType,
 							Operation: filterOperation,
-							Values:    strings.Split(splitted[1], "|"),
+							Value:     splitted[1],
 						})
 					}
-					break
+					continue
 				}
 			}
 		}
