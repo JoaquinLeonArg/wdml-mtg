@@ -15,15 +15,15 @@ export function CardImage(props: CardImageProps) {
     "uncommon": "border-rarity-uncommon",
     "rare": "border-rarity-rare",
     "mythic": "border-rarity-mythic",
-  }[props.card_rarity]
+  }[props.rarity]
   let shadowRarityColor = {
     "common": "shadow-rarity-common",
     "uncommon": "shadow-rarity-uncommon",
     "rare": "shadow-rarity-rare",
     "mythic": "shadow-rarity-mythic",
-  }[props.card_rarity]
+  }[props.rarity]
   return (
-    <div className="group w-[256px] h-[355px] hover:scale-125 scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
+    <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
       <div onClick={() => { if (!isFaceUp) setIsFaceUp(true) }} className={
         `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${!isFaceUp && "[transform:rotateY(180deg)]"}`
       }>

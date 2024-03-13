@@ -37,10 +37,17 @@ module.exports = {
           950: '#171202',
         },
         rarity: {
-          "common": "#AAAAAA",
-          "uncommon": "#9BCDCB",
+          "common": "#666666",
+          "uncommon": "#9BCDFF",
           "rare": "#C6AC6E",
           "mythic": "#D66525"
+        },
+        mana: {
+          "white": "#F8E7B9",
+          "blue": "#B3CEEA",
+          "black": "#A69F9D",
+          "red": "#EBA082",
+          "green": "#C4D3CA",
         }
       }
     },

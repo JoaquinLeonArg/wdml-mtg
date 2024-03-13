@@ -188,13 +188,12 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 				SetCode:         strings.ToUpper(card.Set),
 				CollectorNumber: card.CollectorNumber,
 				Name:            card.Name,
+				Rarity:          domain.CardRarity(card.Rarity),
 				Types:           types,
 				ManaValue:       int(card.CMC),
 				Colors:          colors,
 			}
-			cardFront, cardBack := scryfall.GetImageFromFaces(card)
-			newCard.ImageURL = cardFront
-			newCard.BackImageURL = cardBack
+			newCard.ImageURL, newCard.BackImageURL = scryfall.GetImageFromFaces(card)
 
 			newCards = append(newCards, newCard)
 		}

@@ -3,6 +3,7 @@ package boostergen
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -74,7 +75,7 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 		cardList[sc] = append(cardList[sc], cards...)
 	}
 
-	if err != nil || len(cardList[strings.ToLower(setCode)]) == 0 {
+	if len(cardList[strings.ToLower(setCode)]) == 0 {
 		log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
 		return nil, fmt.Errorf("no cards error")
 	}
@@ -150,12 +151,16 @@ func GenerateBoosterFromJson(setCode string) ([]domain.CardData, error) {
 			log.Debug().Interface("Selected card ", card.Name).Send()
 			boosterPack = append(boosterPack,
 				domain.CardData{
-					Name:         card.Name,
-					Types:        scryfall.ParseScryfallTypeline(card.TypeLine),
-					ManaValue:    int(card.CMC),
-					Colors:       colors,
-					ImageURL:     cardFront,
-					BackImageURL: cardBack,
+					SetCode:         strings.ToUpper(card.Set),
+					CollectorNumber: card.CollectorNumber,
+					Name:            card.Name,
+					Oracle:          card.OracleText,
+					Rarity:          domain.CardRarity(card.Rarity),
+					Types:           scryfall.ParseScryfallTypeline(card.TypeLine),
+					ManaValue:       int(math.Floor(card.CMC)),
+					Colors:          colors,
+					ImageURL:        cardFront,
+					BackImageURL:    cardBack,
 				},
 			)
 		}

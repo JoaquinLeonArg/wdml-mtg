@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,9 @@ func RegisterEndpoints(r *mux.Router) {
 //
 
 type GetCollectionResponse struct {
-	Cards []domain.OwnedCard `json:"cards"`
+	Cards   []domain.OwnedCard `json:"cards"`
+	Count   int                `json:"count"`
+	MaxPage int                `json:"max_page"`
 }
 
 func GetCollectionHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +73,7 @@ func GetCollectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cards, err := GetCollectionCards(userID, tournamentID, filterQuery, count, page)
+	cards, total, err := GetCollectionCards(userID, tournamentID, filterQuery, count, page)
 
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get cards from collection")
@@ -79,5 +82,11 @@ func GetCollectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Send response back
 	w.WriteHeader(http.StatusOK)
-	w.Write(response.NewDataResponse(GetCollectionResponse{Cards: cards}))
+	w.Write(response.NewDataResponse(
+		GetCollectionResponse{
+			Cards:   cards,
+			Count:   total,
+			MaxPage: int(math.Ceil(float64(total) / float64(count))),
+		},
+	))
 }
