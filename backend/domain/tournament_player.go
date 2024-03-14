@@ -76,11 +76,3 @@ type BoosterGenDataCustom struct {
 	CardPool []OwnedCard `bson:"card_pool" json:"card_pool"`
 	// TODO: Extra customization
 }
-
-type Deck struct {
-	Name        string             `bson:"name" json:"name"`
-	Description string             `bson:"description" json:"description"`
-	Cards       []OwnedCard        `bson:"cards" json:"cards"`
-	CreatedAt   primitive.DateTime `bson:"created_at" json:"created_at"`
-	UpdatedAt   primitive.DateTime `bson:"updated_at" json:"updated_at"`
-}
