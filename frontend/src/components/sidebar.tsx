@@ -15,7 +15,7 @@ export default function NavigationSidebar(props: NavigationSidebarProps) {
                     <ul className="space-y-2 pt-16">
                         <SidebarButton name="News" ><BsMegaphoneFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Packs" href={"/" + props.tournamentID + "/packs"} ><BsBoxSeamFill className="w-6 h-6" /></SidebarButton>
-                        <SidebarButton name="Cards" items={[{ name: "Collection", href: "/" + props.tournamentID + "/collection" }, { name: "Decks", href: "#" }]} ><BsCollectionFill className="w-6 h-6" /></SidebarButton>
+                        <SidebarButton name="Cards" items={[{ name: "Collection", href: `/${props.tournamentID}/collection` }, { name: "Decks", href: `/${props.tournamentID}/decks` }]} ><BsCollectionFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Matches" ><BsDiagram3Fill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Players" ><BsEmojiSunglassesFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Settings" ><BsFillGearFill className="w-6 h-6" /></SidebarButton>

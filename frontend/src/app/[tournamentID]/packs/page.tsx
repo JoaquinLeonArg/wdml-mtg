@@ -3,7 +3,6 @@
 import { CardDisplay } from "@/components/card";
 import { Header } from "@/components/header";
 import Layout from "@/components/layout";
-import { PackList } from "@/components/packlist";
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { CardData } from "@/types/card";
 import { BoosterPack, BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
