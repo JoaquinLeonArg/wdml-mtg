@@ -42,12 +42,11 @@ type OwnedWildcards struct {
 }
 
 type OwnedBoosterPack struct {
-	BoosterGen     BoosterGen      `bson:"booster_gen" json:"booster_gen"`
-	BoosterGenData interface{}     `bson:"booster_gen_data" json:"booster_gen_data"`
-	Available      int             `bson:"available" json:"available"`
-	Data           BoosterPackData `bson:"data" json:"data"`
+	Available int             `bson:"available" json:"available"`
+	Data      BoosterPackData `bson:"data" json:"data"`
 }
 
+// TODO: Deduplicate this and move everything to booster_pack
 type BoosterPackData struct {
 	SetCode     string      `bson:"set_code" json:"set_code"`
 	SetName     string      `bson:"set_name" json:"set_name"`

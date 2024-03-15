@@ -16,6 +16,9 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
 	return db.GetTournamentPlayersForUser(userID)
 }
+func GetBoosterPacksForTournamentPlayer(tournamentID, userID string) ([]domain.OwnedBoosterPack, error) {
+	return db.GetAvailablePacksForTournamentPlayer(tournamentID, userID)
+}
 
 func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest CreateTournamentPlayerRequest) (string, error) {
 	userID, err := primitive.ObjectIDFromHex(rawUserID)
