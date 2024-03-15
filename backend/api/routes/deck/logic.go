@@ -5,44 +5,43 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 )
 
-func GetDeckById(id string) (*domain.Deck, error) {
-	return db.GetDeckById(id)
+func GetDeckById(deckId string) (*domain.Deck, error) {
+	return db.GetDeckById(deckId)
 }
 
-func GetDecksByTournamentPlayerId(id string) ([]domain.Deck, error) {
-	return db.GetDecksByTournamentPlayerId(id)
+func GetDecksByTournamentPlayerId(tournamentPlayerId string) ([]domain.Deck, error) {
+	return db.GetDecksByTournamentPlayerId(tournamentPlayerId)
 }
 
-func CreateEmptyDeck(ownerId string, req CreateEmptyDeckRequest) error {
-	// Get TournamentPlayerId from params
-
-	tournamentPlayer, err := db.GetTournamentPlayer(req.TournamentId, ownerId)
+func CreateEmptyDeck(ownerId, deckName, deckDescription, tournamentId string) error {
+	tournamentPlayer, err := db.GetTournamentPlayer(tournamentId, ownerId)
 	if err != nil {
 		return err
 	}
 
-	deck := domain.Deck{
-		Name:               req.Deck.Name,
-		Description:        req.Deck.Description,
+	createdDeck := domain.Deck{
+		Name:               deckName,
+		Description:        deckDescription,
 		TournamentPlayerID: tournamentPlayer.ID,
 	}
 
-	return db.CreateEmptyDeck(deck)
+	return db.CreateEmptyDeck(createdDeck)
 }
 
-func AddOwnedCardToDeck(addOwnedCardToDeckRequest AddOwnedCardToDeckRequest) error {
+func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.DeckBoard) error {
 	return db.AddOwnedCardToDeck(
-		addOwnedCardToDeckRequest.Card,
-		addOwnedCardToDeckRequest.DeckId,
-		addOwnedCardToDeckRequest.Amount,
-		addOwnedCardToDeckRequest.Board,
+		cardId,
+		deckId,
+		amount,
+		board,
 	)
 }
 
-func RemoveCardFromDeck(addOwnedCardToDeckRequest RemoveCardFromDeckRequest) error {
+func RemoveCardFromDeck(card domain.DeckCard, deckId string, amount int, board domain.DeckBoard) error {
 	return db.RemoveDeckCardFromDeck(
-		addOwnedCardToDeckRequest.Card,
-		addOwnedCardToDeckRequest.Amount,
-		addOwnedCardToDeckRequest.Board,
+		card,
+		deckId,
+		amount,
+		board,
 	)
 }

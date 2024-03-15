@@ -193,3 +193,33 @@ func GetCardsFromTournamentPlayer(userID, tournamentID string, filters []CardFil
 
 	return res.(map[string]interface{})["cards"].([]domain.OwnedCard), res.(map[string]interface{})["count"].(int), nil
 }
+
+func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	dbCardId, err := primitive.ObjectIDFromHex(cardId)
+	if err != nil {
+		return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+	// Find card
+	result := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_DECKS).
+		FindOne(ctx,
+			bson.M{"_id": dbCardId},
+		)
+	if err := result.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrNotFound, err)
+		}
+		return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode card
+	var card domain.OwnedCard
+	err = result.Decode(&card)
+	if err != nil {
+		return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	return card, nil
+}

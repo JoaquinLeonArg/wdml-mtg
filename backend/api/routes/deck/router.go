@@ -14,9 +14,9 @@ func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/deck").Subrouter()
 	r.HandleFunc("/", GetDeckByIdHandler).Methods(http.MethodGet)
 	r.HandleFunc("/player/", GetDecksByTournamentPlayerIdHandler).Methods(http.MethodGet)
-	r.HandleFunc("/new", CreateEmptyDeckHandler).Methods(http.MethodPost)
-	r.HandleFunc("/addCard", AddOwnedCardToDeckHandler).Methods(http.MethodPost)
-	r.HandleFunc("/removeCard", RemoveCardFromDeckHandler).Methods(http.MethodPost)
+	r.HandleFunc("/", CreateEmptyDeckHandler).Methods(http.MethodPost)
+	r.HandleFunc("/card", AddOwnedCardToDeckHandler).Methods(http.MethodPost)
+	r.HandleFunc("/card", RemoveCardFromDeckHandler).Methods(http.MethodDelete)
 }
 
 //
@@ -40,7 +40,8 @@ func GetDeckByIdHandler(w http.ResponseWriter, r *http.Request) {
 	deck, err := GetDeckById(deckId)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get deck data")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	// Send response back
@@ -67,7 +68,8 @@ func GetDecksByTournamentPlayerIdHandler(w http.ResponseWriter, r *http.Request)
 	decks, err := GetDecksByTournamentPlayerId(tournamentPlayerId)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get deck data")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -115,7 +117,7 @@ func CreateEmptyDeckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the booster packs to each player, checking if the user is allowed to add them and if they are valid packs
-	err = CreateEmptyDeck(ownerID, createEmptyDeckRequest)
+	err = CreateEmptyDeck(ownerID, createEmptyDeckRequest.Deck.Name, createEmptyDeckRequest.Deck.Description, tournamentID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
@@ -128,7 +130,7 @@ func CreateEmptyDeckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type AddOwnedCardToDeckRequest struct {
-	Card   domain.OwnedCard `json:"card"`
+	CardId string           `json:"card_id"`
 	DeckId string           `json:"deck_id"`
 	Amount int              `json:"amount"`
 	Board  domain.DeckBoard `json:"board"`
@@ -149,8 +151,8 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Decode body data
-	var addOwnedCardToDeckRequest AddOwnedCardToDeckRequest
-	err := json.NewDecoder(r.Body).Decode(&addOwnedCardToDeckRequest)
+	var req AddOwnedCardToDeckRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Debug().
 			Err(err).
@@ -161,7 +163,7 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the booster packs to each player, checking if the user is allowed to add them and if they are valid packs
-	err = AddOwnedCardToDeck(addOwnedCardToDeckRequest)
+	err = AddOwnedCardToDeck(req.CardId, req.DeckId, req.Amount, req.Board)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
@@ -175,6 +177,7 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 
 type RemoveCardFromDeckRequest struct {
 	Card   domain.DeckCard  `json:"card"`
+	DeckId string           `json:"deck_id"`
 	Amount int              `json:"amount"`
 	Board  domain.DeckBoard `json:"board"`
 }
@@ -205,8 +208,7 @@ func RemoveCardFromDeckHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add the booster packs to each player, checking if the user is allowed to add them and if they are valid packs
-	err = RemoveCardFromDeck(removeCardfromDeckRequest)
+	err = RemoveCardFromDeck(removeCardfromDeckRequest.Card, removeCardfromDeckRequest.DeckId, removeCardfromDeckRequest.Amount, removeCardfromDeckRequest.Board)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))

@@ -13,10 +13,9 @@ type Deck struct {
 }
 
 type DeckCard struct {
-	DeckId    primitive.ObjectID `bson:"deck_id" json:"deck_id"`
-	OwnedCard OwnedCard          `bson:"owned_card" json:"owned_card"`
-	Count     int                `bson:"count" json:"count"`
-	Board     DeckBoard          `bson:"board" josn:"board"`
+	OwnedCardId primitive.ObjectID `bson:"owned_card_id" json:"owned_card_id"`
+	Count       int                `bson:"count" json:"count"`
+	Board       DeckBoard          `bson:"board" josn:"board"`
 }
 
 type DeckBoard string
