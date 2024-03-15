@@ -46,7 +46,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 				}
 			}
 
-			filter := fmt.Sprintf("%s %s", slot.Filter, chosenOption.Filter)
+			filter := fmt.Sprintf("%s %s game:paper", slot.Filter, chosenOption.Filter)
 
 			cards, err := scryfall.GetAllCardsByFilter(filter)
 			if err != nil || len(cards) == 0 {
@@ -78,7 +78,6 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 			)
 		}
 	}
-	log.Debug().Interface("booster", boosterPack).Send()
 
 	return boosterPack, nil
 }

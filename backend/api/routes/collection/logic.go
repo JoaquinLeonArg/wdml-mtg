@@ -46,3 +46,7 @@ func GetCollectionCards(userID, tournamentID, filters string, count, page int) (
 	}
 	return db.GetCardsFromTournamentPlayer(userID, tournamentID, dbFilters, count, page)
 }
+
+func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
+	return db.GetOwnedCardById(cardId)
+}

@@ -87,9 +87,7 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPacks AddTour
 		}
 		ownedPacks = append(ownedPacks,
 			domain.OwnedBoosterPack{
-				BoosterGen:     domain.BoosterGenVanilla,
-				BoosterGenData: nil,
-				Available:      boosterPack.Count,
+				Available: boosterPack.Count,
 				Data: domain.BoosterPackData{
 					SetCode:     boosterPack.Set,
 					SetName:     setNames[boosterPack.Set],
@@ -139,6 +137,9 @@ func OpenBoosterPack(userID, tournamentID string, boosterPackData domain.Booster
 		log.Debug().Err(err).Msg("failed to open booster pack")
 		if errors.Is(err, db.ErrNotFound) {
 			return nil, apiErrors.ErrNotFound
+		}
+		if errors.Is(err, db.ErrInvalidID) {
+			return nil, apiErrors.ErrBadRequest
 		}
 		return nil, apiErrors.ErrInternal
 	}
