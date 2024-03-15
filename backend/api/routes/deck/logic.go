@@ -37,11 +37,10 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 	)
 }
 
-func RemoveCardFromDeck(card domain.DeckCard, deckId string, amount int, board domain.DeckBoard) error {
+func RemoveCardFromDeck(card domain.DeckCard, deckId string, amount int) error {
 	return db.RemoveDeckCardFromDeck(
 		card,
 		deckId,
 		amount,
-		board,
 	)
 }

@@ -19,7 +19,6 @@ func GetDeckById(id string) (*domain.Deck, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
-	// Find pack
 	result := MongoDatabaseClient.
 		Database(DB_MAIN).
 		Collection(COLLECTION_DECKS).
@@ -49,7 +48,6 @@ func GetDecksByTournamentPlayerId(id string) ([]domain.Deck, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
-	// Find pack
 	filter := bson.M{"tournament_player_id": dbTournamentPlayerID}
 	cursor, err := MongoDatabaseClient.
 		Database(DB_MAIN).
@@ -62,7 +60,7 @@ func GetDecksByTournamentPlayerId(id string) ([]domain.Deck, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
-	// Decode deck
+	// Decode decks
 	var decks []domain.Deck
 	err = cursor.All(ctx, &decks)
 	if err != nil {
@@ -103,7 +101,7 @@ func CreateEmptyDeck(deck domain.Deck) error {
 		return resultInsert, nil
 	})
 
-	log.Debug().Str("created deck id", deck.ID.String())
+	log.Debug().Str("deck_id", deck.ID.String()).Msg("created deck")
 
 	return err
 }
@@ -137,12 +135,7 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 		foundAmount := 0
 		foundIndex := -1
 		for index, deckCard := range deck.Cards {
-			ownedCard, err := GetOwnedCardById(deckCard.OwnedCardId.Hex())
-			if err != nil {
-				return nil, err
-			}
-			if ownedCard.CardData.SetCode == card.CardData.SetCode &&
-				ownedCard.CardData.CollectorNumber == card.CardData.CollectorNumber {
+			if deckCard.OwnedCardId == card.ID {
 				foundAmount += deckCard.Count
 				// This will find the amount of the given card in the deck
 				if deckCard.Board == board {
@@ -162,7 +155,6 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 			} else {
 				return nil, fmt.Errorf("%w: %s", ErrInternal, "too many copies of card in deck")
 			}
-
 		} else {
 			deck.Cards = append(deck.Cards, domain.DeckCard{
 				OwnedCardId: card.ID,
@@ -170,6 +162,7 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 				Board:       board,
 			})
 		}
+
 		updateResult, err := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_DECKS).
@@ -181,10 +174,10 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 
 		return nil, nil
 	})
-	return nil
+	return err
 }
 
-func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int, board domain.DeckBoard) error {
+func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -202,45 +195,39 @@ func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int, boa
 	}
 	defer session.EndSession(ctx)
 
-	if amount > card.Count {
-		return fmt.Errorf("%w: %s", ErrInternal, "not enough cards in collection")
-	}
-
 	deck, err := GetDeckById(deckId)
 	if err != nil {
 		return err
 	}
 
 	// Check if card already exists in deck
-	newDeckCards := make([]domain.DeckCard, 0)
-	for _, deckCard := range deck.Cards {
-		ownedDeckCard, err := GetOwnedCardById(card.OwnedCardId.Hex())
-		if err != nil {
-			return err
-		}
-		if ownedDeckCard.CardData.SetCode == ownedCard.CardData.SetCode &&
-			ownedDeckCard.CardData.CollectorNumber == ownedCard.CardData.CollectorNumber &&
-			deckCard.Board == board {
-			if deckCard.Count-amount <= 0 {
-				continue
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		newDeckCards := make([]domain.DeckCard, 0)
+		for _, deckCard := range deck.Cards {
+			if card.OwnedCardId == ownedCard.ID &&
+				deckCard.Board == card.Board {
+				if deckCard.Count-amount <= 0 {
+					continue
+				} else {
+					deckCard.Count -= amount
+					newDeckCards = append(newDeckCards, deckCard)
+				}
 			} else {
-				deckCard.Count -= amount
 				newDeckCards = append(newDeckCards, deckCard)
 			}
-		} else {
-			newDeckCards = append(newDeckCards, deckCard)
 		}
-	}
 
-	deck.Cards = newDeckCards
-	updateResult, err := MongoDatabaseClient.
-		Database(DB_MAIN).
-		Collection(COLLECTION_DECKS).
-		UpdateByID(ctx, deck.ID, bson.M{"$set": deck})
+		deck.Cards = newDeckCards
+		updateResult, err := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_DECKS).
+			UpdateByID(ctx, deck.ID, bson.M{"$set": deck})
 
-	if err != nil || updateResult.MatchedCount == 0 {
-		return fmt.Errorf("%w: %v", ErrInternal, err)
-	}
-
-	return nil
+		if err != nil || updateResult.MatchedCount == 0 {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		return nil, nil
+	})
+	return err
 }

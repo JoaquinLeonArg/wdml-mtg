@@ -36,7 +36,6 @@ func GetDeckByIdHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusBadRequest)
 	}
 
-	// Get all available booster packs for this tournament
 	deck, err := GetDeckById(deckId)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get deck data")
@@ -116,7 +115,6 @@ func CreateEmptyDeckHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusBadRequest)
 	}
 
-	// Add the booster packs to each player, checking if the user is allowed to add them and if they are valid packs
 	err = CreateEmptyDeck(ownerID, createEmptyDeckRequest.Deck.Name, createEmptyDeckRequest.Deck.Description, tournamentID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -162,7 +160,6 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add the booster packs to each player, checking if the user is allowed to add them and if they are valid packs
 	err = AddOwnedCardToDeck(req.CardId, req.DeckId, req.Amount, req.Board)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -208,7 +205,7 @@ func RemoveCardFromDeckHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = RemoveCardFromDeck(removeCardfromDeckRequest.Card, removeCardfromDeckRequest.DeckId, removeCardfromDeckRequest.Amount, removeCardfromDeckRequest.Board)
+	err = RemoveCardFromDeck(removeCardfromDeckRequest.Card, removeCardfromDeckRequest.DeckId, removeCardfromDeckRequest.Amount)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))

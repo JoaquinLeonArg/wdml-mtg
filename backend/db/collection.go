@@ -204,7 +204,7 @@ func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
 	// Find card
 	result := MongoDatabaseClient.
 		Database(DB_MAIN).
-		Collection(COLLECTION_DECKS).
+		Collection(COLLECTION_CARD_COLLECTION).
 		FindOne(ctx,
 			bson.M{"_id": dbCardId},
 		)
