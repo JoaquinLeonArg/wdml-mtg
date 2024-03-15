@@ -10,6 +10,7 @@ var (
 	ErrNotFound           = fmt.Errorf("NOT_FOUND")
 	ErrUnauthorized       = fmt.Errorf("UNAUTHORIZED")
 	ErrNoData             = fmt.Errorf("NO_DATA")
+	ErrBadRequest         = fmt.Errorf("BAD_REQUEST")
 
 	// Auth
 	ErrUsernameInvalid = fmt.Errorf("USERNAME_INVALID")
