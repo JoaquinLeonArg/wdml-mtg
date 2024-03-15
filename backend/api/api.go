@@ -9,6 +9,7 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/boosterpacks"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/collection"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/deck"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament_player"
 	"github.com/joaquinleonarg/wdml_mtg/backend/config"
@@ -25,6 +26,7 @@ func StartServer() {
 	tournament_player.RegisterEndpoints(router)
 	boosterpacks.RegisterEndpoints(router)
 	collection.RegisterEndpoints(router)
+	deck.RegisterEndpoints(router)
 
 	originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"}) // TODO: Set to a more sensible value for security reasons
 	credentialsOk := handlers.AllowCredentials()
