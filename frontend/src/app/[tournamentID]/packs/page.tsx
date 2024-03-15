@@ -199,6 +199,7 @@ function AddPacks(props: AddPacksProps) {
             onChange={(e) => setAddedPacks([{ ...addedPacks[0], count: Number(e.target.value) }])}
             variant="bordered"
             type="number"
+            min={0}
             label="Amount"
             placeholder="Number of packs"
             labelPlacement="inside"

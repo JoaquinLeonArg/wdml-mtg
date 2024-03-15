@@ -172,6 +172,13 @@ export type CollectionDisplayProps = {
 }
 
 export function CollectionDisplay(props: CollectionDisplayProps) {
+  if (!props.cards) {
+    return (
+      <div className="flex text-gray-400 items-center justify-center">
+        No cards to show
+      </div>
+    )
+  }
   return (
     <div className="flex flex-wrap flex-row gap-2 items-center justify-center">
       {props.cards.map((card: OwnedCard) => <Card key={card.card_data.image_url} card={card} />)}
@@ -199,7 +206,7 @@ function Card(props: { card: OwnedCard }) {
       <div onClick={() => { if (props.card.card_data.back_image_url) setFlipped(!flipped) }} className={
         `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${flipped && "[transform:rotateY(180deg)]"}`
       }>
-        {props.card.count > 1 ? <div className="absolute z-[200] bg-white font-bold px-2 -my-1 -mx-1 rounded-lg">{props.card.count}</div> : ""}
+        {props.card.count > 1 ? <div className="absolute z-[200] bg-primary-800 text-white font-bold px-2 -my-1 -mx-1 rounded-lg">{props.card.count}</div> : ""}
         < div className="absolute inset-0 [backface-visibility:hidden]">
           <Image
             className={`duration-75 border-2 ${borderRarityColor[props.card.card_data.rarity as keyof typeof borderRarityColor]} rounded-xl shadow-[0px_0px_20px_1px_rgba(0,0,0,0.3)] ${shadowRarityColor[props.card.card_data.rarity as keyof typeof shadowRarityColor]}`}
