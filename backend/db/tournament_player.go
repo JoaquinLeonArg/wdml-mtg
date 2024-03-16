@@ -224,7 +224,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	log.Debug().Interface("cards", cards).Send()
+	// log.Debug().Interface("cards", cards).Send()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
@@ -280,8 +280,8 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 					removed = true
 					continue
 				}
-				newPacks = append(newPacks, boosterPack)
 			}
+			newPacks = append(newPacks, boosterPack)
 		}
 		if !removed {
 			return nil, fmt.Errorf("%w: %s", ErrNotFound, "booster pack not available for tournament player")

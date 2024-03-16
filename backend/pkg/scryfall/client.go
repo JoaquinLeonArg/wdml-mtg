@@ -8,6 +8,7 @@ import (
 
 	"github.com/BlueMonday/go-scryfall"
 	scryfallapi "github.com/BlueMonday/go-scryfall"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 var sets []scryfallapi.Set
@@ -78,8 +79,21 @@ func GetSetCards(set string) ([]scryfallapi.Card, error) {
 	return allCards, nil
 }
 
+var cachedPossibleCards *lru.Cache[string, []scryfallapi.Card]
+
 func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
 	var err error
+	if cachedPossibleCards == nil {
+		cachedPossibleCards, err = lru.New[string, []scryfallapi.Card](64)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if cards, ok := cachedPossibleCards.Get(filter); ok {
+		return cards, nil
+	}
+
 	if client == nil {
 		client, err = scryfallapi.NewClient()
 		if err != nil {
@@ -102,5 +116,6 @@ func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
 		}
 		page += 1
 	}
+	cachedPossibleCards.Add(filter, allCards)
 	return allCards, nil
 }
