@@ -61,7 +61,6 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 			}
 
 			cardFront, cardBack := scryfall.GetImageFromFaces(card)
-			log.Debug().Interface("Selected card ", card.Name).Send()
 			boosterPack = append(boosterPack,
 				domain.CardData{
 					SetCode:         strings.ToUpper(card.Set),
@@ -105,16 +104,4 @@ func GetBoosterDataFromDb(setCode string) (*domain.BoosterPack, error) {
 		return nil, err
 	}
 	return boosterPack, nil
-}
-
-func CheckIfBoosterExists(setCode string) (bool, error) {
-	path, err := filepath.Abs("./internal/booster_gen/sets/" + strings.ToLower(setCode) + ".json")
-	if err != nil {
-		return false, err
-	}
-	_, err = os.ReadFile(path)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
