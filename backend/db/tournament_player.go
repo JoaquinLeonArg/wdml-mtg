@@ -224,8 +224,6 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	// log.Debug().Interface("cards", cards).Send()
-
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalidID, err)
