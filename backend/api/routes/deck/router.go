@@ -6,15 +6,16 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 )
 
 func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/deck").Subrouter()
-	r.HandleFunc("/", GetDeckByIdHandler).Methods(http.MethodGet)
-	r.HandleFunc("/player/", GetDecksByTournamentPlayerIdHandler).Methods(http.MethodGet)
-	r.HandleFunc("/", CreateEmptyDeckHandler).Methods(http.MethodPost)
+	r.HandleFunc("", GetDeckByIdHandler).Methods(http.MethodGet)
+	r.HandleFunc("/tournament_player", GetDecksForTournamentPlayerHandler).Methods(http.MethodGet)
+	r.HandleFunc("", CreateEmptyDeckHandler).Methods(http.MethodPost)
 	r.HandleFunc("/card", AddOwnedCardToDeckHandler).Methods(http.MethodPost)
 	r.HandleFunc("/card", RemoveCardFromDeckHandler).Methods(http.MethodDelete)
 }
@@ -49,38 +50,51 @@ func GetDeckByIdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// ENDPOINT: Get deck by Tournament Player ID
+// ENDPOINT: Get deck by tournament player ID
 //
 
-type GetDecksByTournamentPlayerIdResponse struct {
+type GetDecksByTournamentPlayerIDResponse struct {
 	Decks []domain.Deck `json:"decks"`
 }
 
-func GetDecksByTournamentPlayerIdHandler(w http.ResponseWriter, r *http.Request) {
+func GetDecksForTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
-	tournamentPlayerId := r.URL.Query().Get("tournamentPlayerId")
-	if tournamentPlayerId == "" {
+	// Get user ID from context
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 	}
 
-	decks, err := GetDecksByTournamentPlayerId(tournamentPlayerId)
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Get tournament player, then get their decks
+	decks, err := GetDecksForTournamentPlayer(tournamentID, userID)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to get deck data")
 		w.Write(response.NewErrorResponse(err))
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
+	// Send response back
 	w.WriteHeader(http.StatusOK)
-	w.Write(response.NewDataResponse(GetDecksByTournamentPlayerIdResponse{Decks: decks}))
+	w.Write(response.NewDataResponse(GetDecksByTournamentPlayerIDResponse{Decks: decks}))
 }
+
+//
+// ENDPOINT: Create a new, empty deck
+//
 
 type CreateEmptyDeckRequest struct {
 	Deck struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	} `json:"deck"`
-	TournamentId string
+	TournamentID string `json:"tournament_id"`
 }
 
 type CreateEmptyDeckResponse struct{}
@@ -110,12 +124,18 @@ func CreateEmptyDeckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get tournament ID from body
-	tournamentID := createEmptyDeckRequest.TournamentId
+	tournamentID := createEmptyDeckRequest.TournamentID
 	if tournamentID == "" {
 		http.Error(w, "", http.StatusBadRequest)
 	}
 
-	err = CreateEmptyDeck(ownerID, createEmptyDeckRequest.Deck.Name, createEmptyDeckRequest.Deck.Description, tournamentID)
+	// Create a deck empty of cards, with the name and description provided
+	err = CreateEmptyDeck(
+		ownerID,
+		createEmptyDeckRequest.Deck.Name,
+		createEmptyDeckRequest.Deck.Description,
+		tournamentID,
+	)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
@@ -127,9 +147,13 @@ func CreateEmptyDeckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.NewDataResponse(CreateEmptyDeckResponse{}))
 }
 
+//
+// ENDPOINT: Add cards from a tournament player's collection to one of their decks
+//
+
 type AddOwnedCardToDeckRequest struct {
-	CardId string           `json:"card_id"`
-	DeckId string           `json:"deck_id"`
+	CardID string           `json:"card_id"`
+	DeckID string           `json:"deck_id"`
 	Amount int              `json:"amount"`
 	Board  domain.DeckBoard `json:"board"`
 }
@@ -160,7 +184,7 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = AddOwnedCardToDeck(req.CardId, req.DeckId, req.Amount, req.Board)
+	err = AddOwnedCardToDeck(req.CardID, req.DeckID, req.Amount, req.Board)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
@@ -172,9 +196,13 @@ func AddOwnedCardToDeckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.NewDataResponse(AddOwnedCardToDeckResponse{}))
 }
 
+//
+// ENDPOINT: Remove a card from a deck
+//
+
 type RemoveCardFromDeckRequest struct {
 	Card   domain.DeckCard  `json:"card"`
-	DeckId string           `json:"deck_id"`
+	DeckID string           `json:"deck_id"`
 	Amount int              `json:"amount"`
 	Board  domain.DeckBoard `json:"board"`
 }
@@ -205,7 +233,11 @@ func RemoveCardFromDeckHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = RemoveCardFromDeck(removeCardfromDeckRequest.Card, removeCardfromDeckRequest.DeckId, removeCardfromDeckRequest.Amount)
+	err = RemoveCardFromDeck(
+		removeCardfromDeckRequest.Card,
+		removeCardfromDeckRequest.DeckID,
+		removeCardfromDeckRequest.Amount,
+	)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))

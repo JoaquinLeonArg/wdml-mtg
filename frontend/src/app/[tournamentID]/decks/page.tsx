@@ -2,9 +2,11 @@
 
 import { Header } from "@/components/header"
 import Layout from "@/components/layout"
-import { Button, Checkbox, Input, Link, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react"
+import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
+import { Deck } from "@/types/deck"
+import { Button, Checkbox, Input, Link, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea, useDisclosure } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BsFillTrashFill } from "react-icons/bs";
 
 
@@ -12,13 +14,27 @@ import { BsFillTrashFill } from "react-icons/bs";
 export default function DecksPage(props: any) {
   let router = useRouter()
   let [isOpen, setIsOpen] = useState<boolean>(false)
+  let [decks, setDecks] = useState<Deck[]>([])
+  let [isLoading, setIsLoading] = useState<boolean>(false)
+  let [error, setError] = useState<string>("")
 
-  let decks = [
-    {
-      name: "deck1",
-      id: "1234"
-    }
-  ]
+  let refreshData = () => {
+    setIsLoading(true)
+    ApiGetRequest({
+      route: "/deck/tournament_player",
+      query: { tournament_id: props.params.tournamentID },
+      errorHandler: (err) => {
+        setError(err)
+        setIsLoading(false)
+      },
+      responseHandler: (res: { decks: Deck[] }) => {
+        setIsLoading(false)
+        setDecks(res.decks)
+      }
+    })
+  }
+
+  useEffect(() => refreshData())
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
@@ -26,9 +42,11 @@ export default function DecksPage(props: any) {
         <Header title="Decks" endContent={<Button onClick={() => setIsOpen(true)} color="success">+</Button>} />
         <div className="flex flex-col gap-2 mb-2">
 
-          <CreateDeckModal isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={() => console.log("refresh")} />
+          <CreateDeckModal tournamentID={props.params.tournamentID} isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={refreshData} />
           <div className="bg-gray-800 w-full border-small px-1 py-2 rounded-small border-default-200">
-            <Listbox>
+            <Listbox
+              emptyContent="No decks to show"
+            >
               {
                 decks.map((deck) =>
                   <ListboxItem
@@ -49,6 +67,7 @@ export default function DecksPage(props: any) {
 }
 
 type CreateDeckModalProps = {
+  tournamentID: string
   isOpen: boolean
   closeFn: () => void
   refreshDecksFn: () => void
@@ -56,10 +75,30 @@ type CreateDeckModalProps = {
 
 function CreateDeckModal(props: CreateDeckModalProps) {
   let [deckName, setDeckName] = useState<string>("")
+  let [deckDescription, setDeckDescription] = useState<string>("")
+  let [error, setError] = useState<string>("")
+  let [isLoading, setIsLoading] = useState<boolean>(false)
 
-  let createDeck = () => {
-    // request
-    props.refreshDecksFn()
+  let sendCreateDeckRequest = () => {
+    setError("")
+    setIsLoading(true)
+    ApiPostRequest({
+      route: "/deck",
+      body: {
+        deck: { name: deckName, description: deckDescription },
+        tournament_id: props.tournamentID
+      },
+      errorHandler: (err) => {
+        setIsLoading(false)
+        setError(err)
+        props.refreshDecksFn()
+      },
+      responseHandler: () => {
+        setIsLoading(false)
+        props.closeFn()
+        props.refreshDecksFn()
+      }
+    })
   }
 
   return (
@@ -76,14 +115,24 @@ function CreateDeckModal(props: CreateDeckModalProps) {
             label="Deck name"
             placeholder="Enter your deck's name"
             variant="bordered"
-            onChange={(e) => setDeckName(e.target.value)}
+            onValueChange={(value) => setDeckName(value)}
+            isDisabled={isLoading}
           />
+          <Textarea
+            className="text-white"
+            label="Deck name"
+            placeholder="Enter your deck's name"
+            variant="bordered"
+            onValueChange={(value) => setDeckDescription(value)}
+            isDisabled={isLoading}
+          />
+          <p className="text-sm font-light text-red-400 h-2">{error}</p>
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" variant="flat" onPress={props.closeFn}>
+          <Button isDisabled={isLoading} color="danger" variant="flat" onPress={props.closeFn}>
             Cancel
           </Button>
-          <Button color="success" onPress={() => { createDeck(); props.closeFn() }}>
+          <Button isLoading={isLoading} color="success" onPress={sendCreateDeckRequest}>
             Create
           </Button>
         </ModalFooter>

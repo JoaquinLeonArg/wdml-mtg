@@ -2,46 +2,57 @@
 
 import { Header, MiniHeader } from "@/components/header"
 import Layout from "@/components/layout"
+import { ApiGetRequest } from "@/requests/requests"
+import { Deck } from "@/types/deck"
 import { Button, Checkbox, Input, Link, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 
 
 export default function EditDeckPage(props: any) {
   let router = useRouter()
-  let [isOpen, setIsOpen] = useState<boolean>(false)
+  let [deck, setDeck] = useState<Deck>()
+  let [deckLoading, setDeckLoading] = useState<boolean>(false)
 
-  let deck = {
-    name: "deck1",
-    id: "1234",
-    cards: [
-      {
-        image_url: "https://cards.scryfall.io/normal/front/0/1/0141312f-4b68-4c56-b1dc-5b7e6afbb96c.jpg?1627428247"
+  useEffect(() => refreshData())
+
+  let refreshData = () => {
+    setDeckLoading(true)
+    ApiGetRequest({
+      route: "/tournament_player/tournament",
+      query: { tournament_id: props.params.tournamentID },
+      errorHandler: (err) => {
+        setDeckLoading(false)
+      },
+      responseHandler: (res: { deck: Deck }) => {
+        setDeckLoading(false)
+        setDeck(res.deck)
       }
-    ]
+    })
   }
-
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
       <div className="mx-16 my-16">
-        <Header title={deck.name} endContent={<div className="text-gray-300 self-end font-bold">Deck</div>} />
+        <Header title={deck?.name || ""} endContent={<div className="text-gray-300 self-end font-bold">Deck</div>} />
         <div className="flex flex-col gap-2 mb-2">
           <MiniHeader title="Main Deck" />
+          <MiniHeader title="Sideboard" />
+          <MiniHeader title="Considering" />
         </div>
       </div>
     </Layout>
   )
 }
 
-type CreateDeckModalProps = {
+type AddCardsModalProps = {
   isOpen: boolean
   closeFn: () => void
   refreshDecksFn: () => void
 }
 
-function CreateDeckModal(props: CreateDeckModalProps) {
+function AddCardsModal(props: AddCardsModalProps) {
   let [deckName, setDeckName] = useState<string>("")
 
   let createDeck = () => {
