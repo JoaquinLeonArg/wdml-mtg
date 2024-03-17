@@ -11,7 +11,6 @@ import (
 type ServerConfig struct {
 	ApiPort       int
 	SecretKey     string
-	DisableAuth   bool
 	MongoURL      string
 	MongoPort     int
 	MongoUser     string
@@ -31,11 +30,6 @@ func Load() error {
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
 		return fmt.Errorf("invalid SECRET_KEY env variable")
-	}
-
-	disableAuth := os.Getenv("DISABLE_AUTH")
-	if disableAuth != "true" && disableAuth != "false" {
-		return fmt.Errorf("invalid DISABLE_AUTH env variable, expected 'true' or 'false', got %v", os.Getenv("DISABLE_AUTH"))
 	}
 
 	mongoURL := os.Getenv("MONGO_URL")
@@ -61,7 +55,6 @@ func Load() error {
 	Config = ServerConfig{
 		ApiPort:       apiPort,
 		SecretKey:     secretKey,
-		DisableAuth:   disableAuth == "true",
 		MongoURL:      mongoURL,
 		MongoPort:     mongoPort,
 		MongoUser:     mongoUser,

@@ -2,9 +2,7 @@
 
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 import Image from "next/image"
-import { Button } from "@/components/buttons";
-import { TextFieldWithLabel } from "@/components/field";
-import { Checkbox } from "@/components/checkbox";
+import { Button, Input, Checkbox } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { ApiPostRequest } from "@/requests/requests";
 
@@ -17,23 +15,32 @@ enum PageState {
 export default function Login() {
     let router = useRouter()
     let [currentState, setCurrentState] = useState<PageState>(PageState.PS_LOGIN)
+
+    let [loginUsername, setLoginUsername] = useState<string>("")
+    let [loginPassword, setLoginPassword] = useState<string>("")
+    let [registerUsername, setRegisterUsername] = useState<string>("")
+    let [registerEmail, setRegisterEmail] = useState<string>("")
+    let [registerPassword, setRegisterPassword] = useState<string>("")
+    let [registerRepeatPassword, setRegisterRepeatPassword] = useState<string>("")
+
     let [isLoading, setIsLoading] = useState<boolean>(false)
     let [registerError, setRegisterError] = useState<string>("")
     let [loginError, setLoginError] = useState<string>("")
 
-    let sendLoginRequest = (e: any) => {
-        e.preventDefault()
+    let sendLoginRequest = () => {
         setLoginError("")
+        setIsLoading(true)
         ApiPostRequest({
             body: {
-                username: e.target.username.value,
-                password: e.target.password.value
+                username: loginUsername,
+                password: loginPassword
             },
             route: "/auth/login",
-            responseHandler: (res) => {
+            responseHandler: () => {
                 router.push("/")
             },
             errorHandler: (err) => {
+                setIsLoading(false)
                 switch (err) {
                     case "INVALID_AUTH":
                         setLoginError("Invalid credentials")
@@ -42,24 +49,26 @@ export default function Login() {
         })
     }
 
-    let sendRegisterRequest = (e: any) => {
-        e.preventDefault()
+    let sendRegisterRequest = () => {
         setRegisterError("")
-        if (e.target.password.value != e.target.repeatPassword.value) {
+        if (registerPassword != registerRepeatPassword) {
             setRegisterError("Passwords must match")
             return
         }
+        setIsLoading(false)
         ApiPostRequest({
             body: {
-                username: e.target.username.value,
-                email: e.target.email.value,
-                password: e.target.password.value
+                username: registerUsername,
+                email: registerEmail,
+                password: registerPassword
             },
             route: "/auth/register",
-            responseHandler: (res) => {
+            responseHandler: (_) => {
+                setIsLoading(false)
                 alert("User created succesfully!")
             },
             errorHandler: (err) => {
+                setIsLoading(false)
                 switch (err) {
                     case "USERNAME_INVALID":
                         setRegisterError("Invalid username")
@@ -90,32 +99,33 @@ export default function Login() {
                                         Sign in to your account
                                     </h1>
                                     <form onSubmit={sendLoginRequest} className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
-                                        <TextFieldWithLabel
-                                            size={40}
+                                        <Input
                                             id="username"
                                             type="username"
                                             label="Username"
                                             placeholder="Username"
+                                            onValueChange={(value) => setLoginUsername(value)}
+                                            isDisabled={isLoading}
                                             required />
-                                        <TextFieldWithLabel
-                                            size={40}
+                                        <Input
                                             id="password"
                                             type="password"
                                             label="Password"
                                             placeholder="**********"
+                                            onValueChange={(value) => setLoginPassword(value)}
+                                            isDisabled={isLoading}
                                             required />
-                                        <div className="flex items-center justify-between">
-                                            <Checkbox>Remember me</Checkbox>
-                                            <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
-                                        </div>
                                         <div className="text-sm font-light text-red-400">{loginError}</div>
-                                        <Button fullWidth icon="arrow">Sign in</Button>
-                                        <p className="text-sm font-light text-gray-400 justify-center flex items-center">
-                                            {"New user?"}
-                                            <a href="#" className="font-medium ml-1 text-secondary-600 hover:underline"
-                                                onClick={() => setCurrentState(PageState.PS_REGISTER)}>
-                                                Sign up
-                                            </a>
+                                        <Button isLoading={isLoading} onClick={sendLoginRequest} fullWidth>Sign in</Button>
+                                        <p className="flex flex-col gap-4 text-sm font-light text-gray-400 justify-center items-center">
+                                            <div className="flex flex-row">
+                                                {"New user?"}
+                                                <a href="#" className="font-medium ml-1 text-secondary-600 hover:underline"
+                                                    onClick={() => setCurrentState(PageState.PS_REGISTER)}>
+                                                    Sign up
+                                                </a>
+                                            </div>
+                                            <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
                                         </p>
                                     </form>
                                 </div >
@@ -130,32 +140,39 @@ export default function Login() {
                                         Sign up
                                     </h1>
                                     <form onSubmit={sendRegisterRequest} className="space-y-4 md:space-y-6 max-w-min min-w-96" action="#">
-                                        <TextFieldWithLabel
-                                            size={40}
+                                        <Input
                                             id="username"
                                             label="Username"
-                                            placeholder="Username" />
-                                        <TextFieldWithLabel
-                                            size={40}
-                                            htmlFor="email"
+                                            placeholder="Username"
+                                            onValueChange={(value) => setRegisterUsername(value)}
+                                            isDisabled={isLoading}
+                                            required />
+                                        <Input
                                             type="email"
                                             id="email"
                                             label="Email"
-                                            placeholder="Email" />
-                                        <TextFieldWithLabel
-                                            size={40}
+                                            placeholder="Email"
+                                            onValueChange={(value) => setRegisterEmail(value)}
+                                            isDisabled={isLoading}
+                                            required />
+                                        <Input
                                             id="password"
                                             label="Password"
-                                            placeholder="**********" />
-                                        <TextFieldWithLabel
-                                            size={40}
+                                            type="password"
+                                            placeholder="**********"
+                                            onValueChange={(value) => setRegisterPassword(value)}
+                                            isDisabled={isLoading}
+                                            required />
+                                        <Input
                                             id="repeatPassword"
                                             label="Repeat password"
-                                            placeholder="**********" />
+                                            type="password"
+                                            placeholder="**********"
+                                            onValueChange={(value) => setRegisterRepeatPassword(value)}
+                                            isDisabled={isLoading}
+                                            required />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>
-                                        <Button
-                                            fullWidth
-                                            icon="arrow">Sign up</Button>
+                                        <Button isLoading={isLoading} onClick={sendRegisterRequest} fullWidth>Sign up</Button>
                                         <a href="#" className="text-sm justify-center flex items-center font-medium ml-1 text-secondary-600 hover:underline"
                                             onClick={() => setCurrentState(PageState.PS_LOGIN)}>
                                             Back to sign in

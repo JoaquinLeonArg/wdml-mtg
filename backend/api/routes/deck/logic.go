@@ -1,22 +1,35 @@
 package deck
 
 import (
+	"errors"
+
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 )
 
-func GetDeckById(deckId string) (*domain.Deck, error) {
-	return db.GetDeckById(deckId)
+func GetDeckById(deckID string) (*domain.Deck, error) {
+	return db.GetDeckByID(deckID)
 }
 
-func GetDecksByTournamentPlayerId(tournamentPlayerId string) ([]domain.Deck, error) {
-	return db.GetDecksByTournamentPlayerId(tournamentPlayerId)
-}
-
-func CreateEmptyDeck(ownerId, deckName, deckDescription, tournamentId string) error {
-	tournamentPlayer, err := db.GetTournamentPlayer(tournamentId, ownerId)
+func GetDecksForTournamentPlayer(tournamentID, userID string) ([]domain.Deck, error) {
+	tournamentPlayer, err := db.GetTournamentPlayer(tournamentID, userID)
 	if err != nil {
-		return err
+		if errors.Is(err, db.ErrNotFound) {
+			return nil, apiErrors.ErrNotFound
+		}
+		return nil, apiErrors.ErrInternal
+	}
+	return db.GetDecksForTournamentPlayer(tournamentPlayer.ID.Hex())
+}
+
+func CreateEmptyDeck(ownerID, deckName, deckDescription, tournamentID string) error {
+	tournamentPlayer, err := db.GetTournamentPlayer(tournamentID, ownerID)
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return apiErrors.ErrNotFound
+		}
+		return apiErrors.ErrInternal
 	}
 
 	createdDeck := domain.Deck{
@@ -25,22 +38,30 @@ func CreateEmptyDeck(ownerId, deckName, deckDescription, tournamentId string) er
 		TournamentPlayerID: tournamentPlayer.ID,
 	}
 
-	return db.CreateEmptyDeck(createdDeck)
+	err = db.CreateEmptyDeck(createdDeck)
+	if err != nil {
+		if errors.Is(err, db.ErrAlreadyExists) {
+			return apiErrors.ErrDuplicatedResource
+		}
+		return apiErrors.ErrInternal
+	}
+
+	return nil
 }
 
-func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.DeckBoard) error {
+func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.DeckBoard) error {
 	return db.AddOwnedCardToDeck(
-		cardId,
-		deckId,
+		cardID,
+		deckID,
 		amount,
 		board,
 	)
 }
 
-func RemoveCardFromDeck(card domain.DeckCard, deckId string, amount int) error {
+func RemoveCardFromDeck(card domain.DeckCard, deckID string, amount int) error {
 	return db.RemoveDeckCardFromDeck(
 		card,
-		deckId,
+		deckID,
 		amount,
 	)
 }

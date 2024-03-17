@@ -29,7 +29,7 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Get tournament ID from query
-	tournamentID := r.URL.Query().Get("tournamentID")
+	tournamentID := r.URL.Query().Get("tournament_id")
 	if tournamentID == "" {
 		http.Error(w, "", http.StatusBadRequest)
 	}

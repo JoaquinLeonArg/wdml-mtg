@@ -4,3 +4,4 @@
 */.next
 */next-env.d.ts
 .vscode
+backend/app.yaml

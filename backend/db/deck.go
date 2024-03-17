@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetDeckById(id string) (*domain.Deck, error) {
+func GetDeckByID(deckID string) (*domain.Deck, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	dbDeckId, err := primitive.ObjectIDFromHex(id)
+	dbDeckID, err := primitive.ObjectIDFromHex(deckID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
@@ -23,7 +23,7 @@ func GetDeckById(id string) (*domain.Deck, error) {
 		Database(DB_MAIN).
 		Collection(COLLECTION_DECKS).
 		FindOne(ctx,
-			bson.M{"_id": dbDeckId},
+			bson.M{"_id": dbDeckID},
 		)
 	if err := result.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -41,10 +41,10 @@ func GetDeckById(id string) (*domain.Deck, error) {
 	return deck, nil
 }
 
-func GetDecksByTournamentPlayerId(id string) ([]domain.Deck, error) {
+func GetDecksForTournamentPlayer(tournamentPlayerID string) ([]domain.Deck, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(id)
+	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
@@ -89,12 +89,11 @@ func CreateEmptyDeck(deck domain.Deck) error {
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		// TODO: Check that deck with the same name doesn't exist
 		resultInsert, err := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_DECKS).
-			InsertOne(ctx,
-				deck,
-			)
+			InsertOne(ctx, deck)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
@@ -106,16 +105,16 @@ func CreateEmptyDeck(deck domain.Deck) error {
 	return err
 }
 
-func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.DeckBoard) error {
+func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.DeckBoard) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	card, err := GetOwnedCardById(cardId)
+	card, err := GetOwnedCardById(cardID)
 	if err != nil {
 		return err
 	}
 
-	deck, err := GetDeckById(deckId)
+	deck, err := GetDeckByID(deckID)
 	if err != nil {
 		return err
 	}
@@ -135,7 +134,7 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 		foundAmount := 0
 		foundIndex := -1
 		for index, deckCard := range deck.Cards {
-			if deckCard.OwnedCardId == card.ID {
+			if deckCard.OwnedCardID == card.ID {
 				foundAmount += deckCard.Count
 				// This will find the amount of the given card in the deck
 				if deckCard.Board == board {
@@ -157,7 +156,7 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 			}
 		} else {
 			deck.Cards = append(deck.Cards, domain.DeckCard{
-				OwnedCardId: card.ID,
+				OwnedCardID: card.ID,
 				Count:       amount,
 				Board:       board,
 			})
@@ -177,11 +176,11 @@ func AddOwnedCardToDeck(cardId string, deckId string, amount int, board domain.D
 	return err
 }
 
-func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int) error {
+func RemoveDeckCardFromDeck(card domain.DeckCard, deckID string, amount int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	ownedCard, err := GetOwnedCardById(card.OwnedCardId.Hex())
+	ownedCard, err := GetOwnedCardById(card.OwnedCardID.Hex())
 	if err != nil {
 		return err
 	}
@@ -195,7 +194,7 @@ func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int) err
 	}
 	defer session.EndSession(ctx)
 
-	deck, err := GetDeckById(deckId)
+	deck, err := GetDeckByID(deckID)
 	if err != nil {
 		return err
 	}
@@ -205,7 +204,7 @@ func RemoveDeckCardFromDeck(card domain.DeckCard, deckId string, amount int) err
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
 		newDeckCards := make([]domain.DeckCard, 0)
 		for _, deckCard := range deck.Cards {
-			if card.OwnedCardId == ownedCard.ID &&
+			if card.OwnedCardID == ownedCard.ID &&
 				deckCard.Board == card.Board {
 				if deckCard.Count-amount <= 0 {
 					continue

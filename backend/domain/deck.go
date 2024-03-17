@@ -3,7 +3,7 @@ package domain
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Deck struct {
-	ID                 primitive.ObjectID `bson:"_id" json:"_id"`
+	ID                 primitive.ObjectID `bson:"_id" json:"id"`
 	TournamentPlayerID primitive.ObjectID `bson:"tournament_player_id" json:"tournament_player_id"`
 	Name               string             `bson:"name" json:"name"`
 	Description        string             `bson:"description" json:"description"`
@@ -13,7 +13,7 @@ type Deck struct {
 }
 
 type DeckCard struct {
-	OwnedCardId primitive.ObjectID `bson:"owned_card_id" json:"owned_card_id"`
+	OwnedCardID primitive.ObjectID `bson:"owned_card_id" json:"owned_card_id"`
 	Count       int                `bson:"count" json:"count"`
 	Board       DeckBoard          `bson:"board" josn:"board"`
 }
