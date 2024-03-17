@@ -350,7 +350,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 
 			} else {
 				// TODO: Consolidate duplicate entries just in case
-				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
 			}
 		}
 

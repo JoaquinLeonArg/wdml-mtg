@@ -7,6 +7,7 @@ import { OwnedCard } from "@/types/card";
 import { useEffect, useState } from "react";
 import { Input, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Button, ButtonGroup } from "@nextui-org/react";
 import Image from "next/image"
+import { CardDisplaySpoiler, CardFullProps } from "@/components/card";
 
 const rarities = {
   "": "Any rarity",
@@ -33,14 +34,14 @@ export default function CollectionPage(props: any) {
   let [page, setPage] = useState<number>(1)
 
   let [error, setError] = useState<string>("")
-  let [currentCards, setCurrentCards] = useState<OwnedCard[]>([])
+  let [currentCards, setCurrentCards] = useState<CardFullProps[]>([])
 
   useEffect(() => {
     ApiGetRequest({
       route: "/collection",
       query: {
         filters: `name=${cardName}+tags=${tags}+rarity=${rarity}+color=${colors.W ? "W" : ""}${colors.U ? "U" : ""}${colors.B ? "B" : ""}${colors.R ? "R" : ""}${colors.G ? "G" : ""}${colors.C ? "C" : ""}+types=${types}+oracle=${oracle}+setcode=${setCode}+mv=${mv}`,
-        tournamentID: props.params.tournamentID,
+        tournament_id: props.params.tournamentID,
         count: 75,
         page,
       },
@@ -48,10 +49,31 @@ export default function CollectionPage(props: any) {
       responseHandler: (res: { cards: OwnedCard[], count: number, max_page: number }) => {
         setTotalResults(res.count)
         setTotalPages(res.max_page)
-        setCurrentCards(res.cards)
+        // Workaround to have the flip callback see the card list
+        let cardsFull = res.cards.map((card: OwnedCard) => {
+          return {
+            card: card.card_data,
+            flipped: true,
+            showRarityWhenFlipped: true,
+            onClickFn: () => { },
+            count: card.count
+          }
+        })
+        cardsFull.forEach((card: CardFullProps, index: number) => { card.onClickFn = () => flipCard(index, cardsFull) })
+        setCurrentCards(cardsFull)
       }
     })
-  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page])
+  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page, props.params.tournamentID])
+
+  let flipCard = (index: number, oldCards: CardFullProps[]) => {
+    let cards = [...oldCards]
+    if (cards[index].card.back_image_url != "") {
+      cards[index].flipped = !cards[index].flipped
+    } else {
+      cards[index].flipped = true
+    }
+    setCurrentCards(cards)
+  }
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
@@ -98,6 +120,7 @@ export default function CollectionPage(props: any) {
                   className={`text-xl ${colors[key as keyof typeof colors] && "bg-gray-500"}`}
                   variant="ghost"
                   onClick={() => setColors({ ...colors, [key as keyof typeof colors]: !colors[key as keyof typeof colors] })}
+                  key={key}
                 >
                   <i className={`ms ms-${key.toLowerCase()} ms-cost`}></i>
                 </Button>
@@ -143,7 +166,7 @@ export default function CollectionPage(props: any) {
         <div className="text-white my-6">
           Found: {totalResults} cards
         </div>
-        <CollectionDisplay cards={currentCards} />
+        <CardDisplaySpoiler cards={currentCards} />
         <ButtonGroup variant="ghost" className="flex flex-row items-center mt-8">
           <Button isIconOnly
             className="text-xl bg-gray-500"
@@ -164,63 +187,5 @@ export default function CollectionPage(props: any) {
         </ButtonGroup>
       </div>
     </Layout >
-  )
-}
-
-export type CollectionDisplayProps = {
-  cards: OwnedCard[]
-}
-
-export function CollectionDisplay(props: CollectionDisplayProps) {
-  if (!props.cards) {
-    return (
-      <div className="flex text-gray-400 items-center justify-center">
-        No cards to show
-      </div>
-    )
-  }
-  return (
-    <div className="flex flex-wrap flex-row gap-2 items-center justify-center">
-      {props.cards.map((card: OwnedCard) => <Card key={card.card_data.image_url} card={card} />)}
-    </div>
-  )
-}
-
-function Card(props: { card: OwnedCard }) {
-  let [flipped, setFlipped] = useState<boolean>(false)
-
-  let borderRarityColor = {
-    "common": "border-rarity-common",
-    "uncommon": "border-rarity-uncommon",
-    "rare": "border-rarity-rare",
-    "mythic": "border-rarity-mythic",
-  }
-  let shadowRarityColor = {
-    "common": "shadow-rarity-common",
-    "uncommon": "shadow-rarity-uncommon",
-    "rare": "shadow-rarity-rare",
-    "mythic": "shadow-rarity-mythic",
-  }
-  return (
-    <div className="group w-[256px] h-[355px] hover:scale-110 scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
-      <div onClick={() => { if (props.card.card_data.back_image_url) setFlipped(!flipped) }} className={
-        `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${flipped && "[transform:rotateY(180deg)]"}`
-      }>
-        {props.card.count > 1 ? <div className="absolute z-[200] bg-primary-800 text-white font-bold px-2 -my-1 -mx-1 rounded-lg">{props.card.count}</div> : ""}
-        < div className="absolute inset-0 [backface-visibility:hidden]">
-          <Image
-            className={`duration-75 border-2 ${borderRarityColor[props.card.card_data.rarity as keyof typeof borderRarityColor]} rounded-xl shadow-[0px_0px_20px_1px_rgba(0,0,0,0.3)] ${shadowRarityColor[props.card.card_data.rarity as keyof typeof shadowRarityColor]}`}
-            priority
-            src={props.card.card_data.image_url} alt="" width={10240} height={7680} quality={100} />
-        </div>
-        {
-          props.card.card_data.back_image_url ?
-            <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <Image className={`duration-75 border-2 ${borderRarityColor[props.card.card_data.rarity as keyof typeof borderRarityColor]} rounded-xl`}
-                src={props.card.card_data.back_image_url} alt="" width={1024} height={1024} quality={100} layout="" />
-            </div> : ""
-        }
-      </div>
-    </div >
   )
 }

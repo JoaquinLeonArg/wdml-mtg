@@ -3,7 +3,7 @@ package domain
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type OwnedCard struct {
-	ID           primitive.ObjectID `bson:"_id" json:"_id"`
+	ID           primitive.ObjectID `bson:"_id" json:"id"`
 	TournamentID primitive.ObjectID `bson:"tournament_id" json:"tournament_id"`
 	UserID       primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Count        int                `bson:"count" json:"count"`

@@ -2,38 +2,57 @@
 
 import { Header } from "@/components/header";
 import Layout from "@/components/layout";
-import { PackList } from "@/components/packlist";
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { CardData } from "@/types/card";
-import { BoosterPack, BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
-import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
-import { useRouter } from "next/navigation";
+import { BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
+import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { BsFillTrashFill } from "react-icons/bs";
-import Image from "next/image"
-import { OwnedBoosterPack } from "@/types/boosterPack";
+import { CardDisplaySpoiler, CardFullProps } from "@/components/card";
 
 export default function PacksPage(props: any) {
-  let router = useRouter()
   let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
-  let [error, setError] = useState<string>("")
-  let [currentCards, setCurrentCards] = useState<CardData[]>([])
+  let [currentCards, setCurrentCards] = useState<CardFullProps[]>([])
   let [boostersLoading, setBoostersLoading] = useState<boolean>(false)
   let [boostersVisible, setBoostersVisible] = useState<boolean>(true)
-  let [allFlipped, setAllFlipped] = useState<boolean>(false)
+  let [flipAllCards, setFlipAllCards] = useState<boolean>(false)
+  let [flipAllCurrentIndex, setFlipAllCurrentIndex] = useState<number>(0)
 
 
   useEffect(() => {
     refreshData()
-  }, [])
+  })
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!flipAllCards) { setFlipAllCurrentIndex(0); return }
+      if (flipAllCurrentIndex < currentCards.length) {
+        flipCard(flipAllCurrentIndex, currentCards)
+      } else {
+        setFlipAllCards(false)
+      }
+      setFlipAllCurrentIndex(flipAllCurrentIndex + 1)
+    }, 75)
+    return () => clearInterval(interval)
+  })
+
+  let flipCard = (index: number, oldCards: CardFullProps[]) => {
+    let cards = [...oldCards]
+    if (cards[index].card.back_image_url != "") {
+      cards[index].flipped = !cards[index].flipped
+    } else {
+      cards[index].flipped = true
+    }
+    setCurrentCards(cards)
+  }
+
 
   let refreshData = () => {
     setBoostersLoading(true)
     ApiGetRequest({
       route: "/tournament_player/tournament",
-      query: { tournamentID: props.params.tournamentID },
+      query: { tournament_id: props.params.tournamentID },
       errorHandler: (err) => {
-        setError(err)
         setBoostersLoading(false)
       },
       responseHandler: (res: { tournament_player: TournamentPlayer }) => {
@@ -48,35 +67,37 @@ export default function PacksPage(props: any) {
     setBoostersLoading(true)
     ApiPostRequest({
       route: `/boosterpacks/open`,
-      query: { tournamentID: props.params.tournamentID },
+      query: { tournament_id: props.params.tournamentID },
       body: {
         booster_pack_data
       },
       errorHandler: (err) => {
         setBoostersVisible(true)
         setBoostersLoading(false)
-        setError(err)
       },
       responseHandler: (res: { card_data: CardData[] }) => {
+        console.log(res)
         setBoostersLoading(false)
-        setCurrentCards(res.card_data)
+        // Workaround to have the flip callback see the card list
+        let cardsFull = res.card_data.map((cardData: CardData) => ({
+          card: cardData,
+          flipped: false,
+          onClickFn: () => { },
+          showRarityWhenFlipped: true
+        }))
+        cardsFull.forEach((card: CardFullProps, index: number) => { card.onClickFn = () => flipCard(index, cardsFull) })
+        setCurrentCards(cardsFull)
       }
     })
-  }
-
-  if (!tournamentPlayer) {
-    return ""
-  }
-
-  if (error) {
-    return error
   }
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
       <div className="mx-16 my-16">
+        {/* Open packs admin */}
+        {/* TODO: Move this to an admin page */}
         {
-          tournamentPlayer.access_level == "al_administrator" &&
+          tournamentPlayer?.access_level == "al_administrator" &&
           (
             <>
               <Header title="Add packs" />
@@ -86,8 +107,9 @@ export default function PacksPage(props: any) {
             </>
           )
         }
+        {/* Select what pack to open */}
         <Header title="Open packs" />
-        {boostersLoading ? <div className="flex justify-center"> <Spinner /></div> :
+        {boostersLoading || !tournamentPlayer ? <div className="flex justify-center"> <Spinner /></div> :
           <div className="flex flex-row gap-2 justify-center">
             {boostersVisible && (
               <div className="bg-gray-800 w-[450px] border-small px-1 py-2 rounded-small border-default-200">
@@ -109,16 +131,15 @@ export default function PacksPage(props: any) {
                 </Listbox>
               </div>
             )}
+            {/* Show opened booster contents */}
             {currentCards.length && (
-              <>
-                <div className="flex flex-col gap-8 justify-center">
-                  <ButtonGroup>
-                    <Button color="success" onClick={() => setAllFlipped(true)}>Flip all</Button>
-                    <Button color="danger" onClick={() => { setCurrentCards([]); refreshData(); setAllFlipped(false); setBoostersVisible(true) }}>Close</Button>
-                  </ButtonGroup>
-                  <CardDisplay cardsData={currentCards} allFlipped={allFlipped} />
-                </div>
-              </>
+              <div className="flex flex-col gap-8 justify-center">
+                <ButtonGroup>
+                  <Button color="success" onClick={() => setFlipAllCards(true)}>Flip all</Button>
+                  <Button color="danger" onClick={() => { setCurrentCards([]); refreshData(); setBoostersVisible(true) }}>Close</Button>
+                </ButtonGroup>
+                <CardDisplaySpoiler cards={currentCards} />
+              </div>
             )}
           </div>
         }
@@ -154,7 +175,7 @@ function AddPacks(props: AddPacksProps) {
         booster_packs: addedPacks
       },
       route: "/boosterpacks",
-      query: { tournamentID: props.tournamentID },
+      query: { tournament_id: props.tournamentID },
       responseHandler: (_) => {
         setLoading(false)
         props.refreshFunc()
@@ -175,12 +196,12 @@ function AddPacks(props: AddPacksProps) {
 
   useEffect(() => {
     refreshAvailableBoosters()
-  }, [])
+  })
 
   let refreshAvailableBoosters = () => {
     ApiGetRequest({
       route: "/boosterpacks",
-      query: { tournamentID: props.tournamentID },
+      query: { tournament_id: props.tournamentID },
       responseHandler: (res: { booster_packs: BoosterPackData[] }) => {
         setAvailablePacks(res.booster_packs)
       },
@@ -233,54 +254,3 @@ function AddPacks(props: AddPacksProps) {
   )
 }
 
-
-export type CardImageProps = CardData & {
-  startFaceUp?: boolean
-}
-
-export function CardImage(props: CardImageProps) {
-  let [isFaceUp, setIsFaceUp] = useState<boolean>(props.startFaceUp || false)
-  let borderRarityColor = {
-    "common": "border-rarity-common",
-    "uncommon": "border-rarity-uncommon",
-    "rare": "border-rarity-rare",
-    "mythic": "border-rarity-mythic",
-  }[props.rarity]
-  let shadowRarityColor = {
-    "common": "shadow-rarity-common",
-    "uncommon": "shadow-rarity-uncommon",
-    "rare": "shadow-rarity-rare",
-    "mythic": "shadow-rarity-mythic",
-  }[props.rarity]
-  return (
-    <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
-      <div onClick={() => { if (!isFaceUp) setIsFaceUp(true) }} className={
-        `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${!isFaceUp && "[transform:rotateY(180deg)]"}`
-      }>
-        <div className="absolute inset-0 [backface-visibility:hidden]">
-          <Image className={`duration-75 border-2 ${borderRarityColor} rounded-xl ${isFaceUp && "shadow-[0px_0px_20px_1px_rgba(0,0,0,0.3)]"} ${shadowRarityColor}`} unoptimized priority src={props.image_url} alt="" width={1024} height={768} quality={100} />
-        </div>
-        <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-          <Image className="duration-75 border-2 border-white rounded-xl" src="/cardback.webp" alt="" width={1024} height={1024} quality={100} layout="" />
-        </div>
-      </div>
-    </div >
-  )
-}
-
-export type CardDisplayProps = {
-  cardsData: CardData[]
-  allFlipped: boolean
-}
-
-export function CardDisplay(props: CardDisplayProps) {
-  return (
-    <div className="flex flex-wrap flex-row gap-2 items-center justify-center">
-      {props.cardsData.map((cardData: CardData, i: number) => {
-        return (
-          <CardImage key={`${props.allFlipped}-${cardData.image_url}`} {...cardData} startFaceUp={props.allFlipped} />
-        )
-      })}
-    </div>
-  )
-}

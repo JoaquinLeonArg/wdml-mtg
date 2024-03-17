@@ -1,6 +1,6 @@
 "use client"
 
-import { TextFieldWithLabel } from "@/components/field";
+import { Input } from "@nextui-org/react";
 import { ApiPostRequest } from "@/requests/requests";
 import { Button } from "@nextui-org/react";
 import Link from "next/link";
@@ -63,16 +63,16 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <div className="w-[50%] p-2 flex flex-row items-center justify-between bg-slate-600 rounded-lg">
+      <div className="w-[50%] p-2 flex flex-row items-center justify-between bg-gray-600 rounded-lg">
         <div className="flex flex-col w-[50%] h-full p-2">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">Join</h1>
           <h3 className="text-sm font-bold leading-tight tracking-tight text-white opacity-70 md:text-base mb-8">Join an existing tournament using an invitation code.</h3>
-          <TextFieldWithLabel
+          <Input
             id="join-code"
             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             label="Invitation code"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setJoinCode(e.target.value)} />
-          <div className="text-sm font-light text-red-400">{joinError}</div>
+            onValueChange={(value) => setJoinCode(value)} />
+          <p className="text-sm font-light text-red-400 h-2">{joinError}</p>
           <div className="h-4"></div>
           <Button onClick={sendJoinRequest}>Join</Button>
         </div>
@@ -80,12 +80,12 @@ export default function Home() {
         <div className="flex flex-col w-[50%] h-full p-2">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">Create</h1>
           <h3 className="text-sm font-bold leading-tight tracking-tight text-white opacity-70 md:text-base mb-8">Create a new tournament and invite people to join.</h3>
-          <TextFieldWithLabel
+          <Input
             id="name"
             placeholder="My cool tournament!"
             label="Tournament name"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setCreateName(e.target.value)} />
-          <div className="text-sm font-light text-red-400">{createError}</div>
+            onValueChange={(value) => setCreateName(value)} />
+          <p className="text-sm font-light text-red-400 h-2">{createError}</p>
           <div className="h-4"></div>
           <Button onClick={sendCreateRequest}>Create</Button>
         </div>
