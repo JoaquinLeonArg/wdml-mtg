@@ -54,7 +54,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "jwt",
 		Value:    jwt,
 		Path:     "/",
-		MaxAge:   3600,
+		MaxAge:   36000,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,

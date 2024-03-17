@@ -15,6 +15,7 @@ type ServerConfig struct {
 	MongoPort     int
 	MongoUser     string
 	MongoPassword string
+	CorsOrigin    string
 }
 
 var Config = ServerConfig{}
@@ -52,6 +53,11 @@ func Load() error {
 		return fmt.Errorf("missing MONGO_PASSWORD env variable")
 	}
 
+	corsOrigin := os.Getenv("CORS_ORIGIN")
+	if corsOrigin == "" {
+		return fmt.Errorf("missing CORS_ORIGIN env variable")
+	}
+
 	Config = ServerConfig{
 		ApiPort:       apiPort,
 		SecretKey:     secretKey,
@@ -59,6 +65,7 @@ func Load() error {
 		MongoPort:     mongoPort,
 		MongoUser:     mongoUser,
 		MongoPassword: mongoPassword,
+		CorsOrigin:    corsOrigin,
 	}
 	return nil
 }

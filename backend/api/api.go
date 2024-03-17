@@ -28,7 +28,7 @@ func StartServer() {
 	collection.RegisterEndpoints(router)
 	deck.RegisterEndpoints(router)
 
-	originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"}) // TODO: Set to a more sensible value for security reasons
+	originsOk := handlers.AllowedOrigins([]string{config.Config.CorsOrigin}) // TODO: Set to a more sensible value for security reasons
 	credentialsOk := handlers.AllowCredentials()
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
