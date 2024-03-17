@@ -1,3 +1,5 @@
+"use client"
+
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
 import { CardData } from "@/types/card"
 import { BoosterPack, BoosterPackData } from "@/types/tournamentPlayer"

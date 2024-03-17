@@ -21,7 +21,7 @@ export default function PacksPage(props: any) {
 
   useEffect(() => {
     refreshData()
-  })
+  }, [props.params.tournamentID])
 
   useEffect(() => {
     const interval = setInterval(() => {
