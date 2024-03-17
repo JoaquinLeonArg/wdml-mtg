@@ -15,6 +15,7 @@ require (
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 )
 
