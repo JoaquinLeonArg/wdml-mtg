@@ -1,16 +1,23 @@
 package collection
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+const (
+	MYTHIC_TO_COIN   = 20
+	RARE_TO_COIN     = 10
+	UNCOMMON_TO_COIN = 3
+	COMMON_TO_COIN   = 1
 )
 
 func GetCollectionCards(userID, tournamentID, filters string, count, page int) ([]domain.OwnedCard, int, error) {
@@ -59,14 +66,14 @@ func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
 func ImportCollection(importCardCsv [][]string, userID, tournamentID string) error {
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return fmt.Errorf("%w: %v", db.ErrInvalidID, err)
+		return apiErrors.ErrBadRequest
 	}
 	dbUserID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return fmt.Errorf("%w: %v", db.ErrInvalidID, err)
+		return apiErrors.ErrBadRequest
 	}
-	cards := make([]domain.CardData, 0)
-	cardsBySetCode := make([]scryfall.CardsByIdentifier, 0)
+	cards := make([]domain.CardData, 0, len(importCardCsv))
+	cardsBySetCode := make([]scryfall.CardsByIdentifier, 0, len(importCardCsv))
 	cum := 0
 	scryfallRequestBody := scryfall.ScryfallCollectionRequest{Identifiers: []scryfallapi.CardIdentifier{}}
 	// Pos 3 = set, Pos 9 = collectors number
@@ -112,9 +119,7 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 
 	}
 
-	// cards []CardData
-	// cardsBySetCode { Identifier: scryfallapi.CardIdentifier, Count int}
-	ownedCards := make([]domain.OwnedCard, 0)
+	ownedCards := make([]domain.OwnedCard, 0, len(cardsBySetCode))
 	coinsToAdd := 0
 	for _, cardIdent := range cardsBySetCode {
 		var foundCard domain.CardData
@@ -125,13 +130,13 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
 					case "mythic":
-						coinsToAdd += coins * 20 // TODO: Enum this or smth
+						coinsToAdd += coins * MYTHIC_TO_COIN // TODO: Enum this or smth
 					case "rare":
-						coinsToAdd += coins * 10
+						coinsToAdd += coins * RARE_TO_COIN
 					case "uncommon":
-						coinsToAdd += coins * 3
+						coinsToAdd += coins * UNCOMMON_TO_COIN
 					case "common":
-						coinsToAdd += coins * 1
+						coinsToAdd += coins * COMMON_TO_COIN
 					}
 					cardIdent.Amount = 4
 				}

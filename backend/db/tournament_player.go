@@ -448,7 +448,6 @@ func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
 	}
 	defer session.EndSession(ctx)
 
-	// Find if user has packs of the same type and add them, or create new
 	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
 		// Find tournament user
 		result := MongoDatabaseClient.
