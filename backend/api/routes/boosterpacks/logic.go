@@ -201,5 +201,5 @@ func CreateNewBoosterPack(boosterPack domain.BoosterPack) error {
 	if errors.Is(err, db.ErrAlreadyExists) {
 		return apiErrors.ErrDuplicatedResource
 	}
-	return nil
+	return err
 }

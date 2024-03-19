@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetPackBySetCode(setCode string) (*domain.BoosterPack, error) {
@@ -38,16 +39,27 @@ func GetPackBySetCode(setCode string) (*domain.BoosterPack, error) {
 	return boosterPack, nil
 }
 
+type BoosterPackNoID struct {
+	SetCode     string `bson:"set_code" json:"set_code"`
+	Name        string `bson:"name" json:"name"`
+	Description string `bson:"description" json:"description"`
+	CardCount   int    `bson:"card_count" json:"card_count"`
+	Filter      string `bson:"filter" json:"filter"`
+	Slots       []struct {
+		Options []domain.Option `bson:"options" json:"options"`
+		Filter  string          `bson:"filter" json:"filter"`
+		Count   int             `bson:"count" json:"count"`
+	} `bson:"slots" json:"slots"`
+	CreatedAt primitive.DateTime `bson:"created_at" json:"created_at"`
+	UpdatedAt primitive.DateTime `bson:"updated_at" json:"updated_at"`
+}
+
 func CreateBoosterPack(boosterPack domain.BoosterPack) error {
 	if boosterPack.ID != primitive.NilObjectID {
 		return ErrObjectIDProvided
 	}
-	boosterPack.ID = primitive.NewObjectID()
-	boosterPack.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
-	boosterPack.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-
 	// Begin transaction
 	session, err := MongoDatabaseClient.
 		StartSession()
@@ -55,26 +67,26 @@ func CreateBoosterPack(boosterPack domain.BoosterPack) error {
 		return fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
-
+	opts := options.Update().SetUpsert(true)
 	// Find if user exists and if not, create it
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
-		resultFind := MongoDatabaseClient.
-			Database(DB_MAIN).
-			Collection(COLLECTION_BOOSTER_PACKS).
-			FindOne(ctx, bson.M{"setCode": boosterPack.SetCode})
-		if err := resultFind.Err(); err != mongo.ErrNoDocuments {
-			if err == nil {
-				return nil, fmt.Errorf("%w", ErrAlreadyExists)
-			}
-			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
-		}
-
 		resultInsert, err := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_BOOSTER_PACKS).
-			InsertOne(ctx,
-				boosterPack,
-			)
+			UpdateOne(ctx,
+				bson.M{
+					"set_code": boosterPack.SetCode,
+				}, bson.M{
+					"$set": BoosterPackNoID{
+						SetCode:     boosterPack.SetCode,
+						Name:        boosterPack.Name,
+						Description: boosterPack.Description,
+						CardCount:   boosterPack.CardCount,
+						Slots:       boosterPack.Slots,
+						CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+						UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+					},
+				}, opts)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
@@ -105,3 +117,13 @@ func GetAllBoosterPacks() ([]domain.BoosterPack, error) {
 	}
 	return boosterPacks, nil
 }
+
+// func DeleteAllBoosterPacks() error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+// 	defer cancel()
+// 	_, err := MongoDatabaseClient.
+// 		Database(DB_MAIN).
+// 		Collection(COLLECTION_BOOSTER_PACKS).
+// 		DeleteMany(ctx, bson.M{})
+// 	return err
+// }
