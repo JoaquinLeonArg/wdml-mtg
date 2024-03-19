@@ -173,23 +173,7 @@ func GenerateVanillaBoosterPack(boosterPackData domain.BoosterPackData) ([]domai
 		newCards := []domain.CardData{}
 		for len(newCards) < n {
 			card := rarity[rand.Int()%len(rarity)]
-			colors := []string{}
-			for _, col := range card.Colors {
-				colors = append(colors, string(col))
-			}
-			types := scryfall.ParseScryfallTypeline(card.TypeLine)
-
-			newCard := domain.CardData{
-				SetCode:         strings.ToUpper(card.Set),
-				CollectorNumber: card.CollectorNumber,
-				Name:            card.Name,
-				Rarity:          domain.CardRarity(card.Rarity),
-				Types:           types,
-				ManaValue:       int(card.CMC),
-				Colors:          colors,
-			}
-			newCard.ImageURL, newCard.BackImageURL = scryfall.GetImageFromFaces(card)
-
+			newCard := scryfall.GetCardDataFromScryCard(card)
 			newCards = append(newCards, newCard)
 		}
 		return newCards
