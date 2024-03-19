@@ -1,11 +1,16 @@
 package collection
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
+	scryfallapi "github.com/BlueMonday/go-scryfall"
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetCollectionCards(userID, tournamentID, filters string, count, page int) ([]domain.OwnedCard, int, error) {
@@ -49,4 +54,98 @@ func GetCollectionCards(userID, tournamentID, filters string, count, page int) (
 
 func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
 	return db.GetOwnedCardById(cardId)
+}
+
+func ImportCollection(importCardCsv [][]string, userID, tournamentID string) error {
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", db.ErrInvalidID, err)
+	}
+	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", db.ErrInvalidID, err)
+	}
+	cards := make([]domain.CardData, 0)
+	cardsBySetCode := make([]scryfall.CardsByIdentifier, 0)
+	cum := 0
+	scryfallRequestBody := scryfall.ScryfallCollectionRequest{Identifiers: []scryfallapi.CardIdentifier{}}
+	// Pos 3 = set, Pos 9 = collectors number
+	for i, card := range importCardCsv {
+		if i > 0 {
+			amt, err := strconv.Atoi(card[0])
+			if err != nil {
+				return err
+			}
+			cardsBySetCode = append(cardsBySetCode, scryfall.CardsByIdentifier{Identifier: scryfallapi.CardIdentifier{Set: card[3], CollectorNumber: card[9]}, Amount: amt})
+			scryfallRequestBody.Identifiers = append(scryfallRequestBody.Identifiers, scryfallapi.CardIdentifier{Set: card[3], CollectorNumber: card[9]})
+
+			cum += 1
+			// When cum == 75, query scryfall and add cards to slice of OwnedCard
+			if cum == 75 {
+				cum = 0
+
+				// Pegada a scry
+				scryCardData, err := scryfall.GetAllCardsByIdentifiers(scryfallRequestBody)
+				if err != nil {
+					return err
+				}
+				for _, card := range scryCardData {
+					cardData := scryfall.GetCardDataFromScryCard(card)
+					cards = append(cards, cardData)
+				}
+				scryfallRequestBody.Identifiers = []scryfallapi.CardIdentifier{}
+			}
+		}
+	}
+	if cum > 0 {
+		cum = 0
+		// Pegada a scry
+		scryCardData, err := scryfall.GetAllCardsByIdentifiers(scryfallRequestBody)
+		if err != nil {
+			return err
+		}
+		for _, card := range scryCardData {
+			cardData := scryfall.GetCardDataFromScryCard(card)
+			cards = append(cards, cardData)
+		}
+		scryfallRequestBody.Identifiers = []scryfallapi.CardIdentifier{}
+
+	}
+
+	// cards []CardData
+	// cardsBySetCode { Identifier: scryfallapi.CardIdentifier, Count int}
+	ownedCards := make([]domain.OwnedCard, 0)
+	coinsToAdd := 0
+	for _, cardIdent := range cardsBySetCode {
+		var foundCard domain.CardData
+		for _, cardData := range cards {
+			if strings.ToLower(cardData.SetCode) == cardIdent.Identifier.Set && cardData.CollectorNumber == cardIdent.Identifier.CollectorNumber {
+				foundCard = cardData
+				if cardIdent.Amount > 4 {
+					coins := (cardIdent.Amount - 4)
+					switch foundCard.Rarity {
+					case "mythic":
+						coinsToAdd += coins * 20 // TODO: Enum this or smth
+					case "rare":
+						coinsToAdd += coins * 10
+					case "uncommon":
+						coinsToAdd += coins * 3
+					case "common":
+						coinsToAdd += coins * 1
+					}
+					cardIdent.Amount = 4
+				}
+			}
+		}
+		newOwnedCard := domain.OwnedCard{
+			ID:           primitive.NewObjectID(),
+			CardData:     foundCard,
+			TournamentID: dbTournamentID,
+			UserID:       dbUserID,
+			Count:        cardIdent.Amount,
+		}
+		ownedCards = append(ownedCards, newOwnedCard)
+	}
+	db.AddCoinsToTournamentPlayer(coinsToAdd, userID, tournamentID)
+	return db.ImportCollection(ownedCards)
 }

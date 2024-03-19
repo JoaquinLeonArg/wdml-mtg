@@ -119,3 +119,31 @@ func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
 	cachedPossibleCards.Add(filter, allCards)
 	return allCards, nil
 }
+
+type CardsByIdentifier struct {
+	Identifier scryfallapi.CardIdentifier
+	Amount     int
+}
+type ScryfallCollectionRequest struct {
+	Identifiers []scryfallapi.CardIdentifier `json:"identifiers"`
+}
+
+func GetAllCardsByIdentifiers(scryfallRequestBody ScryfallCollectionRequest) ([]scryfallapi.Card, error) {
+	var err error
+
+	if client == nil {
+		client, err = scryfallapi.NewClient()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ctx := context.Background()
+
+	response, err := client.GetCardsByIdentifiers(ctx, scryfallRequestBody.Identifiers)
+	if err != nil {
+		return nil, err
+	}
+	allCards := response.Data
+	return allCards, nil
+}
