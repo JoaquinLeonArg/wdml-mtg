@@ -338,7 +338,21 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 				}
 			} else if len(foundCards) == 1 {
 				// Update count of existing card
-				foundCards[0].Count += 1
+				if foundCards[0].Count >= 4 {
+
+					switch foundCards[0].CardData.Rarity {
+					case "mythic":
+						AddCoinsToTournamentPlayer(MYTHIC_TO_COIN, userID, tournamentID)
+					case "rare":
+						AddCoinsToTournamentPlayer(RARE_TO_COIN, userID, tournamentID)
+					case "uncommon":
+						AddCoinsToTournamentPlayer(UNCOMMON_TO_COIN, userID, tournamentID)
+					case "common":
+						AddCoinsToTournamentPlayer(COMMON_TO_COIN, userID, tournamentID)
+					}
+				} else {
+					foundCards[0].Count += 1
+				}
 				foundCards[0].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 				_, err := MongoDatabaseClient.
 					Database(DB_MAIN).
