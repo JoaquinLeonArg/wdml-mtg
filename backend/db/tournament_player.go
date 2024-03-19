@@ -342,13 +342,13 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 
 					switch foundCards[0].CardData.Rarity {
 					case "mythic":
-						AddCoinsToTournamentPlayer(MYTHIC_TO_COIN, userID, tournamentID)
+						AddCoinsToTournamentPlayer(domain.MYTHIC_TO_COIN, userID, tournamentID)
 					case "rare":
-						AddCoinsToTournamentPlayer(RARE_TO_COIN, userID, tournamentID)
+						AddCoinsToTournamentPlayer(domain.RARE_TO_COIN, userID, tournamentID)
 					case "uncommon":
-						AddCoinsToTournamentPlayer(UNCOMMON_TO_COIN, userID, tournamentID)
+						AddCoinsToTournamentPlayer(domain.UNCOMMON_TO_COIN, userID, tournamentID)
 					case "common":
-						AddCoinsToTournamentPlayer(COMMON_TO_COIN, userID, tournamentID)
+						AddCoinsToTournamentPlayer(domain.COMMON_TO_COIN, userID, tournamentID)
 					}
 				} else {
 					foundCards[0].Count += 1

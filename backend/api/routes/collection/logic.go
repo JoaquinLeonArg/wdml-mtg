@@ -123,13 +123,13 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
 					case "mythic":
-						coinsToAdd += coins * db.MYTHIC_TO_COIN
+						coinsToAdd += coins * domain.MYTHIC_TO_COIN
 					case "rare":
-						coinsToAdd += coins * db.RARE_TO_COIN
+						coinsToAdd += coins * domain.RARE_TO_COIN
 					case "uncommon":
-						coinsToAdd += coins * db.UNCOMMON_TO_COIN
+						coinsToAdd += coins * domain.UNCOMMON_TO_COIN
 					case "common":
-						coinsToAdd += coins * db.COMMON_TO_COIN
+						coinsToAdd += coins * domain.COMMON_TO_COIN
 					}
 					cardIdent.Amount = 4
 				}

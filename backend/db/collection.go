@@ -41,13 +41,6 @@ const (
 	CardFilterTypeMV      CardFilterType = "mv"
 )
 
-const (
-	MYTHIC_TO_COIN   = 20
-	RARE_TO_COIN     = 10
-	UNCOMMON_TO_COIN = 3
-	COMMON_TO_COIN   = 1
-)
-
 func GetCardsFromTournamentPlayer(userID, tournamentID string, filters []CardFilter, count, page int) ([]domain.OwnedCard, int, error) {
 	log.Debug().Interface("filters", filters).Int("count", count).Int("page", page).Send()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
