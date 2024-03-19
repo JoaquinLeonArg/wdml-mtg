@@ -426,3 +426,58 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedB
 
 	return err
 }
+
+func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
+		// Find tournament user
+		result := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_TOURNAMENT_PLAYERS).
+			FindOne(ctx,
+				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
+			)
+		if err := result.Err(); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
+			}
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		// Decode user
+		var tournamentPlayer *domain.TournamentPlayer
+		err = result.Decode(&tournamentPlayer)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		tournamentPlayer.GameResources.Coins += coins
+		updateResult, err := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_TOURNAMENT_PLAYERS).
+			UpdateByID(ctx, tournamentPlayer.ID, bson.M{"$set": tournamentPlayer})
+
+		if err != nil || updateResult.MatchedCount == 0 {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		return nil, nil
+	})
+	return err
+}
