@@ -34,35 +34,37 @@ export default function DecksPage(props: any) {
     })
   }
 
-  useEffect(() => refreshData())
+  useEffect(() => refreshData(), [props.params.tournamentID])
 
   return (
-    <Layout tournamentID={props.params.tournamentID}>
-      <div className="mx-16 my-16">
-        <Header title="Decks" endContent={<Button onClick={() => setIsOpen(true)} color="success">+</Button>} />
-        <div className="flex flex-col gap-2 mb-2">
+    <>
+      <CreateDeckModal tournamentID={props.params.tournamentID} isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={refreshData} />
+      <Layout tournamentID={props.params.tournamentID}>
+        <div className="mx-16 my-16">
+          <Header title="Decks" endContent={<Button isIconOnly onClick={() => setIsOpen(true)} color="success">+</Button>} />
+          <div className="flex flex-col gap-2 mb-2">
 
-          <CreateDeckModal tournamentID={props.params.tournamentID} isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={refreshData} />
-          <div className="bg-gray-800 w-full border-small px-1 py-2 rounded-small border-default-200">
-            <Listbox
-              emptyContent="No decks to show"
-            >
-              {
-                decks.map((deck) =>
-                  <ListboxItem
-                    className="text-white"
-                    onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
-                    key={deck.name}
-                  >
-                    {deck.name}
-                  </ListboxItem>
-                )
-              }
-            </Listbox>
+            <div className="bg-gray-800 w-full border-small px-1 py-2 rounded-small border-default-200">
+              <Listbox
+                emptyContent="No decks to show"
+              >
+                {
+                  decks.map((deck) =>
+                    <ListboxItem
+                      className="text-white"
+                      onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
+                      key={deck.name}
+                    >
+                      {deck.name}
+                    </ListboxItem>
+                  )
+                }
+              </Listbox>
+            </div>
           </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </>
   )
 }
 
@@ -103,6 +105,7 @@ function CreateDeckModal(props: CreateDeckModalProps) {
 
   return (
     <Modal
+      onClose={props.closeFn}
       isOpen={props.isOpen}
       placement="top-center"
     >

@@ -8,7 +8,7 @@ import { BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
 import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { BsFillTrashFill } from "react-icons/bs";
-import { CardDisplaySpoiler, CardFullProps } from "@/components/card";
+import { CardDisplaySpoiler, CardFullProps } from "@/components/collectioncard";
 
 export default function PacksPage(props: any) {
   let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
@@ -196,7 +196,7 @@ function AddPacks(props: AddPacksProps) {
 
   useEffect(() => {
     refreshAvailableBoosters()
-  })
+  }, [props.tournamentID])
 
   let refreshAvailableBoosters = () => {
     ApiGetRequest({

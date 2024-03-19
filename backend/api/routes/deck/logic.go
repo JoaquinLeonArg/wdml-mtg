@@ -8,7 +8,7 @@ import (
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 )
 
-func GetDeckById(deckID string) (*domain.Deck, error) {
+func GetDeckById(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 	return db.GetDeckByID(deckID)
 }
 
@@ -58,10 +58,11 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 	)
 }
 
-func RemoveCardFromDeck(card domain.DeckCard, deckID string, amount int) error {
+func RemoveCardFromDeck(ownedCardID, deckID string, board domain.DeckBoard, amount int) error {
 	return db.RemoveDeckCardFromDeck(
-		card,
+		ownedCardID,
 		deckID,
+		board,
 		amount,
 	)
 }
