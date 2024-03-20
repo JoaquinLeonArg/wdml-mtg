@@ -25,10 +25,7 @@ export default function EditDeckPage(props: any) {
   let [groupBy, setGroupBy] = useState<string>("Type")
   let [orderBy, setOrderBy] = useState<string>("Name")
 
-  useEffect(() => { setDeckLoading(true); refreshData() }, [props.params.tournamentID])
-
   let refreshData = () => {
-
     ApiGetRequest({
       route: "/deck",
       query: { deck_id: props.params.deckID },
@@ -47,6 +44,11 @@ export default function EditDeckPage(props: any) {
       }
     })
   }
+
+  useEffect(() => {
+    setDeckLoading(true)
+    refreshData()
+  }, [props.params.tournamentID])
 
   return (
     <>
@@ -192,10 +194,6 @@ function AddCardsModal(props: AddCardsModalProps) {
 
   let [error, setError] = useState<string>("")
 
-  useEffect(() => {
-    refreshCollection()
-  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page, props.tournamentID, props.cardCounts, props.deck])
-
   let refreshCollection = () => {
     ApiGetRequest({
       route: "/collection",
@@ -244,6 +242,10 @@ function AddCardsModal(props: AddCardsModalProps) {
       }
     })
   }
+
+  useEffect(() => {
+    refreshCollection()
+  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page, props.tournamentID, props.cardCounts, props.deck])
 
   if (!props.deck) {
     return
@@ -333,8 +335,7 @@ function DeckDisplayFull(props: DeckDisplayListProps) {
       grouped[category].sort((a, b) => orders[props.orderBy](a, b))
     })
     setCardsByCategory(grouped)
-
-  }, [props.cards, props.deck_cards])
+  }, [props])
 
   return (
     <div className="flex flex-row">

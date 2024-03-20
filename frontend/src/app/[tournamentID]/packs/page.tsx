@@ -18,24 +18,6 @@ export default function PacksPage(props: any) {
   let [flipAllCards, setFlipAllCards] = useState<boolean>(false)
   let [flipAllCurrentIndex, setFlipAllCurrentIndex] = useState<number>(0)
 
-
-  useEffect(() => {
-    refreshData()
-  }, [props.params.tournamentID])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!flipAllCards) { setFlipAllCurrentIndex(0); return }
-      if (flipAllCurrentIndex < currentCards.length) {
-        flipCard(flipAllCurrentIndex, currentCards)
-      } else {
-        setFlipAllCards(false)
-      }
-      setFlipAllCurrentIndex(flipAllCurrentIndex + 1)
-    }, 75)
-    return () => clearInterval(interval)
-  })
-
   let flipCard = (index: number, oldCards: CardFullProps[]) => {
     let cards = [...oldCards]
     if (cards[index].card.back_image_url != "") {
@@ -90,6 +72,23 @@ export default function PacksPage(props: any) {
       }
     })
   }
+
+  useEffect(() => {
+    refreshData()
+  }, [props.params.tournamentID])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!flipAllCards) { setFlipAllCurrentIndex(0); return }
+      if (flipAllCurrentIndex < currentCards.length) {
+        flipCard(flipAllCurrentIndex, currentCards)
+      } else {
+        setFlipAllCards(false)
+      }
+      setFlipAllCurrentIndex(flipAllCurrentIndex + 1)
+    }, 75)
+    return () => clearInterval(interval)
+  })
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
@@ -196,10 +195,6 @@ function AddPacks(props: AddPacksProps) {
     })
   }
 
-  useEffect(() => {
-    refreshAvailableBoosters()
-  }, [props.tournamentID])
-
   let refreshAvailableBoosters = () => {
     ApiGetRequest({
       route: "/boosterpacks/tournament",
@@ -212,6 +207,10 @@ function AddPacks(props: AddPacksProps) {
       }
     })
   }
+
+  useEffect(() => {
+    refreshAvailableBoosters()
+  }, [props.tournamentID])
 
   return (
     <div>

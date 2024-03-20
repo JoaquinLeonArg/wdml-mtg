@@ -4,10 +4,9 @@ import { Header } from "@/components/header"
 import Layout from "@/components/layout"
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
 import { Deck } from "@/types/deck"
-import { Button, Checkbox, Input, Link, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, Textarea, useDisclosure } from "@nextui-org/react"
+import { Button, Input, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, Textarea } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { BsFillTrashFill } from "react-icons/bs";
 
 
 
@@ -34,7 +33,9 @@ export default function DecksPage(props: any) {
     })
   }
 
-  useEffect(() => refreshData(), [props.params.tournamentID])
+  useEffect(() => {
+    refreshData()
+  }, [props.params.tournamentID])
 
   return (
     <>
