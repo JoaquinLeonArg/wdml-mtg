@@ -99,7 +99,7 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 	}
 	if cum > 0 {
 		cum = 0
-		// Pegada a scry
+		// Request to Scryfall
 		scryCardData, err := scryfall.GetAllCardsByIdentifiers(scryfallRequestBody)
 		if err != nil {
 			return err
@@ -123,7 +123,7 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
 					case "mythic":
-						coinsToAdd += coins * domain.MYTHIC_TO_COIN // TODO: Enum this or smth
+						coinsToAdd += coins * domain.MYTHIC_TO_COIN
 					case "rare":
 						coinsToAdd += coins * domain.RARE_TO_COIN
 					case "uncommon":
