@@ -90,7 +90,7 @@ export default function Login() {
             <div className='flex h-screen justify-center'>
                 <div className='my-auto px-8 flex flex-col items-center'>
                     <Image src="/logo.png" alt="" width={100} height={100}></Image>
-                    <h2 className="text-3xl mt-4 text-primary-50 font-sans">WDML</h2>
+                    <h2 className="text-3xl mt-4 text-primary-50 font-sans">Tolarian Archives</h2>
                     {
                         (currentState == PageState.PS_LOGIN) && (
                             <div className="flex flex-col items-center justify-center px-6 py-8 my-8 lg:py-0">

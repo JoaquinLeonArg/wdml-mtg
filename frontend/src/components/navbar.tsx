@@ -1,10 +1,17 @@
+import { Tournament } from "@/types/tournament"
+import { Dropdown, DropdownTrigger, Button, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export type NavigationTopbarProps = {
   toggleSidebarFn: any
+  tournaments?: Tournament[]
+  tournamentID: string
 }
 
 export default function NavigationTopbar(props: NavigationTopbarProps) {
+  let router = useRouter()
+
   return (
     <aside className="antialiased fixed top-0 w-full z-[200]">
       <nav className="border-gray-200 px-4 lg:px-6 py-2.5 bg-gray-600">
@@ -17,9 +24,57 @@ export default function NavigationTopbar(props: NavigationTopbarProps) {
               <svg className="w-[18px] h-[18px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" /></svg>
               <span className="sr-only">Toggle sidebar</span>
             </button>
-            <a href="#" className="flex mr-4">
-              <Image src="/logo.png" className="mr-3 h-8" alt="WDML Logo" width={32} height={32} />
-              <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">WDML</span>
+            <a href="#" className="flex gap-12">
+              <div className="flex flex-row">
+                <Image src="/logo.png" className="mr-3 h-8" alt="TA Logo" width={32} height={32} />
+                <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">Tolarian Archives</span>
+              </div>
+              {props.tournaments && props.tournaments.length > 0 &&
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button
+                      variant="bordered"
+                      size="sm"
+                      className="w-48"
+                    >
+                      {props.tournaments.find((tournament) => tournament.id == props.tournamentID)?.name || ""}
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label="Tournament Selection" items={props.tournaments.concat({ id: "!", name: "Join or create", invite_code: "", description: "" })}>
+                    {(item) => {
+                      if (item.id == "!") {
+                        return (
+                          <DropdownItem
+                            key="join"
+                            color="default"
+                            className="text-white"
+                            onClick={() => router.push("/join")}
+                          >
+                            {item.name}
+                          </DropdownItem>
+
+                        )
+                      }
+                      return (
+                        <DropdownItem
+                          key={item.id}
+                          color="default"
+                          showDivider={props.tournaments && item.id == props.tournaments[props.tournaments.length - 1].id}
+                          className="text-white"
+                          onClick={() => {
+                            if (item.id != props.tournamentID) {
+                              router.push("/" + item.id)
+                            }
+                          }}
+                        >
+                          {item.name}
+                        </DropdownItem>
+
+                      )
+                    }}
+                  </DropdownMenu>
+                </Dropdown>
+              }
             </a>
           </div>
         </div>

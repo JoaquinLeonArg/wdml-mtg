@@ -128,3 +128,37 @@ func GetTournamentByInviteCode(inviteCode string) (*domain.Tournament, error) {
 	}
 	return tournament, nil
 }
+
+func GetTournamentsForUser(userID string) ([]domain.Tournament, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	tournament_players, err := GetTournamentPlayersForUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	tournamentIDs := make([]primitive.ObjectID, 0, len(tournament_players))
+	for _, tournament_player := range tournament_players {
+		tournamentIDs = append(tournamentIDs, tournament_player.TournamentID)
+	}
+
+	// Find tournaments
+	cursor, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENTS).
+		Find(ctx,
+			bson.M{"_id": bson.M{"$in": tournamentIDs}},
+		)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode tournaments
+	var tournaments []domain.Tournament
+	err = cursor.All(ctx, &tournaments)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	return tournaments, nil
+}

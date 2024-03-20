@@ -14,6 +14,7 @@ import (
 func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/tournament").Subrouter()
 	r.HandleFunc("", GetTournamentHandler).Methods(http.MethodGet)
+	r.HandleFunc("/user", GetTournamentsForUserHandler).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
 	r.HandleFunc("/tournament_player", GetTournamentPlayersHandler).Methods(http.MethodGet)
 }
@@ -22,7 +23,7 @@ func RegisterEndpoints(r *mux.Router) {
 // ENDPOINT: Get a tournament by it's id
 //
 
-type GetTournamentHandlerResponse struct {
+type GetTournamentResponse struct {
 	Tournament domain.Tournament `json:"tournament"`
 }
 
@@ -46,7 +47,42 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Send response back
 	w.WriteHeader(http.StatusOK)
-	w.Write(response.NewDataResponse(GetTournamentHandlerResponse{Tournament: *tournament}))
+	w.Write(response.NewDataResponse(GetTournamentResponse{Tournament: *tournament}))
+
+}
+
+//
+// ENDPOINT: Get all tournaments for a user
+//
+
+type GetTournamentsForUserResponse struct {
+	Tournaments []domain.Tournament `json:"tournaments"`
+}
+
+func GetTournamentsForUserHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from context
+	userID, ok := r.Context().Value("user_id").(string)
+	if userID == "" || !ok {
+		log.Debug().
+			Msg("failed to read user id from context")
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	// Get the tournament
+	tournaments, err := GetTournamentsForUser(userID)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to get tournaments")
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(GetTournamentsForUserResponse{Tournaments: tournaments}))
 
 }
 
