@@ -30,7 +30,7 @@ export default function NavigationTopbar(props: NavigationTopbarProps) {
                 <Image src="/logo.png" className="mr-3 h-8" alt="TA Logo" width={32} height={32} />
                 <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">Tolarian Archives</span>
               </div>
-              <div class="flex flex-row items-center gap-1">
+              <div className="flex flex-row items-center gap-1">
                 {props.tournaments && props.tournaments.length > 0 &&
                   <>
                     <Dropdown>
