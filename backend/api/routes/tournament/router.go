@@ -15,6 +15,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/tournament").Subrouter()
 	r.HandleFunc("", GetTournamentHandler).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
+	r.HandleFunc("/tournament_player", GetTournamentPlayersHandler).Methods(http.MethodGet)
 }
 
 //
@@ -46,6 +47,39 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(GetTournamentHandlerResponse{Tournament: *tournament}))
+
+}
+
+//
+// ENDPOINT: Get a tournament's players
+//
+
+type GetTournamentPlayersResponse struct {
+	TournamentPlayers []domain.TournamentPlayer `json:"tournament_players"`
+	Users             []domain.User             `json:"users"`
+}
+
+func GetTournamentPlayersHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Get the tournament players
+	tournament_players, users, err := GetTournamentPlayers(tournamentID)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to get tournament")
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(GetTournamentPlayersResponse{TournamentPlayers: tournament_players, Users: users}))
 
 }
 

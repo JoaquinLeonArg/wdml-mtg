@@ -12,6 +12,18 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 	return db.GetTournamentByID(tournamentID)
 }
 
+func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
+	tournament_players, users, err := db.GetTournamentPlayers(tournamentID)
+
+	// Redact sensitive information
+	for index, _ := range users {
+		users[index].Password = nil
+		users[index].Email = ""
+	}
+
+	return tournament_players, users, err
+}
+
 func CreateTournament(tournament domain.Tournament) (string, error) {
 	tournamentID, err := db.CreateTournament(tournament)
 	if err != nil {

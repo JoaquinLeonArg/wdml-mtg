@@ -89,13 +89,13 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 	return tournamentPlayer, nil
 }
 
-func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error) {
+func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find players on this tournament
@@ -106,16 +106,40 @@ func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error
 			bson.M{"tournament_id": dbTournamentID},
 		)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament players
 	var tournamentPlayers []domain.TournamentPlayer
 	err = cursor.All(ctx, &tournamentPlayers)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
-	return tournamentPlayers, nil
+
+	userIDs := make([]primitive.ObjectID, 0, len(tournamentPlayers))
+	for _, tournamentPlayer := range tournamentPlayers {
+		userIDs = append(userIDs, tournamentPlayer.UserID)
+	}
+
+	// Find users
+	cursor, err = MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_USERS).
+		Find(ctx,
+			bson.M{"_id": bson.M{"$in": userIDs}},
+		)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode tournament players
+	var users []domain.User
+	err = cursor.All(ctx, &users)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	return tournamentPlayers, users, nil
 }
 
 func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
