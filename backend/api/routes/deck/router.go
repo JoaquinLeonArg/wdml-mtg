@@ -79,6 +79,7 @@ func GetDecksForTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) 
 		log.Debug().Err(err).Msg("failed to get deck data")
 		w.Write(response.NewErrorResponse(err))
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	// Send response back

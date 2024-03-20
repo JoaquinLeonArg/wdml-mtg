@@ -20,7 +20,14 @@ func GetDecksForTournamentPlayer(tournamentID, userID string) ([]domain.Deck, er
 		}
 		return nil, apiErrors.ErrInternal
 	}
-	return db.GetDecksForTournamentPlayer(tournamentPlayer.ID.Hex())
+	decks, err := db.GetDecksForTournamentPlayer(tournamentPlayer.ID.Hex())
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return nil, apiErrors.ErrNotFound
+		}
+		return nil, apiErrors.ErrInternal
+	}
+	return decks, nil
 }
 
 func CreateEmptyDeck(ownerID, deckName, deckDescription, tournamentID string) error {

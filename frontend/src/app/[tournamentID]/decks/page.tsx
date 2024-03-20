@@ -27,8 +27,11 @@ export default function DecksPage(props: any) {
         setIsLoading(false)
       },
       responseHandler: (res: { decks: Deck[] }) => {
-        setIsLoading(false)
+        if (!res.decks) {
+          setDecks([])
+        }
         setDecks(res.decks)
+        setIsLoading(false)
       }
     })
   }
@@ -50,7 +53,7 @@ export default function DecksPage(props: any) {
                   emptyContent="No decks to show"
                 >
                   {
-                    decks.map((deck) =>
+                    decks ? decks.map((deck) =>
                       <ListboxItem
                         className="text-white"
                         onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
@@ -58,7 +61,7 @@ export default function DecksPage(props: any) {
                       >
                         {deck.name}
                       </ListboxItem>
-                    )
+                    ) : []
                   }
                 </Listbox>
               </div>

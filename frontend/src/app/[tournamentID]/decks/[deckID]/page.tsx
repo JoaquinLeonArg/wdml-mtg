@@ -72,13 +72,13 @@ export default function EditDeckPage(props: any) {
               quality={100}
             />
             <div className="flex flex-col w-full">
-              <div className="flex flex-row items-center gap-2 max-w-96 mb-4">
+              <div className="flex flex-row items-center gap-2 mb-4">
                 <p className="text-gray-500">Group by</p>
                 <Dropdown>
                   <DropdownTrigger>
                     <Button
                       variant="bordered"
-                      className="capitalize"
+                      className="capitalize min-w-32"
                     >
                       {groupBy}
                     </Button>
@@ -98,7 +98,7 @@ export default function EditDeckPage(props: any) {
                   <DropdownTrigger>
                     <Button
                       variant="bordered"
-                      className="capitalize"
+                      className="capitalize min-w-32"
                     >
                       {orderBy}
                     </Button>

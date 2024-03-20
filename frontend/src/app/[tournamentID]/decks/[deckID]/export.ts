@@ -2,6 +2,7 @@ import { OwnedCard } from "@/types/card";
 import { Deck } from "@/types/deck";
 
 export function FormatDeck(deck: Deck, cards: OwnedCard[]) {
+  if (!cards || cards.length == 0 || !deck) return ""
   let cardsById: { [id: string]: OwnedCard } = {}
   cards.forEach((card) => {
     cardsById[card.id] = card
