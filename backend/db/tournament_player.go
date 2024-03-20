@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -220,7 +219,7 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 	return tournamentPlayer.GameResources.BoosterPacks, nil
 }
 
-func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterPackData domain.BoosterPackData, cards []domain.CardData) error {
+func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode string, cards []domain.CardData) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -267,7 +266,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 		newPacks := make([]domain.OwnedBoosterPack, 0, len(tournamentPlayer.GameResources.BoosterPacks))
 		// Find and remove the booster pack
 		for _, boosterPack := range tournamentPlayer.GameResources.BoosterPacks {
-			if boosterPack.Data.SetCode == boosterPackData.SetCode && boosterPack.Data.BoosterType == boosterPackData.BoosterType {
+			if boosterPack.SetCode == setCode {
 				if boosterPack.Available == 1 && !removed {
 					removed = true
 					continue
@@ -339,7 +338,6 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 			} else if len(foundCards) == 1 {
 				// Update count of existing card
 				if foundCards[0].Count >= 4 {
-
 					switch foundCards[0].CardData.Rarity {
 					case "mythic":
 						AddCoinsToTournamentPlayer(domain.MYTHIC_TO_COIN, userID, tournamentID)
@@ -374,7 +372,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	return err
 }
 
-func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedBoosterPack) error {
+func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoosterPack) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -415,16 +413,12 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedB
 		// Packs the user already has
 		seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
 		for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
-			seenPacks[pack.Data.SetCode] = index
+			seenPacks[pack.SetCode] = index
 		}
-		log.Info().Interface("seenPacks", seenPacks).Send()
-		log.Info().Interface("packs", packs).Send()
-		for _, pack := range packs {
-			if index, ok := seenPacks[pack.Data.SetCode]; ok {
-				tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
-			} else {
-				tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
-			}
+		if index, ok := seenPacks[pack.SetCode]; ok {
+			tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
+		} else {
+			tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
 		}
 		// Update the tournament player
 		updateResult, err := MongoDatabaseClient.

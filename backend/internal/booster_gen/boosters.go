@@ -70,6 +70,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 					Rarity:          domain.CardRarity(card.Rarity),
 					Types:           scryfall.ParseScryfallTypeline(card.TypeLine),
 					ManaValue:       int(math.Floor(card.CMC)),
+					ManaCost:        card.ManaCost,
 					Colors:          colors,
 					ImageURL:        cardFront,
 					BackImageURL:    cardBack,

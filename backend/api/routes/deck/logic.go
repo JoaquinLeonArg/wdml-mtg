@@ -8,7 +8,7 @@ import (
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 )
 
-func GetDeckById(deckID string) (*domain.Deck, error) {
+func GetDeckById(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 	return db.GetDeckByID(deckID)
 }
 
@@ -20,7 +20,14 @@ func GetDecksForTournamentPlayer(tournamentID, userID string) ([]domain.Deck, er
 		}
 		return nil, apiErrors.ErrInternal
 	}
-	return db.GetDecksForTournamentPlayer(tournamentPlayer.ID.Hex())
+	decks, err := db.GetDecksForTournamentPlayer(tournamentPlayer.ID.Hex())
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return nil, apiErrors.ErrNotFound
+		}
+		return nil, apiErrors.ErrInternal
+	}
+	return decks, nil
 }
 
 func CreateEmptyDeck(ownerID, deckName, deckDescription, tournamentID string) error {
@@ -58,10 +65,11 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 	)
 }
 
-func RemoveCardFromDeck(card domain.DeckCard, deckID string, amount int) error {
+func RemoveCardFromDeck(ownedCardID, deckID string, board domain.DeckBoard, amount int) error {
 	return db.RemoveDeckCardFromDeck(
-		card,
+		ownedCardID,
 		deckID,
+		board,
 		amount,
 	)
 }

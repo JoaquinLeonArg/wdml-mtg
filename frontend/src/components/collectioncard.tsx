@@ -10,6 +10,9 @@ export type CardFullProps = {
   showRarityWhenFlipped: boolean
   onClickFn: () => void
   count?: number
+  disabled?: boolean
+  extraContent?: React.ReactElement
+  inDeck?: number
 }
 
 export function CardFull(props: CardFullProps) {
@@ -34,8 +37,9 @@ export function CardFull(props: CardFullProps) {
 
   return (
     <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
-      {props.count && props.count > 1 ? <div className="absolute z-[200] bg-primary-800 text-white font-bold px-2 -my-1 -mx-1 rounded-lg">{props.count}</div> : ""}
-      <div onClick={props.onClickFn} className={
+      {props.disabled && <div className="absolute w-full h-full bg-black opacity-40 z-10" />}
+      {props.count && props.count > 1 ? <div className="absolute z-[200] bg-lime-950 border-1 border-white text-white text-lg font-bold px-2 -my-1 -mx-1 rounded">{props.count}</div> : ""}
+      <div onClick={() => { if (!props.disabled) props.onClickFn() }} className={
         `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${!props.flipped && "[transform:rotateY(180deg)]"}`
       }>
         <div className="absolute inset-0 [backface-visibility:hidden]">
@@ -62,6 +66,10 @@ export function CardFull(props: CardFullProps) {
           />
         </div>
       </div>
+      {props.inDeck && props.inDeck > 0 ?
+        <div className="absolute p-0.5 px-2 m-1 bottom-0 bg-gray-800 text-white text-sm rounded-full border-1 border-white">
+          {props.inDeck} in deck
+        </div> : null}
     </div >
   )
 }
@@ -71,8 +79,11 @@ export type CardDisplaySpoilerProps = {
 }
 
 export function CardDisplaySpoiler(props: CardDisplaySpoilerProps) {
+  if (props.cards.length == 0) {
+    return <div className="text-white self-center font-thin italic">No cards to show</div>
+  }
   return (
-    <div className="flex flex-wrap flex-row gap-2 items-center justify-center">
+    <div className="flex flex-wrap flex-row gap-4 items-center justify-center">
       {props.cards.map((card: CardFullProps, index: number) => {
         return (<CardFull {...card} key={card.card.image_url + index} />)
       })
