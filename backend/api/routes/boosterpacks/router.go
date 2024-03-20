@@ -25,7 +25,7 @@ func RegisterEndpoints(r *mux.Router) {
 //
 
 type GetTournamentBoosterPacksResponse struct {
-	BoosterPacks []domain.BoosterPackData `json:"booster_packs"`
+	BoosterPacks []domain.BoosterPack `json:"booster_packs"`
 }
 
 func GetTournamentBoosterPacksHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,11 +54,8 @@ func GetTournamentBoosterPacksHandler(w http.ResponseWriter, r *http.Request) {
 //
 
 type AddTournamentBoosterPacksRequest struct {
-	BoosterPacks []struct {
-		Count int    `json:"count"`
-		Set   string `json:"set"`
-		Type  string `json:"type"`
-	} `json:"booster_packs"`
+	Count   int    `json:"count"`
+	SetCode string `json:"set_code"`
 }
 
 type AddTournamentBoosterPacksResponse struct{}
@@ -111,7 +108,7 @@ func AddTournamentBoosterPacksHandler(w http.ResponseWriter, r *http.Request) {
 //
 
 type OpenBoosterPackRequest struct {
-	BoosterPackData domain.BoosterPackData `json:"booster_pack_data"`
+	SetCode string `json:"set_code"`
 }
 
 type OpenBoosterPackResponse struct {
@@ -146,7 +143,7 @@ func OpenBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to open the pack, add the cards to the collection and get them here to send in the response
-	cards, err := OpenBoosterPack(userID, tournamentID, openBoosterPackRequest.BoosterPackData)
+	cards, err := OpenBoosterPack(userID, tournamentID, openBoosterPackRequest.SetCode)
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to open booster pack")
 		w.WriteHeader(http.StatusBadRequest)

@@ -251,6 +251,7 @@ function AddCardsModal(props: AddCardsModalProps) {
 
   return (
     <Modal
+      hideCloseButton
       onClose={props.closeFn}
       isOpen={props.isOpen}
       placement="top-center"

@@ -4,7 +4,7 @@ import { Header } from "@/components/header";
 import Layout from "@/components/layout";
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { CardData } from "@/types/card";
-import { BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
+import { BoosterPack, TournamentPlayer } from "@/types/tournamentPlayer";
 import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { BsFillTrashFill } from "react-icons/bs";
@@ -62,14 +62,14 @@ export default function PacksPage(props: any) {
     })
   }
 
-  let sendOpenPackRequest = (booster_pack_data: BoosterPackData) => {
+  let sendOpenPackRequest = (booster_pack: BoosterPack) => {
     setBoostersVisible(false)
     setBoostersLoading(true)
     ApiPostRequest({
       route: `/boosterpacks/open`,
       query: { tournament_id: props.params.tournamentID },
       body: {
-        booster_pack_data
+        set_code: booster_pack.set_code
       },
       errorHandler: (err) => {
         setBoostersVisible(true)
@@ -118,12 +118,12 @@ export default function PacksPage(props: any) {
                     tournamentPlayer.game_resources.booster_packs.map((booster_pack) =>
                       <ListboxItem
                         className="text-white"
-                        onPress={() => sendOpenPackRequest(booster_pack.data)}
-                        key={booster_pack.data.set_code}
-                        startContent={<div className="text-gray-500 w-16">{booster_pack.data.set_code}</div>}
+                        onPress={() => sendOpenPackRequest(booster_pack)}
+                        key={booster_pack.set_code}
+                        startContent={<div className="text-gray-500 w-16">{booster_pack.set_code}</div>}
                         endContent={<div className="text-gray-500 text-right">{`(${booster_pack.available})`}</div>}
                       >
-                        {`${booster_pack.data.set_code} - ${booster_pack.data.set_name}`}
+                        {booster_pack.name}
                       </ListboxItem>
                     )
                   }
@@ -160,19 +160,21 @@ type AddedPacks = {
 }[]
 
 function AddPacks(props: AddPacksProps) {
-  let [availablePacks, setAvailablePacks] = useState<BoosterPackData[]>([])
+  let [availablePacks, setAvailablePacks] = useState<BoosterPack[]>([])
   let [error, setError] = useState<string>("")
-  let [addedPacks, setAddedPacks] = useState<AddedPacks>([{ type: "bt_draft", count: 0, set: "" }])
+  let [count, setCount] = useState<number>(0)
+  let [setCode, setSetCode] = useState<string>("")
   let [loading, setLoading] = useState<boolean>(false)
 
-  let isButtonDisabled = addedPacks.length == 0 || addedPacks[0].count <= 0 || !addedPacks[0].set
+  let isButtonDisabled = count <= 0 || setCode == ""
 
   let sendAddPacksRequest = () => {
     setError("")
     setLoading(true)
     ApiPostRequest({
       body: {
-        booster_packs: addedPacks
+        count,
+        set_code: setCode
       },
       route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
@@ -202,7 +204,7 @@ function AddPacks(props: AddPacksProps) {
     ApiGetRequest({
       route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
-      responseHandler: (res: { booster_packs: BoosterPackData[] }) => {
+      responseHandler: (res: { booster_packs: BoosterPack[] }) => {
         setAvailablePacks(res.booster_packs)
       },
       errorHandler: (err) => {
@@ -217,7 +219,7 @@ function AddPacks(props: AddPacksProps) {
         <div className="flex flex-row gap-2 items-center">
           <Input
             disabled={loading}
-            onChange={(e) => setAddedPacks([{ ...addedPacks[0], count: Number(e.target.value) }])}
+            onChange={(e) => setCount(Number(e.target.value))}
             variant="bordered"
             type="number"
             min={0}
@@ -233,13 +235,13 @@ function AddPacks(props: AddPacksProps) {
           />
           <Autocomplete
             disabled={loading}
-            onInputChange={(value) => setAddedPacks([{ ...addedPacks[0], set: availablePacks.find(v => `${v.set_code} - ${v.set_name}` == value)?.set_code || "" }])}
+            onInputChange={(value) => setSetCode(availablePacks.find(v => `${v.set_code} - ${v.name}` == value)?.set_code || "")}
             id="set"
             label="Booster pack"
             labelPlacement="inside"
             placeholder="Select a boster pack"
             className="text-white max-w-xs"
-            defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.set_name}` } })}
+            defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.name}` } })}
           >
             {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
           </Autocomplete>

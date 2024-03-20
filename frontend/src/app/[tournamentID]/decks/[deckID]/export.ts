@@ -15,7 +15,7 @@ export function FormatDeck(deck: Deck, cards: OwnedCard[]) {
         text += `${card.count} ${cardsById[card.owned_card_id].card_data.name}\n`
       }
     )
-  text += "Sideboard\n"
+  text += "\n" // Sideboard separator for Cockatrice
   deck.cards
     .filter((card) => card.board == "b_sideboard")
     .forEach(
