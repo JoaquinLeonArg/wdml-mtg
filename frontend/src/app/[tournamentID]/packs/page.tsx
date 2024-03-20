@@ -174,7 +174,7 @@ function AddPacks(props: AddPacksProps) {
       body: {
         booster_packs: addedPacks
       },
-      route: "/boosterpacks",
+      route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
       responseHandler: (_) => {
         setLoading(false)
@@ -200,7 +200,7 @@ function AddPacks(props: AddPacksProps) {
 
   let refreshAvailableBoosters = () => {
     ApiGetRequest({
-      route: "/boosterpacks",
+      route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
       responseHandler: (res: { booster_packs: BoosterPackData[] }) => {
         setAvailablePacks(res.booster_packs)
