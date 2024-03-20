@@ -17,7 +17,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("/tournament", AddTournamentBoosterPacksHandler).Methods(http.MethodPost)
 	r.HandleFunc("/open", OpenBoosterPackHandler).Methods(http.MethodPost)
 	r.HandleFunc("/", CreateBoosterPackHandler).Methods(http.MethodPost)
-	r.HandleFunc("/", CreateBoosterPackHandler).Methods(http.MethodPut)
+	r.HandleFunc("/", UpdateBoosterPackHandler).Methods(http.MethodPut)
 }
 
 //
