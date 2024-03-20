@@ -1,3 +1,5 @@
+import { Deck } from "./deck"
+
 export type TournamentPlayer = {
   id: string
   tournament_id: string
@@ -6,6 +8,9 @@ export type TournamentPlayer = {
   tournament_points: number
   game_resources: {
     booster_packs: BoosterPack[]
+    decks: Deck[]
+    rerolls: number
+    coins: number
   }
 }
 
