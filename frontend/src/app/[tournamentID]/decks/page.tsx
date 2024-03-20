@@ -14,7 +14,7 @@ export default function DecksPage(props: any) {
   let router = useRouter()
   let [isOpen, setIsOpen] = useState<boolean>(false)
   let [decks, setDecks] = useState<Deck[]>([])
-  let [isLoading, setIsLoading] = useState<boolean>(false)
+  let [isLoading, setIsLoading] = useState<boolean>(true)
   let [error, setError] = useState<string>("")
 
   let refreshData = () => {
