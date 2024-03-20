@@ -2,6 +2,7 @@ import { Tournament } from "@/types/tournament"
 import { Dropdown, DropdownTrigger, Button, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { BsShareFill } from "react-icons/bs"
 
 export type NavigationTopbarProps = {
   toggleSidebarFn: any
@@ -29,52 +30,63 @@ export default function NavigationTopbar(props: NavigationTopbarProps) {
                 <Image src="/logo.png" className="mr-3 h-8" alt="TA Logo" width={32} height={32} />
                 <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">Tolarian Archives</span>
               </div>
-              {props.tournaments && props.tournaments.length > 0 &&
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button
-                      variant="bordered"
-                      size="sm"
-                      className="w-48"
-                    >
-                      {props.tournaments.find((tournament) => tournament.id == props.tournamentID)?.name || ""}
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu aria-label="Tournament Selection" items={props.tournaments.concat({ id: "!", name: "Join or create", invite_code: "", description: "" })}>
-                    {(item) => {
-                      if (item.id == "!") {
-                        return (
-                          <DropdownItem
-                            key="join"
-                            color="default"
-                            className="text-white"
-                            onClick={() => router.push("/join")}
-                          >
-                            {item.name}
-                          </DropdownItem>
-
-                        )
-                      }
-                      return (
-                        <DropdownItem
-                          key={item.id}
-                          color="default"
-                          showDivider={props.tournaments && item.id == props.tournaments[props.tournaments.length - 1].id}
-                          className="text-white"
-                          onClick={() => {
-                            if (item.id != props.tournamentID) {
-                              router.push("/" + item.id)
-                            }
-                          }}
+              <div class="flex flex-row items-center gap-1">
+                {props.tournaments && props.tournaments.length > 0 &&
+                  <>
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button
+                          variant="bordered"
+                          size="sm"
+                          className="w-48"
                         >
-                          {item.name}
-                        </DropdownItem>
+                          {props.tournaments.find((tournament) => tournament.id == props.tournamentID)?.name || ""}
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu aria-label="Tournament Selection" items={props.tournaments.concat({ id: "!", name: "Join or create", invite_code: "", description: "" })}>
+                        {(item) => {
+                          if (item.id == "!") {
+                            return (
+                              <DropdownItem
+                                key="join"
+                                color="default"
+                                className="text-white"
+                                onClick={() => router.push("/join")}
+                              >
+                                {item.name}
+                              </DropdownItem>
 
-                      )
-                    }}
-                  </DropdownMenu>
-                </Dropdown>
-              }
+                            )
+                          }
+                          return (
+                            <DropdownItem
+                              key={item.id}
+                              color="default"
+                              showDivider={props.tournaments && item.id == props.tournaments[props.tournaments.length - 1].id}
+                              className="text-white"
+                              onClick={() => {
+                                if (item.id != props.tournamentID) {
+                                  router.push("/" + item.id)
+                                }
+                              }}
+                            >
+                              {item.name}
+                            </DropdownItem>
+                          )
+                        }}
+                      </DropdownMenu>
+                    </Dropdown>
+                    <Button isIconOnly variant="bordered" size="sm"
+                      onClick={() => {
+                        if (props.tournaments)
+                          navigator.clipboard.writeText(props.tournaments.find(tournament => tournament.id == props.tournamentID)?.invite_code || "")
+                      }}
+                    >
+                      <BsShareFill />
+                    </Button>
+                  </>
+                }
+              </div>
             </a>
           </div>
         </div>
