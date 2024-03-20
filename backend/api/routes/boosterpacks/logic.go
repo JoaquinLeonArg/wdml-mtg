@@ -198,8 +198,29 @@ func CreateNewBoosterPack(boosterPack domain.BoosterPack) error {
 		CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
 		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
 	})
-	if errors.Is(err, db.ErrAlreadyExists) {
-		return apiErrors.ErrDuplicatedResource
+	if err != nil {
+		if errors.Is(err, db.ErrAlreadyExists) {
+			return apiErrors.ErrDuplicatedResource
+		}
+		return apiErrors.ErrInternal
 	}
-	return nil
+	return err
+}
+
+func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
+	err := db.UpdateBoosterPack(domain.BoosterPack{
+		SetCode:     boosterPack.SetCode,
+		Name:        boosterPack.Name,
+		Description: boosterPack.Description,
+		CardCount:   boosterPack.CardCount,
+		Slots:       boosterPack.Slots,
+		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
+	})
+	if err != nil {
+		if errors.Is(err, db.ErrAlreadyExists) {
+			return apiErrors.ErrDuplicatedResource
+		}
+		return apiErrors.ErrInternal
+	}
+	return err
 }

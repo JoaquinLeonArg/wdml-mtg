@@ -9,6 +9,7 @@ type BoosterPack struct {
 	Name        string             `bson:"name" json:"name"`
 	Description string             `bson:"description" json:"description"`
 	CardCount   int                `bson:"card_count" json:"card_count"`
+	Filter      string             `bson:"filter" json:"filter"`
 	Slots       []struct {
 		Options []Option `bson:"options" json:"options"`
 		Filter  string   `bson:"filter" json:"filter"`

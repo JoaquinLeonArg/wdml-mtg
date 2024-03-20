@@ -23,7 +23,7 @@ func ParseScryfallTypeline(rawType string) []string {
 }
 
 func GetImageFromFaces(card scryfall.Card) (string, string) {
-	if card.CardFaces != nil {
+	if card.CardFaces != nil && card.CardFaces[0].ImageURIs.Normal != "" && card.CardFaces[1].ImageURIs.Normal != "" {
 		return card.CardFaces[0].ImageURIs.Normal, card.CardFaces[1].ImageURIs.Normal
 	} else {
 		return card.ImageURIs.Normal, ""
