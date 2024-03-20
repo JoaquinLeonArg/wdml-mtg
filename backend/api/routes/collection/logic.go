@@ -13,13 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	MYTHIC_TO_COIN   = 20
-	RARE_TO_COIN     = 10
-	UNCOMMON_TO_COIN = 3
-	COMMON_TO_COIN   = 1
-)
-
 func GetCollectionCards(userID, tournamentID, filters string, count, page int) ([]domain.OwnedCard, int, error) {
 	log.Debug().Str("filters", filters).Send()
 	dbFilters := []db.CardFilter{}
@@ -130,13 +123,13 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
 					case "mythic":
-						coinsToAdd += coins * MYTHIC_TO_COIN // TODO: Enum this or smth
+						coinsToAdd += coins * domain.MYTHIC_TO_COIN // TODO: Enum this or smth
 					case "rare":
-						coinsToAdd += coins * RARE_TO_COIN
+						coinsToAdd += coins * domain.RARE_TO_COIN
 					case "uncommon":
-						coinsToAdd += coins * UNCOMMON_TO_COIN
+						coinsToAdd += coins * domain.UNCOMMON_TO_COIN
 					case "common":
-						coinsToAdd += coins * COMMON_TO_COIN
+						coinsToAdd += coins * domain.COMMON_TO_COIN
 					}
 					cardIdent.Amount = 4
 				}

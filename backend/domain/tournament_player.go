@@ -30,6 +30,13 @@ type GameResources struct {
 	Coins        int                `bson:"coins" json:"coins"`
 }
 
+const (
+	MYTHIC_TO_COIN   = 20
+	RARE_TO_COIN     = 10
+	UNCOMMON_TO_COIN = 3
+	COMMON_TO_COIN   = 1
+)
+
 type OwnedWildcards struct {
 	// By rarity
 	CommonCount     int `bson:"common_count" json:"common_count"`
