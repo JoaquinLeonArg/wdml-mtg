@@ -104,7 +104,7 @@ function TournamentPostsSection(props: TournamentPostsSection) {
   return (
     <div className="flex flex-col gap-2">
       {isLoading ? <div className="flex justify-center"> <Spinner /></div> : posts.slice(0, 8).map((post) => (
-        <div className="flex flex-col gap-2 bg-gray-800 p-4 rounded-xl">
+        <div key={post.id} className="flex flex-col gap-2 bg-gray-800 p-4 rounded-xl">
           {post && props.tournamentPlayer && (props.tournamentPlayer.access_level == "al_administrator" || props.tournamentPlayer.access_level == "al_moderator") &&
             <Button isDisabled={isLoading} color="danger" variant="flat" onPress={() => deletePost(post.id)}>
               Delete post
