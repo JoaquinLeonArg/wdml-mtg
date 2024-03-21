@@ -70,7 +70,7 @@ export function CreateTournamentPostModal(props: CreateTournamentPostModalProps)
           {
             blocks.map((block, blockIndex) => {
               return (
-                <div key={block.title + blockIndex} className="flex flex-row w-full gap-2">
+                <div key={blockIndex} className="flex flex-row w-full gap-2">
                   <div className="flex flex-col w-full gap-2">
                     <Input
                       className="text-white"
@@ -90,7 +90,7 @@ export function CreateTournamentPostModal(props: CreateTournamentPostModalProps)
                     {
                       block.content.map((content, contentIndex) => {
                         return (
-                          <div key={content.content + contentIndex} className="flex flex-row w-full gap-2">
+                          <div key={contentIndex} className="flex flex-row w-full gap-2">
                             <Dropdown>
                               <DropdownTrigger>
                                 <Button
