@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -397,6 +398,35 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode 
 	return err
 }
 
+func AddPacksToTournamentPlayers(tournamentPlayers []domain.TournamentPlayer, pack domain.OwnedBoosterPack) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		for _, tournamentPlayer := range tournamentPlayers {
+			err = AddPacksToTournamentPlayer(tournamentPlayer.ID.Hex(), pack)
+			if err != nil {
+				if errors.Is(err, ErrNotFound) {
+					return nil, ErrNotFound
+				}
+				return nil, ErrInternal
+			}
+		}
+
+		return nil, nil
+	})
+
+	return err
+}
+
 func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoosterPack) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -415,49 +445,46 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoos
 	defer session.EndSession(ctx)
 
 	// Find if user has packs of the same type and add them, or create new
-	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
-		// Find tournament user
-		result := MongoDatabaseClient.
-			Database(DB_MAIN).
-			Collection(COLLECTION_TOURNAMENT_PLAYERS).
-			FindOne(ctx,
-				bson.M{"_id": dbTournamentPlayerID},
-			)
-		if err := result.Err(); err != nil {
-			if err == mongo.ErrNoDocuments {
-				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
-			}
-			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	
+	// Find tournament user
+	result := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		FindOne(ctx,
+			bson.M{"_id": dbTournamentPlayerID},
+		)
+	if err := result.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: %v", ErrNotFound, err)
 		}
-		// Decode user
-		var tournamentPlayer *domain.TournamentPlayer
-		err = result.Decode(&tournamentPlayer)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
-		}
-		// Packs the user already has
-		seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
-		for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
-			seenPacks[pack.SetCode] = index
-		}
-		if index, ok := seenPacks[pack.SetCode]; ok {
-			tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
-		} else {
-			tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
-		}
-		// Update the tournament player
-		updateResult, err := MongoDatabaseClient.
-			Database(DB_MAIN).
-			Collection(COLLECTION_TOURNAMENT_PLAYERS).
-			UpdateByID(ctx, dbTournamentPlayerID, bson.M{"$set": tournamentPlayer})
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	// Decode user
+	var tournamentPlayer *domain.TournamentPlayer
+	err = result.Decode(&tournamentPlayer)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	// Packs the user already has
+	seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
+	for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
+		seenPacks[pack.SetCode] = index
+	}
+	if index, ok := seenPacks[pack.SetCode]; ok {
+		tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
+	} else {
+		tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
+	}
+	// Update the tournament player
+	updateResult, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		UpdateByID(ctx, dbTournamentPlayerID, bson.M{"$set": tournamentPlayer})
 
-		if err != nil || updateResult.MatchedCount == 0 {
-			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
-		}
-		return nil, nil
-	})
-
-	return err
+	if err != nil || updateResult.MatchedCount == 0 {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	return nil
 }
 
 func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
