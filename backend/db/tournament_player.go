@@ -171,6 +171,35 @@ func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, erro
 	return tournamentPlayers, nil
 }
 
+func GetTournamentPlayersForTournament(tournamentID string) ([]domain.TournamentPlayer, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Find tournament players for this tournament
+	cursor, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		Find(ctx,
+			bson.M{"tournament_id": dbTournamentID},
+		)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode tournament players
+	var tournamentPlayers []domain.TournamentPlayer
+	err = cursor.All(ctx, &tournamentPlayers)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	return tournamentPlayers, nil
+}
+
 func GetTournamentPlayer(tournamentID, userID string) (*domain.TournamentPlayer, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
