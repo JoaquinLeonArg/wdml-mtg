@@ -46,7 +46,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 				}
 			}
 
-			filter := fmt.Sprintf("%s %s game:paper", slot.Filter, chosenOption.Filter)
+			filter := fmt.Sprintf("%s %s %s", boosterData.Filter, slot.Filter, chosenOption.Filter)
 
 			cards, err := scryfall.GetAllCardsByFilter(filter)
 			if err != nil || len(cards) == 0 {
@@ -70,6 +70,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 					Rarity:          domain.CardRarity(card.Rarity),
 					Types:           scryfall.ParseScryfallTypeline(card.TypeLine),
 					ManaValue:       int(math.Floor(card.CMC)),
+					ManaCost:        card.ManaCost,
 					Colors:          colors,
 					ImageURL:        cardFront,
 					BackImageURL:    cardBack,

@@ -1,12 +1,14 @@
 package collection
 
 import (
+	"encoding/csv"
 	"math"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 )
@@ -14,11 +16,11 @@ import (
 func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/collection").Subrouter()
 	r.HandleFunc("", GetCollectionHandler).Methods(http.MethodGet)
+	r.HandleFunc("/import", ImportCollectionHandler).Methods(http.MethodPost)
 }
 
-//
 // ENDPOINT: Get cards from tournament player's collection
-//
+type EmptyResponse struct{}
 
 type GetCollectionResponse struct {
 	Cards   []domain.OwnedCard `json:"cards"`
@@ -89,4 +91,36 @@ func GetCollectionHandler(w http.ResponseWriter, r *http.Request) {
 			MaxPage: int(math.Ceil(float64(total) / float64(count))),
 		},
 	))
+}
+
+func ImportCollectionHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from context
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+	// Decode body data
+	csvReader := csv.NewReader(r.Body)
+	allCards, err := csvReader.ReadAll()
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to import cards")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	err = ImportCollection(allCards, userID, tournamentID)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to import cards")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(EmptyResponse{}))
 }

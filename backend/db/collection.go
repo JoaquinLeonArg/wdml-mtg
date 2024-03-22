@@ -223,3 +223,39 @@ func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
 	}
 	return card, nil
 }
+
+type CardBySetNum struct {
+	Set, Num string
+}
+
+func ImportCollection(cards []domain.OwnedCard) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		newValue := make([]interface{}, len(cards))
+
+		for i := range cards {
+			newValue[i] = cards[i]
+		}
+
+		result, err := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_CARD_COLLECTION).InsertMany(ctx, newValue)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrNotFound, err)
+			}
+			return domain.OwnedCard{}, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		return result, nil
+	})
+
+	return err
+}

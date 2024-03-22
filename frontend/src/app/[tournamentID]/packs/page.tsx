@@ -4,11 +4,12 @@ import { Header } from "@/components/header";
 import Layout from "@/components/layout";
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { CardData } from "@/types/card";
-import { BoosterPackData, TournamentPlayer } from "@/types/tournamentPlayer";
+import { BoosterPack, TournamentPlayer } from "@/types/tournamentPlayer";
 import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { BsFillTrashFill } from "react-icons/bs";
-import { CardDisplaySpoiler, CardFullProps } from "@/components/card";
+import { CardDisplaySpoiler, CardFullProps } from "@/components/collectioncard";
+import { User } from "@/types/user";
 
 export default function PacksPage(props: any) {
   let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
@@ -17,24 +18,6 @@ export default function PacksPage(props: any) {
   let [boostersVisible, setBoostersVisible] = useState<boolean>(true)
   let [flipAllCards, setFlipAllCards] = useState<boolean>(false)
   let [flipAllCurrentIndex, setFlipAllCurrentIndex] = useState<number>(0)
-
-
-  useEffect(() => {
-    refreshData()
-  }, [props.params.tournamentID])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!flipAllCards) { setFlipAllCurrentIndex(0); return }
-      if (flipAllCurrentIndex < currentCards.length) {
-        flipCard(flipAllCurrentIndex, currentCards)
-      } else {
-        setFlipAllCards(false)
-      }
-      setFlipAllCurrentIndex(flipAllCurrentIndex + 1)
-    }, 75)
-    return () => clearInterval(interval)
-  })
 
   let flipCard = (index: number, oldCards: CardFullProps[]) => {
     let cards = [...oldCards]
@@ -62,14 +45,14 @@ export default function PacksPage(props: any) {
     })
   }
 
-  let sendOpenPackRequest = (booster_pack_data: BoosterPackData) => {
+  let sendOpenPackRequest = (booster_pack: BoosterPack) => {
     setBoostersVisible(false)
     setBoostersLoading(true)
     ApiPostRequest({
       route: `/boosterpacks/open`,
       query: { tournament_id: props.params.tournamentID },
       body: {
-        booster_pack_data
+        set_code: booster_pack.set_code
       },
       errorHandler: (err) => {
         setBoostersVisible(true)
@@ -90,6 +73,23 @@ export default function PacksPage(props: any) {
       }
     })
   }
+
+  useEffect(() => {
+    refreshData()
+  }, [props.params.tournamentID])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!flipAllCards) { setFlipAllCurrentIndex(0); return }
+      if (flipAllCurrentIndex < currentCards.length) {
+        flipCard(flipAllCurrentIndex, currentCards)
+      } else {
+        setFlipAllCards(false)
+      }
+      setFlipAllCurrentIndex(flipAllCurrentIndex + 1)
+    }, 75)
+    return () => clearInterval(interval)
+  })
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
@@ -118,12 +118,12 @@ export default function PacksPage(props: any) {
                     tournamentPlayer.game_resources.booster_packs.map((booster_pack) =>
                       <ListboxItem
                         className="text-white"
-                        onPress={() => sendOpenPackRequest(booster_pack.data)}
-                        key={booster_pack.data.set_code}
-                        startContent={<div className="text-gray-500 w-16">{booster_pack.data.set_code}</div>}
+                        onPress={() => sendOpenPackRequest(booster_pack)}
+                        key={booster_pack.set_code}
+                        startContent={<div className="text-gray-500 w-16">{booster_pack.set_code}</div>}
                         endContent={<div className="text-gray-500 text-right">{`(${booster_pack.available})`}</div>}
                       >
-                        {`${booster_pack.data.set_code} - ${booster_pack.data.set_name}`}
+                        {booster_pack.name}
                       </ListboxItem>
                     )
                   }
@@ -159,22 +159,32 @@ type AddedPacks = {
   type: string
 }[]
 
+type TournamentPlayersWithUsernames = {
+  username: string
+  tournamentPlayerId: string
+}
+
 function AddPacks(props: AddPacksProps) {
-  let [availablePacks, setAvailablePacks] = useState<BoosterPackData[]>([])
+  let [availablePacks, setAvailablePacks] = useState<BoosterPack[]>([])
   let [error, setError] = useState<string>("")
-  let [addedPacks, setAddedPacks] = useState<AddedPacks>([{ type: "bt_draft", count: 0, set: "" }])
+  let [count, setCount] = useState<number>(0)
+  let [setCode, setSetCode] = useState<string>("")
+  let [availableTournamentPlayers, setAvailableTournamentPlayers] = useState<TournamentPlayersWithUsernames[]>([])
+  let [tournamentPlayerId, setTournamentPlayerId] = useState<string>()
   let [loading, setLoading] = useState<boolean>(false)
 
-  let isButtonDisabled = addedPacks.length == 0 || addedPacks[0].count <= 0 || !addedPacks[0].set
+  let isButtonDisabled = count <= 0 || setCode == ""
 
   let sendAddPacksRequest = () => {
     setError("")
     setLoading(true)
     ApiPostRequest({
       body: {
-        booster_packs: addedPacks
+        count,
+        set_code: setCode,
+        tournament_player_id: tournamentPlayerId
       },
-      route: "/boosterpacks",
+      route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
       responseHandler: (_) => {
         setLoading(false)
@@ -194,15 +204,11 @@ function AddPacks(props: AddPacksProps) {
     })
   }
 
-  useEffect(() => {
-    refreshAvailableBoosters()
-  })
-
   let refreshAvailableBoosters = () => {
     ApiGetRequest({
-      route: "/boosterpacks",
+      route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
-      responseHandler: (res: { booster_packs: BoosterPackData[] }) => {
+      responseHandler: (res: { booster_packs: BoosterPack[] }) => {
         setAvailablePacks(res.booster_packs)
       },
       errorHandler: (err) => {
@@ -211,13 +217,41 @@ function AddPacks(props: AddPacksProps) {
     })
   }
 
+  let getTournamentPlayers = () => {
+    ApiGetRequest({
+      route: "/tournament/tournament_player",
+      query: { tournament_id: props.tournamentID },
+      responseHandler: (res: { tournament_players: TournamentPlayer[], users: User[] }) => {
+        let usersById: { [userId: string]: User } = {}
+        res.users.forEach((user) => {
+          usersById[user.id] = user
+        })
+        let tournamentPlayersWithUsernames = res.tournament_players.map((tournament_player) => {
+          return {
+            username: usersById[tournament_player.user_id].username,
+            tournamentPlayerId: tournament_player.id,
+          }
+        })
+        setAvailableTournamentPlayers(tournamentPlayersWithUsernames)
+      },
+      errorHandler: (err) => {
+        setError(err)
+      }
+    })
+  }
+
+  useEffect(() => {
+    refreshAvailableBoosters()
+    getTournamentPlayers()
+  }, [props.tournamentID])
+
   return (
     <div>
       <form onSubmit={sendAddPacksRequest} className="flex flex-col gap-2 items-center">
         <div className="flex flex-row gap-2 items-center">
           <Input
             disabled={loading}
-            onChange={(e) => setAddedPacks([{ ...addedPacks[0], count: Number(e.target.value) }])}
+            onChange={(e) => setCount(Number(e.target.value))}
             variant="bordered"
             type="number"
             min={0}
@@ -233,13 +267,25 @@ function AddPacks(props: AddPacksProps) {
           />
           <Autocomplete
             disabled={loading}
-            onInputChange={(value) => setAddedPacks([{ ...addedPacks[0], set: availablePacks.find(v => `${v.set_code} - ${v.set_name}` == value)?.set_code || "" }])}
+            onInputChange={(value) => setSetCode(availablePacks.find(v => `${v.set_code} - ${v.name}` == value)?.set_code || "")}
             id="set"
             label="Booster pack"
             labelPlacement="inside"
-            placeholder="Select a boster pack"
+            placeholder="Select a booster pack"
             className="text-white max-w-xs"
-            defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.set_name}` } })}
+            defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.name}` } })}
+          >
+            {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
+          </Autocomplete>
+          <Autocomplete
+            disabled={loading}
+            onInputChange={(value) => setTournamentPlayerId(availableTournamentPlayers.find(availablePlayer => availablePlayer.username === value)?.tournamentPlayerId)}
+            id="tournamentPlayerId"
+            label="Tournament Player"
+            labelPlacement="inside"
+            placeholder="All players"
+            className="text-white max-w-xs"
+            defaultItems={availableTournamentPlayers.map((val) => { return { value: val.tournamentPlayerId, label: `${val.username}` } })}
           >
             {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
           </Autocomplete>
