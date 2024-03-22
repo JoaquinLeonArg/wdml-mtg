@@ -550,7 +550,7 @@ func AddPointsToTournamentPlayer(points int, userID, tournamentID string) error 
 			}
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
-		// Decode user
+		// Decode tournament player
 		var tournamentPlayer *domain.TournamentPlayer
 		err = result.Decode(&tournamentPlayer)
 		if err != nil {
