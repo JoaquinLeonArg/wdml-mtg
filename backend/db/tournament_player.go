@@ -537,7 +537,7 @@ func AddPointsToTournamentPlayer(points int, userID, tournamentID string) error 
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
-		// Find tournament user
+		// Find tournament player
 		result := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
