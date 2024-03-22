@@ -64,7 +64,7 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPack AddTourn
 		}
 		tournamentPlayers = append(tournamentPlayers, *tournamentPlayer)
 	} else {
-		tournamentPlayers, err = db.GetTournamentPlayersForTournament(tournamentID)
+		tournamentPlayers, _, err = db.GetTournamentPlayers(tournamentID)
 		if err != nil {
 			return apiErrors.ErrInternal
 		}
