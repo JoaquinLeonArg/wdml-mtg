@@ -8,7 +8,7 @@ export type Match = {
 }
 
 export type MatchPlayerData = {
-  player_id: string
+  tournament_player_id: string
   wins: number
   tags: string[]
 }

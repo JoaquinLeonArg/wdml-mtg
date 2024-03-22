@@ -14,9 +14,9 @@ type Match struct {
 }
 
 type MatchPlayerData struct {
-	PlayerID primitive.ObjectID `bson:"player_id" json:"player_id"`
-	Wins     int                `bson:"wins" json:"wins"`
-	Tags     []string           `bson:"tags" json:"tags"`
+	TournamentPlayerID primitive.ObjectID `bson:"tournament_player_id" json:"tournament_player_id"`
+	Wins               int                `bson:"wins" json:"wins"`
+	Tags               []string           `bson:"tags" json:"tags"`
 }
 
 type Gamemode string

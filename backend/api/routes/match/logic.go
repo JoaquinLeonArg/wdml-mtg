@@ -6,10 +6,32 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func CreateMatch(match domain.Match) error {
-	err := db.CreateMatch(match)
+func CreateMatch(seasonID string, gamemode domain.Gamemode, tournamentPlayerIDs []string) error {
+	if len(tournamentPlayerIDs) < 2 {
+		return apiErrors.ErrBadRequest
+	}
+	playersData := []domain.MatchPlayerData{}
+	for _, playerID := range tournamentPlayerIDs {
+		id, err := primitive.ObjectIDFromHex(playerID)
+		if err != nil {
+			return apiErrors.ErrBadRequest
+		}
+		playersData = append(playersData, domain.MatchPlayerData{
+			TournamentPlayerID: id,
+			Wins:               0,
+			Tags:               []string{},
+		})
+	}
+	match := domain.Match{
+		PlayersData: playersData,
+		GamesPlayed: 0,
+		Gamemode:    gamemode,
+		Completed:   false,
+	}
+	err := db.CreateMatch(seasonID, match)
 	if err != nil {
 		if errors.Is(err, db.ErrNotFound) {
 			return apiErrors.ErrNotFound
@@ -19,8 +41,8 @@ func CreateMatch(match domain.Match) error {
 	return nil
 }
 
-func UpdateMatch(match domain.Match) error {
-	err := db.UpdateMatch(match)
+func UpdateMatch(matchID string, playersPoints map[string]int, gamesPlayed int) error {
+	err := db.UpdateMatch(matchID, playersPoints, gamesPlayed)
 	if err != nil {
 		if errors.Is(err, db.ErrNotFound) {
 			return apiErrors.ErrNotFound

@@ -27,15 +27,17 @@ type GetMatchesResponse struct {
 type EmptyResponse struct{}
 
 type CreateMatchRequest struct {
-	Match domain.Match `json:"match"`
+	SeasonID  string          `json:"season_id"`
+	Gamemode  domain.Gamemode `json:"gamemode"`
+	PlayerIDs []string        `json:"player_ids"`
 }
 
 func CreateMatchHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Decode body data
-	var createMatchRequest CreateMatchRequest
-	err := json.NewDecoder(r.Body).Decode(&createMatchRequest)
+	var req CreateMatchRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Debug().
 			Err(err).
@@ -46,7 +48,7 @@ func CreateMatchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add a match to given season
-	err = CreateMatch(createMatchRequest.Match)
+	err = CreateMatch(req.SeasonID, req.Gamemode, req.PlayerIDs)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
@@ -59,11 +61,18 @@ func CreateMatchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateMatchRequest struct {
-	Match domain.Match `json:"match"`
+	PlayersPoints map[string]int `json:"players_points"`
+	GamesPlayed   int            `json:"games_played"`
 }
 
 func UpdateMatchHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get Match ID from query
+	matchID := r.URL.Query().Get("match_id")
+	if matchID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
 
 	// Decode body data
 	var updateMatchRequest UpdateMatchRequest
@@ -79,7 +88,9 @@ func UpdateMatchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Update a given match with results
 	err = UpdateMatch(
-		updateMatchRequest.Match,
+		matchID,
+		updateMatchRequest.PlayersPoints,
+		updateMatchRequest.GamesPlayed,
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -132,7 +143,7 @@ func GetMatchesFromPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Get player ID from query
-	playerID := r.URL.Query().Get("player_id")
+	playerID := r.URL.Query().Get("tournament_player_id")
 	if playerID == "" {
 		http.Error(w, "", http.StatusBadRequest)
 	}
