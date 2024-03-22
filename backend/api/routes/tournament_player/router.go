@@ -19,8 +19,8 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("", GetTournamentPlayersFromAuthHandler).Methods(http.MethodGet)
 	r.HandleFunc("/tournament", GetTournamentPlayer).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentPlayerHandler).Methods(http.MethodPost)
-	r.HandleFunc("/add/coins", AddCoinsToTournamentPlayerHandler).Methods(http.MethodPost)
-	r.HandleFunc("/add/points", AddPointsToTournamentPlayerHandler).Methods(http.MethodPost)
+	r.HandleFunc("/coins", AddCoinsToTournamentPlayerHandler).Methods(http.MethodPost)
+	r.HandleFunc("/points", AddPointsToTournamentPlayerHandler).Methods(http.MethodPost)
 }
 
 type GetPacksForTournamentPlayerResponse struct {
