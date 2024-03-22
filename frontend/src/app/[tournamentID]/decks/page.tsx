@@ -4,10 +4,9 @@ import { Header } from "@/components/header"
 import Layout from "@/components/layout"
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
 import { Deck } from "@/types/deck"
-import { Button, Checkbox, Input, Link, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea, useDisclosure } from "@nextui-org/react"
+import { Button, Input, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, Textarea } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { BsFillTrashFill } from "react-icons/bs";
 
 
 
@@ -15,7 +14,7 @@ export default function DecksPage(props: any) {
   let router = useRouter()
   let [isOpen, setIsOpen] = useState<boolean>(false)
   let [decks, setDecks] = useState<Deck[]>([])
-  let [isLoading, setIsLoading] = useState<boolean>(false)
+  let [isLoading, setIsLoading] = useState<boolean>(true)
   let [error, setError] = useState<string>("")
 
   let refreshData = () => {
@@ -28,41 +27,49 @@ export default function DecksPage(props: any) {
         setIsLoading(false)
       },
       responseHandler: (res: { decks: Deck[] }) => {
-        setIsLoading(false)
+        if (!res.decks) {
+          setDecks([])
+        }
         setDecks(res.decks)
+        setIsLoading(false)
       }
     })
   }
 
-  useEffect(() => refreshData())
+  useEffect(() => {
+    refreshData()
+  }, [props.params.tournamentID])
 
   return (
-    <Layout tournamentID={props.params.tournamentID}>
-      <div className="mx-16 my-16">
-        <Header title="Decks" endContent={<Button onClick={() => setIsOpen(true)} color="success">+</Button>} />
-        <div className="flex flex-col gap-2 mb-2">
-
-          <CreateDeckModal tournamentID={props.params.tournamentID} isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={refreshData} />
-          <div className="bg-gray-800 w-full border-small px-1 py-2 rounded-small border-default-200">
-            <Listbox
-              emptyContent="No decks to show"
-            >
-              {
-                decks.map((deck) =>
-                  <ListboxItem
-                    className="text-white"
-                    onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
-                    key={deck.name}
-                  >
-                    {deck.name}
-                  </ListboxItem>
-                )
-              }
-            </Listbox>
-          </div>
+    <>
+      <CreateDeckModal tournamentID={props.params.tournamentID} isOpen={isOpen} closeFn={() => setIsOpen(false)} refreshDecksFn={refreshData} />
+      <Layout tournamentID={props.params.tournamentID}>
+        <div className="mx-16 my-16">
+          <Header title="Decks" endContent={<Button isIconOnly onClick={() => setIsOpen(true)} color="success">+</Button>} />
+          {isLoading ? <div className="flex justify-center"> <Spinner /></div> :
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="bg-gray-800 w-full border-small px-1 py-2 rounded-small border-default-200">
+                <Listbox
+                  emptyContent="No decks to show"
+                >
+                  {
+                    decks ? decks.map((deck) =>
+                      <ListboxItem
+                        className="text-white"
+                        onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
+                        key={deck.name}
+                      >
+                        {deck.name}
+                      </ListboxItem>
+                    ) : []
+                  }
+                </Listbox>
+              </div>
+            </div>
+          }
         </div>
-      </div>
-    </Layout>
+      </Layout>
+    </>
   )
 }
 
@@ -103,6 +110,8 @@ function CreateDeckModal(props: CreateDeckModalProps) {
 
   return (
     <Modal
+      hideCloseButton
+      onClose={props.closeFn}
       isOpen={props.isOpen}
       placement="top-center"
     >
@@ -120,8 +129,8 @@ function CreateDeckModal(props: CreateDeckModalProps) {
           />
           <Textarea
             className="text-white"
-            label="Deck name"
-            placeholder="Enter your deck's name"
+            label="Deck description"
+            placeholder=""
             variant="bordered"
             onValueChange={(value) => setDeckDescription(value)}
             isDisabled={isLoading}

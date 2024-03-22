@@ -21,6 +21,7 @@ type CardData struct {
 	Rarity          CardRarity `bson:"rarity" json:"rarity"`
 	Types           []string   `bson:"types" json:"types"`
 	ManaValue       int        `bson:"mana_value" json:"mana_value"`
+	ManaCost        string     `bson:"mana_cost" json:"mana_cost"`
 	Colors          []string   `bson:"colors" json:"colors"`
 	ImageURL        string     `bson:"image_url" json:"image_url"`
 	BackImageURL    string     `bson:"back_image_url" json:"back_image_url"`

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/BlueMonday/go-scryfall"
+	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 )
 
 func ParseScryfallTypeline(rawType string) []string {
@@ -22,9 +23,29 @@ func ParseScryfallTypeline(rawType string) []string {
 }
 
 func GetImageFromFaces(card scryfall.Card) (string, string) {
-	if card.CardFaces != nil {
+	if card.CardFaces != nil && card.CardFaces[0].ImageURIs.Normal != "" && card.CardFaces[1].ImageURIs.Normal != "" {
 		return card.CardFaces[0].ImageURIs.Normal, card.CardFaces[1].ImageURIs.Normal
 	} else {
 		return card.ImageURIs.Normal, ""
 	}
+}
+
+func GetCardDataFromScryCard(card scryfall.Card) domain.CardData {
+	colors := []string{}
+	for _, col := range card.Colors {
+		colors = append(colors, string(col))
+	}
+	types := ParseScryfallTypeline(card.TypeLine)
+
+	newCard := domain.CardData{
+		SetCode:         strings.ToUpper(card.Set),
+		CollectorNumber: card.CollectorNumber,
+		Name:            card.Name,
+		Rarity:          domain.CardRarity(card.Rarity),
+		Types:           types,
+		ManaValue:       int(card.CMC),
+		Colors:          colors,
+	}
+	newCard.ImageURL, newCard.BackImageURL = GetImageFromFaces(card)
+	return newCard
 }

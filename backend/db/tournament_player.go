@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -90,13 +91,13 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 	return tournamentPlayer, nil
 }
 
-func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error) {
+func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
 	// Find players on this tournament
@@ -107,16 +108,40 @@ func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, error
 			bson.M{"tournament_id": dbTournamentID},
 		)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
 	// Decode tournament players
 	var tournamentPlayers []domain.TournamentPlayer
 	err = cursor.All(ctx, &tournamentPlayers)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
-	return tournamentPlayers, nil
+
+	userIDs := make([]primitive.ObjectID, 0, len(tournamentPlayers))
+	for _, tournamentPlayer := range tournamentPlayers {
+		userIDs = append(userIDs, tournamentPlayer.UserID)
+	}
+
+	// Find users
+	cursor, err = MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_USERS).
+		Find(ctx,
+			bson.M{"_id": bson.M{"$in": userIDs}},
+		)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	// Decode tournament players
+	var users []domain.User
+	err = cursor.All(ctx, &users)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	return tournamentPlayers, users, nil
 }
 
 func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
@@ -220,7 +245,7 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 	return tournamentPlayer.GameResources.BoosterPacks, nil
 }
 
-func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterPackData domain.BoosterPackData, cards []domain.CardData) error {
+func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode string, cards []domain.CardData) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -267,7 +292,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 		newPacks := make([]domain.OwnedBoosterPack, 0, len(tournamentPlayer.GameResources.BoosterPacks))
 		// Find and remove the booster pack
 		for _, boosterPack := range tournamentPlayer.GameResources.BoosterPacks {
-			if boosterPack.Data.SetCode == boosterPackData.SetCode && boosterPack.Data.BoosterType == boosterPackData.BoosterType {
+			if boosterPack.SetCode == setCode {
 				if boosterPack.Available == 1 && !removed {
 					removed = true
 					continue
@@ -338,7 +363,20 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 				}
 			} else if len(foundCards) == 1 {
 				// Update count of existing card
-				foundCards[0].Count += 1
+				if foundCards[0].Count >= 4 && !slices.Contains(foundCards[0].CardData.Types, "Basic") {
+					switch foundCards[0].CardData.Rarity {
+					case "mythic":
+						AddCoinsToTournamentPlayer(domain.MYTHIC_TO_COIN, userID, tournamentID)
+					case "rare":
+						AddCoinsToTournamentPlayer(domain.RARE_TO_COIN, userID, tournamentID)
+					case "uncommon":
+						AddCoinsToTournamentPlayer(domain.UNCOMMON_TO_COIN, userID, tournamentID)
+					case "common":
+						AddCoinsToTournamentPlayer(domain.COMMON_TO_COIN, userID, tournamentID)
+					}
+				} else {
+					foundCards[0].Count += 1
+				}
 				foundCards[0].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 				_, err := MongoDatabaseClient.
 					Database(DB_MAIN).
@@ -360,7 +398,36 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, boosterP
 	return err
 }
 
-func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedBoosterPack) error {
+func AddPacksToTournamentPlayers(tournamentPlayers []domain.TournamentPlayer, pack domain.OwnedBoosterPack) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		for _, tournamentPlayer := range tournamentPlayers {
+			err = AddPacksToTournamentPlayer(tournamentPlayer.ID.Hex(), pack)
+			if err != nil {
+				if errors.Is(err, ErrNotFound) {
+					return nil, ErrNotFound
+				}
+				return nil, ErrInternal
+			}
+		}
+
+		return nil, nil
+	})
+
+	return err
+}
+
+func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoosterPack) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -378,13 +445,76 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedB
 	defer session.EndSession(ctx)
 
 	// Find if user has packs of the same type and add them, or create new
-	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+	
+	// Find tournament user
+	result := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		FindOne(ctx,
+			bson.M{"_id": dbTournamentPlayerID},
+		)
+	if err := result.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: %v", ErrNotFound, err)
+		}
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	// Decode user
+	var tournamentPlayer *domain.TournamentPlayer
+	err = result.Decode(&tournamentPlayer)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	// Packs the user already has
+	seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
+	for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
+		seenPacks[pack.SetCode] = index
+	}
+	if index, ok := seenPacks[pack.SetCode]; ok {
+		tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
+	} else {
+		tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
+	}
+	// Update the tournament player
+	updateResult, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENT_PLAYERS).
+		UpdateByID(ctx, dbTournamentPlayerID, bson.M{"$set": tournamentPlayer})
+
+	if err != nil || updateResult.MatchedCount == 0 {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	return nil
+}
+
+func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
 		// Find tournament user
 		result := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
 			FindOne(ctx,
-				bson.M{"_id": dbTournamentPlayerID},
+				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
 			)
 		if err := result.Err(); err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -398,31 +528,71 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, packs []domain.OwnedB
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
-		// Packs the user already has
-		seenPacks := make(map[string]int, len(tournamentPlayer.GameResources.BoosterPacks))
-		for index, pack := range tournamentPlayer.GameResources.BoosterPacks {
-			seenPacks[pack.Data.SetCode] = index
-		}
-		log.Info().Interface("seenPacks", seenPacks).Send()
-		log.Info().Interface("packs", packs).Send()
-		for _, pack := range packs {
-			if index, ok := seenPacks[pack.Data.SetCode]; ok {
-				tournamentPlayer.GameResources.BoosterPacks[index].Available += pack.Available
-			} else {
-				tournamentPlayer.GameResources.BoosterPacks = append(tournamentPlayer.GameResources.BoosterPacks, pack)
-			}
-		}
-		// Update the tournament player
+		tournamentPlayer.GameResources.Coins += coins
 		updateResult, err := MongoDatabaseClient.
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
-			UpdateByID(ctx, dbTournamentPlayerID, bson.M{"$set": tournamentPlayer})
+			UpdateByID(ctx, tournamentPlayer.ID, bson.M{"$set": tournamentPlayer})
 
 		if err != nil || updateResult.MatchedCount == 0 {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return nil, nil
 	})
+	return err
+}
 
+func AddPointsToTournamentPlayer(points int, userID, tournamentID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
+		// Find tournament player
+		result := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_TOURNAMENT_PLAYERS).
+			FindOne(ctx,
+				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
+			)
+		if err := result.Err(); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
+			}
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		// Decode tournament player
+		var tournamentPlayer *domain.TournamentPlayer
+		err = result.Decode(&tournamentPlayer)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		tournamentPlayer.TournamentPoints += points
+		updateResult, err := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_TOURNAMENT_PLAYERS).
+			UpdateByID(ctx, tournamentPlayer.ID, bson.M{"$set": tournamentPlayer})
+
+		if err != nil || updateResult.MatchedCount == 0 {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		return nil, nil
+	})
 	return err
 }

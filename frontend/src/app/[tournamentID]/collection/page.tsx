@@ -5,24 +5,19 @@ import Layout from "@/components/layout";
 import { ApiGetRequest } from "@/requests/requests";
 import { OwnedCard } from "@/types/card";
 import { useEffect, useState } from "react";
-import { Input, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Button, ButtonGroup } from "@nextui-org/react";
+import { Input, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Button, ButtonGroup, Pagination } from "@nextui-org/react";
 import Image from "next/image"
-import { CardDisplaySpoiler, CardFullProps } from "@/components/card";
+import { CardDisplaySpoiler, CardFullProps } from "@/components/collectioncard";
+import { CollectionFilter, mtgColors, rarities } from "@/components/collectionfilter";
 
-const rarities = {
-  "": "Any rarity",
-  "common": "Common",
-  "uncommon": "Uncommon",
-  "rare": "Rare",
-  "mythic": "Mythic"
-}
+
 
 export default function CollectionPage(props: any) {
   // Filters
   let [cardName, setCardName] = useState<string>("")
   let [tags, setTags] = useState<string>("")
   let [rarity, setRarity] = useState<keyof typeof rarities>("")
-  let [colors, setColors] = useState<{ W: boolean, U: boolean, B: boolean, R: boolean, G: boolean, C: boolean }>
+  let [colors, setColors] = useState<mtgColors>
     ({ W: false, U: false, B: false, R: false, G: false, C: false })
   let [types, setTypes] = useState<string>("")
   let [oracle, setOracle] = useState<string>("")
@@ -49,6 +44,9 @@ export default function CollectionPage(props: any) {
       responseHandler: (res: { cards: OwnedCard[], count: number, max_page: number }) => {
         setTotalResults(res.count)
         setTotalPages(res.max_page)
+        if (!res.cards || res.cards.length == 0) {
+          setCurrentCards([])
+        }
         // Workaround to have the flip callback see the card list
         let cardsFull = res.cards.map((card: OwnedCard) => {
           return {
@@ -79,112 +77,27 @@ export default function CollectionPage(props: any) {
     <Layout tournamentID={props.params.tournamentID}>
       <div className="mx-16 my-16">
         <Header title="Collection" />
-        <div className="flex flex-row gap-2 mb-2 items-center">
-          <Input
-            onChange={(e) => setCardName(e.target.value)}
-            variant="bordered"
-            type="string"
-            placeholder="Card name"
-            className="text-white max-w-96"
-          />
-          <Input
-            onChange={(e) => setTags(e.target.value)}
-            variant="bordered"
-            type="string"
-            placeholder="Tags"
-            className="text-white max-w-96"
-          />
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                variant="bordered"
-                className="capitalize"
-              >
-                {rarities[rarity]}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              className="text-white"
-            >
-              {
-                Object.keys(rarities).map((key) =>
-                  <DropdownItem onPress={() => setRarity(key as keyof typeof rarities)} key={key}>{rarities[key as keyof typeof rarities]}</DropdownItem>
-                )
-              }
-            </DropdownMenu>
-          </Dropdown>
-          <ButtonGroup variant="ghost" fullWidth={false}>
-            {
-              Object.keys(colors).map((key) =>
-                <Button isIconOnly
-                  className={`text-xl ${colors[key as keyof typeof colors] && "bg-gray-500"}`}
-                  variant="ghost"
-                  onClick={() => setColors({ ...colors, [key as keyof typeof colors]: !colors[key as keyof typeof colors] })}
-                  key={key}
-                >
-                  <i className={`ms ms-${key.toLowerCase()} ms-cost`}></i>
-                </Button>
-              )
-            }
-          </ButtonGroup>
-        </div>
-        <div className="flex flex-row gap-2 mb-2 items-center">
-          <Input
-            onChange={(e) => setTypes(e.target.value)}
-            variant="bordered"
-            type="string"
-            placeholder="Types"
-            className="text-white max-w-96"
-          />
-          <Input
-            onChange={(e) => setOracle(e.target.value)}
-            variant="bordered"
-            type="string"
-            placeholder="Oracle"
-            className="text-white max-w-96"
-          />
-          <Input
-            onChange={(e) => setSetCode(e.target.value)}
-            variant="bordered"
-            type="string"
-            placeholder="Set code"
-            className="text-white max-w-24"
-          />
-          <Input
-            onChange={(e) => setMv(e.target.value)}
-            variant="bordered"
-            type="number"
-            placeholder="Any"
-            className="text-white max-w-28"
-            endContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-gray-300 text-small">MV</span>
-              </div>
-            }
+        <div className="pb-4">
+          <CollectionFilter
+            count={totalResults}
+            setCardName={setCardName}
+            setTags={setTags}
+            setRarity={setRarity}
+            rarity={rarity}
+            setColors={setColors}
+            colors={colors}
+            setTypes={setTypes}
+            setSetCode={setSetCode}
+            setOracle={setOracle}
+            setMv={setMv}
           />
         </div>
-        <div className="text-white my-6">
-          Found: {totalResults} cards
+        <div className="pb-4">
+          <CardDisplaySpoiler cards={currentCards} />
         </div>
-        <CardDisplaySpoiler cards={currentCards} />
-        <ButtonGroup variant="ghost" className="flex flex-row items-center mt-8">
-          <Button isIconOnly
-            className="text-xl bg-gray-500"
-            variant="ghost"
-            isDisabled={page == 1}
-            onClick={() => { if (page > 1) setPage(page - 1) }}
-          >
-            {"<"}
-          </Button>
-          <Button isIconOnly
-            className="text-xl bg-gray-500"
-            variant="ghost"
-            isDisabled={page >= totalPages}
-            onClick={() => { if (page < totalPages) setPage(page + 1) }}
-          >
-            {">"}
-          </Button>
-        </ButtonGroup>
+        <div className="flex flex-col items-center gap-4">
+          <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalPages} initialPage={1}></Pagination>
+        </div>
       </div>
     </Layout >
   )

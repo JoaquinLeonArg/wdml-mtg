@@ -15,13 +15,13 @@ type Deck struct {
 type DeckCard struct {
 	OwnedCardID primitive.ObjectID `bson:"owned_card_id" json:"owned_card_id"`
 	Count       int                `bson:"count" json:"count"`
-	Board       DeckBoard          `bson:"board" josn:"board"`
+	Board       DeckBoard          `bson:"board" json:"board"`
 }
 
 type DeckBoard string
 
 const (
-	SideBoard  MatchResult = "b_sideboard"
 	MainBoard  MatchResult = "b_mainboard"
+	SideBoard  MatchResult = "b_sideboard"
 	MaybeBoard MatchResult = "b_maybeboard"
 )

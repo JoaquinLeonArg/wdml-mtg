@@ -30,6 +30,13 @@ type GameResources struct {
 	Coins        int                `bson:"coins" json:"coins"`
 }
 
+const (
+	MYTHIC_TO_COIN   = 20
+	RARE_TO_COIN     = 10
+	UNCOMMON_TO_COIN = 3
+	COMMON_TO_COIN   = 1
+)
+
 type OwnedWildcards struct {
 	// By rarity
 	CommonCount     int `bson:"common_count" json:"common_count"`
@@ -42,36 +49,8 @@ type OwnedWildcards struct {
 }
 
 type OwnedBoosterPack struct {
-	Available int             `bson:"available" json:"available"`
-	Data      BoosterPackData `bson:"data" json:"data"`
-}
-
-// TODO: Deduplicate this and move everything to booster_pack
-type BoosterPackData struct {
-	SetCode     string      `bson:"set_code" json:"set_code"`
-	SetName     string      `bson:"set_name" json:"set_name"`
-	BoosterType BoosterType `bson:"booster_type" json:"booster_type"`
-	Description string      `bson:"description" json:"description"`
-}
-
-type BoosterType string
-
-const (
-	BoosterTypeDraft        BoosterType = "bt_draft"
-	BoosterTypeBlock        BoosterType = "bt_block"
-	BoosterTypeMasterpieces BoosterType = "bt_masterpieces"
-	BoosterTypeLands        BoosterType = "bt_lands"
-	BoosterTypeOther        BoosterType = "bt_other"
-)
-
-type BoosterGen string
-
-const (
-	BoosterGenVanilla BoosterGen = "bg_vanilla"
-	BoosterGenCustom  BoosterGen = "bg_custom"
-)
-
-type BoosterGenDataCustom struct {
-	CardPool []OwnedCard `bson:"card_pool" json:"card_pool"`
-	// TODO: Extra customization
+	Available   int    `bson:"available" json:"available"`
+	SetCode     string `bson:"set_code" json:"set_code"`
+	Name        string `bson:"name" json:"name"`
+	Description string `bson:"description" json:"description"`
 }
