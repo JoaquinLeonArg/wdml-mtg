@@ -36,17 +36,17 @@ export default function TournamentHome(props: any) {
         <Header title="Home" />
         <div className="flex flex-row w-full gap-8">
           <div className="flex flex-col max-w-[70%] w-full">
-            <MiniHeader title="Posts" endContent={ 
-            (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") 
-            ? (<Button size="sm" isIconOnly onClick={() => setCreatePostModalOpen(true)} color="success">+</Button>): ""
+            <MiniHeader title="Posts" endContent={
+              (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator")
+                ? (<Button size="sm" isIconOnly onClick={() => setCreatePostModalOpen(true)} color="success">+</Button>) : null
             } />
             <CreateTournamentPostModal closeFn={() => setCreatePostModalOpen(false)} isOpen={createPostModalOpen} refreshFn={() => { }} tournamentID={props.params.tournamentID} />
             <TournamentPostsSection tournamentPlayer={tournamentPlayer} tournamentID={props.params.tournamentID} />
           </div>
-          
+
           <div className="flex flex-col max-w-[450px] w-full">
             <MiniHeader title="Packs" />
-            
+
             {/* boostersLoading || */ !tournamentPlayer ? <div className="flex justify-center"> <Spinner /></div> :
               <div className="flex flex-row gap-2 justify-center">
                 {(
@@ -69,7 +69,7 @@ export default function TournamentHome(props: any) {
                     </Listbox>
                   </div>
                 )}
-                
+
               </div>
             }
           </div>

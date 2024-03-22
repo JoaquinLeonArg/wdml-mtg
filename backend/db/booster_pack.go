@@ -97,7 +97,6 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 		return fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 	defer session.EndSession(ctx)
-	// Find if user exists and if not, create it
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
 		resultInsert, err := MongoDatabaseClient.
 			Database(DB_MAIN).

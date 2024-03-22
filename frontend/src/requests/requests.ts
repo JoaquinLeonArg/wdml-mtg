@@ -1,10 +1,10 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-
 export var API_ROUTE = process.env.NEXT_PUBLIC_API_ROUTE
 export var API_PROTOCOL = process.env.NEXT_PUBLIC_DEV_MODE == "true" ? "http" : "https"
 export var API_URL = API_PROTOCOL + "://" + API_ROUTE + "/api"
+
+// TODO: Refactor this
 
 export type ApiResponseWithError = {
   data: any
@@ -56,6 +56,40 @@ export function ApiGetRequest(r: ApiGetRequestConfig) {
     method: "GET",
     credentials: r.noCredentials ? "omit" : 'include',
 
+  })
+    .then(async (res: Response) => {
+      if (res.status == 401) {
+        window.location.href = '/login'
+        return
+      }
+      res.json()
+        .then((apiResponse: ApiResponseWithError) => {
+          if (apiResponse.error != "") {
+            r.errorHandler(apiResponse.error)
+            return
+          }
+          r.responseHandler(apiResponse.data)
+        })
+        .catch((err: any) => { console.log(err) })
+    })
+    .catch((err: any) => { console.log(err) })
+}
+
+
+export type ApiPutRequestConfig = {
+  route: string,
+  noCredentials?: boolean
+  query?: any
+  body: any
+  responseHandler: (res: any) => void
+  errorHandler: (err: string) => void
+}
+
+export function ApiPutRequest(r: ApiPutRequestConfig) {
+  fetch(API_URL + r.route + "?" + new URLSearchParams(r.query), {
+    method: "PUT",
+    credentials: r.noCredentials ? "omit" : 'include',
+    body: JSON.stringify(r.body),
   })
     .then(async (res: Response) => {
       if (res.status == 401) {

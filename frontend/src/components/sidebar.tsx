@@ -16,7 +16,7 @@ export default function NavigationSidebar(props: NavigationSidebarProps) {
                         <SidebarButton name="Home" href={"/" + props.tournamentID} ><BsMegaphoneFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Packs" href={"/" + props.tournamentID + "/packs"} ><BsBoxSeamFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Cards" items={[{ name: "Collection", href: `/${props.tournamentID}/collection` }, { name: "Decks", href: `/${props.tournamentID}/decks` }]} ><BsCollectionFill className="w-6 h-6" /></SidebarButton>
-                        <SidebarButton name="Matches" ><BsDiagram3Fill className="w-6 h-6" /></SidebarButton>
+                        <SidebarButton name="Matches" href={"/" + props.tournamentID + "/matches"} ><BsDiagram3Fill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Players" href={"/" + props.tournamentID + "/players"} ><BsEmojiSunglassesFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Settings" ><BsFillGearFill className="w-6 h-6" /></SidebarButton>
                     </ul>
