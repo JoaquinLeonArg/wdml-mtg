@@ -67,15 +67,6 @@ export default function MatchesPage(props: any) {
       }
     })
     ApiGetRequest({
-      route: "/seasons/match",
-      query: { season_id: props.params.tournamentID },
-      errorHandler: (err) => {
-      },
-      responseHandler: (res: { matches: Match[] }) => {
-        setMatches(res.matches)
-      }
-    })
-    ApiGetRequest({
       route: "/tournament_player/tournament",
       query: { tournament_id: props.params.tournamentID },
       errorHandler: (err) => {
