@@ -38,7 +38,7 @@ export default function Home() {
         }
       },
       responseHandler: (res) => {
-        router.push("/" + res.data.tournamentCode)
+        router.push("/" + res.data.tournament_id)
       }
     })
   }
