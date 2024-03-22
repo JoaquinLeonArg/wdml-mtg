@@ -96,7 +96,7 @@ export default function CollectionPage(props: any) {
           <CardDisplaySpoiler cards={currentCards} />
         </div>
         <div className="flex flex-col items-center gap-4">
-          <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalResults} initialPage={1}></Pagination>
+          <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalPages} initialPage={1}></Pagination>
         </div>
       </div>
     </Layout >

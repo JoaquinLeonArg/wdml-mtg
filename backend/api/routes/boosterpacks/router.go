@@ -56,6 +56,7 @@ func GetTournamentBoosterPacksHandler(w http.ResponseWriter, r *http.Request) {
 type AddTournamentBoosterPacksRequest struct {
 	Count   int    `json:"count"`
 	SetCode string `json:"set_code"`
+	TournamentPlayerId string `json:"tournament_player_id"`
 }
 
 type AddTournamentBoosterPacksResponse struct{}
