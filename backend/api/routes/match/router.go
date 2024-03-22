@@ -63,6 +63,7 @@ func CreateMatchHandler(w http.ResponseWriter, r *http.Request) {
 type UpdateMatchRequest struct {
 	PlayersPoints map[string]int `json:"players_points"`
 	GamesPlayed   int            `json:"games_played"`
+	Completed     bool           `json:"completed"`
 }
 
 func UpdateMatchHandler(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +92,7 @@ func UpdateMatchHandler(w http.ResponseWriter, r *http.Request) {
 		matchID,
 		updateMatchRequest.PlayersPoints,
 		updateMatchRequest.GamesPlayed,
+		updateMatchRequest.Completed,
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

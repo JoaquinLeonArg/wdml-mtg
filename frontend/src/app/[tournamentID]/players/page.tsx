@@ -14,11 +14,10 @@ import { BsFillSendFill } from "react-icons/bs"
 
 
 export default function PlayersPage(props: any) {
+  let [originalRows, setOriginalRows] = useState<{ id: string, username: string, tournament_points: number, coins: number }[]>([])
   let [rows, setRows] = useState<{ id: string, username: string, tournament_points: number, coins: number }[]>([])
   let [isLoading, setIsLoading] = useState<boolean>(true)
   let [error, setError] = useState<string>("")
-  let [tournamentPointsChange, setTournamentPointsChange] = useState<{ [username: string]: number }>({})
-  let [coinsChange, setCoinsChange] = useState<{ [username: string]: number }>({})
   let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
 
   let refreshData = () => {
@@ -43,7 +42,8 @@ export default function PlayersPage(props: any) {
             coins: tournament_player.game_resources.coins,
           }
         })
-        setRows(r)
+        setRows([...r])
+        setOriginalRows([...r])
         setIsLoading(false)
       }
     })
@@ -58,17 +58,15 @@ export default function PlayersPage(props: any) {
     })
   }
 
-  let sendChangeTournamentPointsRequest = (username: string) => {
-    let tournamentPlayer = rows.find((user) => user.username == username)
-    if (!tournamentPlayer) { return } // TODO: Show error
-    console.log(tournamentPlayer.tournament_points)
-    console.log(tournamentPointsChange)
+  let sendChangeTournamentPointsRequest = (user_id: string) => {
+    let tournamentPlayerIndex = rows.findIndex((user) => user.id == user_id)
+    if (tournamentPlayerIndex == -1) { return } // TODO: Show error
     setIsLoading(true)
     ApiPostRequest({
       route: "/tournament_player/points",
-      query: { tournament_id: props.params.tournamentID, tournament_player_id: tournamentPlayer.id },
+      query: { tournament_id: props.params.tournamentID, tournament_player_id: originalRows[tournamentPlayerIndex].id },
       body: {
-        points: tournamentPointsChange[username] - tournamentPlayer.tournament_points
+        points: rows[tournamentPlayerIndex].tournament_points - originalRows[tournamentPlayerIndex].tournament_points
       },
       errorHandler: () => {
         setIsLoading(false)
@@ -80,15 +78,15 @@ export default function PlayersPage(props: any) {
     })
   }
 
-  let sendChangeCoinsRequest = (username: string) => {
-    let tournamentPlayer = rows.find((user) => user.username == username)
-    if (!tournamentPlayer) { return } // TODO: Show error
+  let sendChangeCoinsRequest = (user_id: string) => {
+    let tournamentPlayerIndex = rows.findIndex((user) => user.id == user_id)
+    if (tournamentPlayerIndex == -1) { return } // TODO: Show error
     setIsLoading(true)
     ApiPostRequest({
       route: "/tournament_player/coins",
-      query: { tournament_id: props.params.tournamentID, tournament_player_id: tournamentPlayer.id },
+      query: { tournament_id: props.params.tournamentID, tournament_player_id: originalRows[tournamentPlayerIndex].id },
       body: {
-        coins: tournamentPlayer.coins + coinsChange[username]
+        coins: rows[tournamentPlayerIndex].coins - originalRows[tournamentPlayerIndex].coins
       },
       errorHandler: () => {
         setIsLoading(false)
@@ -142,8 +140,13 @@ export default function PlayersPage(props: any) {
                                   defaultValue={getKeyValue(item, columnKey)}
                                   disabled={isLoading}
                                   onChange={(e) => {
-                                    let username = item.username
-                                    setTournamentPointsChange({ [username]: Number(e.target.value) })
+                                    let newRows = [...rows]
+                                    let tournamentPlayerIndex = newRows
+                                      .findIndex((r) => r.id == item.id)
+                                    let newRow = { ...newRows[tournamentPlayerIndex] }
+                                    newRow.tournament_points = Number(e.target.value)
+                                    newRows[tournamentPlayerIndex] = newRow
+                                    setRows(newRows)
                                   }}
                                   variant="bordered"
                                   size="sm"
@@ -152,7 +155,7 @@ export default function PlayersPage(props: any) {
                                   className="text-white max-w-16"
                                 />
                                 <Button size="sm" color="success" isIconOnly onClick={() => {
-                                  sendChangeTournamentPointsRequest(item.username)
+                                  sendChangeTournamentPointsRequest(item.id)
                                 }}><BsFillSendFill /></Button>
                               </> :
                               <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>
@@ -170,7 +173,13 @@ export default function PlayersPage(props: any) {
                                   defaultValue={getKeyValue(item, columnKey)}
                                   disabled={isLoading}
                                   onChange={(e) => {
-                                    setCoinsChange({ ...coinsChange, [coinsChange[columnKey]]: Number(e.target.value) })
+                                    let newRows = [...rows]
+                                    let tournamentPlayerIndex = newRows
+                                      .findIndex((r) => r.id == item.id)
+                                    let newRow = { ...newRows[tournamentPlayerIndex] }
+                                    newRow.coins = Number(e.target.value)
+                                    newRows[tournamentPlayerIndex] = newRow
+                                    setRows(newRows)
                                   }}
                                   variant="bordered"
                                   size="sm"
@@ -179,7 +188,7 @@ export default function PlayersPage(props: any) {
                                   className="text-white max-w-16"
                                 />
                                 <Button size="sm" color="success" isIconOnly onClick={() => {
-                                  sendChangeCoinsRequest(item.username)
+                                  sendChangeCoinsRequest(item.id)
                                 }}><BsFillSendFill /></Button>
                               </> :
                               <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>

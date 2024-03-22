@@ -13,11 +13,25 @@ func CreateMatch(seasonID string, gamemode domain.Gamemode, tournamentPlayerIDs 
 	if len(tournamentPlayerIDs) < 2 {
 		return apiErrors.ErrBadRequest
 	}
+	_, err := db.GetSeasonByID(seasonID)
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return apiErrors.ErrNotFound
+		}
+		return apiErrors.ErrInternal
+	}
 	playersData := []domain.MatchPlayerData{}
 	for _, playerID := range tournamentPlayerIDs {
 		id, err := primitive.ObjectIDFromHex(playerID)
 		if err != nil {
 			return apiErrors.ErrBadRequest
+		}
+		_, err = db.GetTournamentPlayerByID(playerID)
+		if err != nil {
+			if errors.Is(err, db.ErrNotFound) {
+				return apiErrors.ErrNotFound
+			}
+			return apiErrors.ErrInternal
 		}
 		playersData = append(playersData, domain.MatchPlayerData{
 			TournamentPlayerID: id,
@@ -31,7 +45,7 @@ func CreateMatch(seasonID string, gamemode domain.Gamemode, tournamentPlayerIDs 
 		Gamemode:    gamemode,
 		Completed:   false,
 	}
-	err := db.CreateMatch(seasonID, match)
+	err = db.CreateMatch(seasonID, match)
 	if err != nil {
 		if errors.Is(err, db.ErrNotFound) {
 			return apiErrors.ErrNotFound
@@ -41,8 +55,8 @@ func CreateMatch(seasonID string, gamemode domain.Gamemode, tournamentPlayerIDs 
 	return nil
 }
 
-func UpdateMatch(matchID string, playersPoints map[string]int, gamesPlayed int) error {
-	err := db.UpdateMatch(matchID, playersPoints, gamesPlayed)
+func UpdateMatch(matchID string, playersPoints map[string]int, gamesPlayed int, completed bool) error {
+	err := db.UpdateMatch(matchID, playersPoints, gamesPlayed, completed)
 	if err != nil {
 		if errors.Is(err, db.ErrNotFound) {
 			return apiErrors.ErrNotFound

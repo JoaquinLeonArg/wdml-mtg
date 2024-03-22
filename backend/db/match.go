@@ -126,7 +126,7 @@ func CreateMatch(seasonID string, match domain.Match) error {
 	return err
 }
 
-func UpdateMatch(matchID string, playerWins map[string]int, gamesPlayed int) error {
+func UpdateMatch(matchID string, playerWins map[string]int, gamesPlayed int, completed bool) error {
 	log.Debug().Interface("wins", playerWins).Str("match_id", matchID).Int("games", gamesPlayed).Send()
 	dbMatchID, err := primitive.ObjectIDFromHex(matchID)
 	if err != nil {
@@ -175,6 +175,7 @@ func UpdateMatch(matchID string, playerWins map[string]int, gamesPlayed int) err
 			}
 		}
 		match.GamesPlayed = gamesPlayed
+		match.Completed = completed
 
 		resultInsert, err := MongoDatabaseClient.
 			Database(DB_MAIN).
