@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -387,6 +388,35 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode 
 			} else {
 				// TODO: Consolidate duplicate entries just in case
 				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
+			}
+		}
+
+		return nil, nil
+	})
+
+	return err
+}
+
+func AddPacksToTournamentPlayers(tournamentPlayers []domain.TournamentPlayer, pack domain.OwnedBoosterPack) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	// Begin transaction
+	session, err := MongoDatabaseClient.
+		StartSession()
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		for _, tournamentPlayer := range tournamentPlayers {
+			err = AddPacksToTournamentPlayer(tournamentPlayer.ID.Hex(), pack)
+			if err != nil {
+				if errors.Is(err, ErrNotFound) {
+					return nil, ErrNotFound
+				}
+				return nil, ErrInternal
 			}
 		}
 

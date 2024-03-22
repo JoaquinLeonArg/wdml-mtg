@@ -70,19 +70,17 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPack AddTourn
 		}
 	}
 
-	for _, tournamentPlayer := range tournamentPlayers {
-		err = db.AddPacksToTournamentPlayer(tournamentPlayer.ID.Hex(), domain.OwnedBoosterPack{
-			Available:   boosterPack.Count,
-			SetCode:     boosterPack.SetCode,
-			Name:        setName,
-			Description: setDescription,
-		})
-		if err != nil {
-			if errors.Is(err, db.ErrNotFound) {
-				return apiErrors.ErrNotFound
-			}
-			return apiErrors.ErrInternal
+	err = db.AddPacksToTournamentPlayers(tournamentPlayers, domain.OwnedBoosterPack{
+		Available:   boosterPack.Count,
+		SetCode:     boosterPack.SetCode,
+		Name:        setName,
+		Description: setDescription,
+	})
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return apiErrors.ErrNotFound
 		}
+		return apiErrors.ErrInternal
 	}
 
 	return nil
