@@ -17,7 +17,7 @@ export function Header(props: HeaderProps) {
 
 export function MiniHeader(props: HeaderProps) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <div className="flex flex-row justify-between">
         <span className="self-center text-md font-semibold whitespace-nowrap text-white">{props.title}</span>
         {props.endContent}

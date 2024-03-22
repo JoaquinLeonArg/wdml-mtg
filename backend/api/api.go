@@ -14,6 +14,7 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/season"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament_player"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament_post"
 	"github.com/joaquinleonarg/wdml_mtg/backend/config"
 )
 
@@ -31,6 +32,7 @@ func StartServer() {
 	deck.RegisterEndpoints(router)
 	season.RegisterEndpoints(router)
 	match.RegisterEndpoints(router)
+	tournament_post.RegisterEndpoints(router)
 
 	originsOk := handlers.AllowedOrigins([]string{config.Config.CorsOrigin})
 	credentialsOk := handlers.AllowCredentials()
