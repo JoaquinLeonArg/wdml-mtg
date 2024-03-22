@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetMatchesFromSeason(seasonID string, onlyPending bool, count, page int) ([]domain.Match, error) {
+func GetMatchesFromSeason(seasonID string, onlyPending bool) ([]domain.Match, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -27,14 +27,12 @@ func GetMatchesFromSeason(seasonID string, onlyPending bool, count, page int) ([
 	if onlyPending {
 		findCriteria["completed"] = false
 	}
-	opts := options.Find().SetSkip(int64(count * (page - 1))).SetLimit(int64(count))
 	// Find matches from this player
 	cursor, err := MongoDatabaseClient.
 		Database(DB_MAIN).
 		Collection(COLLECTION_MATCHES).
 		Find(ctx,
 			findCriteria,
-			opts,
 		)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInternal, err)

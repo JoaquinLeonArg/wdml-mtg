@@ -9,13 +9,17 @@ import { User } from "@/types/user"
 import { Button, Input, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { BsFillSendFill } from "react-icons/bs"
 
 
 
 export default function PlayersPage(props: any) {
-  let [rows, setRows] = useState<{ username: string, tournament_points: number, coins: number }[]>([])
+  let [rows, setRows] = useState<{ id: string, username: string, tournament_points: number, coins: number }[]>([])
   let [isLoading, setIsLoading] = useState<boolean>(true)
   let [error, setError] = useState<string>("")
+  let [tournamentPointsChange, setTournamentPointsChange] = useState<{ [username: string]: number }>({})
+  let [coinsChange, setCoinsChange] = useState<{ [username: string]: number }>({})
+  let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
 
   let refreshData = () => {
     setIsLoading(true)
@@ -33,12 +37,64 @@ export default function PlayersPage(props: any) {
         })
         let r = res.tournament_players.map((tournament_player) => {
           return {
+            id: tournament_player.id,
             username: usersById[tournament_player.user_id].username,
             tournament_points: tournament_player.tournament_points,
             coins: tournament_player.game_resources.coins,
           }
         })
         setRows(r)
+        setIsLoading(false)
+      }
+    })
+    ApiGetRequest({
+      route: "/tournament_player/tournament",
+      query: { tournament_id: props.params.tournamentID },
+      errorHandler: (err) => {
+      },
+      responseHandler: (res: { tournament_player: TournamentPlayer }) => {
+        setTournamentPlayer(res.tournament_player)
+      }
+    })
+  }
+
+  let sendChangeTournamentPointsRequest = (username: string) => {
+    let tournamentPlayer = rows.find((user) => user.username == username)
+    if (!tournamentPlayer) { return } // TODO: Show error
+    console.log(tournamentPlayer.tournament_points)
+    console.log(tournamentPointsChange)
+    setIsLoading(true)
+    ApiPostRequest({
+      route: "/tournament_player/points",
+      query: { tournament_id: props.params.tournamentID, tournament_player_id: tournamentPlayer.id },
+      body: {
+        points: tournamentPointsChange[username] - tournamentPlayer.tournament_points
+      },
+      errorHandler: () => {
+        setIsLoading(false)
+      },
+      responseHandler: () => {
+        refreshData()
+        setIsLoading(false)
+      }
+    })
+  }
+
+  let sendChangeCoinsRequest = (username: string) => {
+    let tournamentPlayer = rows.find((user) => user.username == username)
+    if (!tournamentPlayer) { return } // TODO: Show error
+    setIsLoading(true)
+    ApiPostRequest({
+      route: "/tournament_player/coins",
+      query: { tournament_id: props.params.tournamentID, tournament_player_id: tournamentPlayer.id },
+      body: {
+        coins: tournamentPlayer.coins + coinsChange[username]
+      },
+      errorHandler: () => {
+        setIsLoading(false)
+      },
+      responseHandler: () => {
+        refreshData()
         setIsLoading(false)
       }
     })
@@ -75,7 +131,66 @@ export default function PlayersPage(props: any) {
             <TableBody items={rows}>
               {(item) => (
                 <TableRow key={item.username}>
-                  {(columnKey) => <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>}
+                  {(columnKey) => {
+                    if (columnKey == "tournament_points") {
+                      return <TableCell className="text-white">
+                        <div className="flex flex-row items-center gap-2">
+                          {
+                            tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator" ?
+                              <>
+                                <Input
+                                  defaultValue={getKeyValue(item, columnKey)}
+                                  disabled={isLoading}
+                                  onChange={(e) => {
+                                    let username = item.username
+                                    setTournamentPointsChange({ [username]: Number(e.target.value) })
+                                  }}
+                                  variant="bordered"
+                                  size="sm"
+                                  type="number"
+                                  placeholder="0"
+                                  className="text-white max-w-16"
+                                />
+                                <Button size="sm" color="success" isIconOnly onClick={() => {
+                                  sendChangeTournamentPointsRequest(item.username)
+                                }}><BsFillSendFill /></Button>
+                              </> :
+                              <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>
+                          }
+                        </div>
+                      </TableCell>
+                    }
+                    if (columnKey == "coins") {
+                      return <TableCell className="text-white">
+                        <div className="flex flex-row items-center gap-2">
+                          {
+                            tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator" ?
+                              <>
+                                <Input
+                                  defaultValue={getKeyValue(item, columnKey)}
+                                  disabled={isLoading}
+                                  onChange={(e) => {
+                                    setCoinsChange({ ...coinsChange, [coinsChange[columnKey]]: Number(e.target.value) })
+                                  }}
+                                  variant="bordered"
+                                  size="sm"
+                                  type="number"
+                                  placeholder="0"
+                                  className="text-white max-w-16"
+                                />
+                                <Button size="sm" color="success" isIconOnly onClick={() => {
+                                  sendChangeCoinsRequest(item.username)
+                                }}><BsFillSendFill /></Button>
+                              </> :
+                              <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>
+
+                          }
+                        </div>
+                      </TableCell>
+                    }
+                    return (<TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>)
+                  }
+                  }
                 </TableRow>
               )}
             </TableBody>

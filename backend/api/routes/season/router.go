@@ -20,9 +20,6 @@ func RegisterEndpoints(r *mux.Router) {
 type GetSeasonsResponse struct {
 	Seasons []domain.Season `json:"seasons"`
 }
-type GetMatchesResponse struct {
-	Matches []domain.Match `json:"matches"`
-}
 
 type EmptyResponse struct{}
 
