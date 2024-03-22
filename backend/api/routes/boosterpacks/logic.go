@@ -2,6 +2,7 @@ package boosterpacks
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -58,6 +59,9 @@ func AddTournamentBoosterPacks(userID, tournamentID string, boosterPack AddTourn
 
 	var tournamentPlayers []domain.TournamentPlayer
 	if boosterPack.TournamentPlayerId != "" {
+		fmt.Println("This is the tournament playuer id")
+
+		fmt.Println(boosterPack.TournamentPlayerId)
 		tournamentPlayer, err := db.GetTournamentPlayerByID(boosterPack.TournamentPlayerId)
 		if err != nil {
 			return apiErrors.ErrNotFound
