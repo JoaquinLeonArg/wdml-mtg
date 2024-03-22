@@ -26,19 +26,3 @@ func CreateEmptySeason(name, description, tournamentID string) error {
 		TournamentID: dbTournamentID,
 	})
 }
-
-func CreateMatch(seasonID, tournamentID, playerAID, playerBID string) error {
-	return db.CreateMatch(seasonID, tournamentID, playerAID, playerBID)
-}
-
-func UpdateMatch(seasonID string, match domain.Match) error {
-	return db.UpdateMatch(seasonID, match)
-}
-
-func GetMatchesFromSeason(seasonID string, onlyPending bool) ([]domain.Match, error) {
-	return db.GetMatchesFromSeason(seasonID, onlyPending)
-}
-
-func GetMatchesFromPlayer(tournamentID, playerID string, onlyPending bool) ([]domain.Match, error) {
-	return db.GetMatchesFromPlayer(tournamentID, playerID, onlyPending)
-}

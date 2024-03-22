@@ -29,6 +29,7 @@ const (
 	COLLECTION_BOOSTER_PACKS      = "booster_packs"
 	COLLECTION_DECKS              = "decks"
 	COLLECTION_SEASONS            = "seasons"
+	COLLECTION_MATCHES            = "matches"
 )
 
 func InitDBConnection() error {

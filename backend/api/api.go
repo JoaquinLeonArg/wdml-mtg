@@ -10,6 +10,7 @@ import (
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/boosterpacks"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/collection"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/deck"
+	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/match"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/season"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament"
 	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/tournament_player"
@@ -29,6 +30,7 @@ func StartServer() {
 	collection.RegisterEndpoints(router)
 	deck.RegisterEndpoints(router)
 	season.RegisterEndpoints(router)
+	match.RegisterEndpoints(router)
 
 	originsOk := handlers.AllowedOrigins([]string{config.Config.CorsOrigin})
 	credentialsOk := handlers.AllowCredentials()
