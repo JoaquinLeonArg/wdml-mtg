@@ -6,7 +6,7 @@ import { CreateTournamentPostModal } from "@/modals/create_tournament_post"
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
 import { TournamentPlayer } from "@/types/tournamentPlayer"
 import { TournamentPost } from "@/types/tournament_post"
-import { Accordion, AccordionItem, Button, Spinner } from "@nextui-org/react"
+import { Accordion, AccordionItem, Button, Spinner, Listbox, ListboxItem } from "@nextui-org/react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
@@ -36,11 +36,43 @@ export default function TournamentHome(props: any) {
         <Header title="Home" />
         <div className="flex flex-row w-full gap-8">
           <div className="flex flex-col max-w-[70%] w-full">
-            <MiniHeader title="Posts" endContent={<Button size="sm" isIconOnly onClick={() => setCreatePostModalOpen(true)} color="success">+</Button>} />
+            <MiniHeader title="Posts" endContent={ 
+            (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") 
+            ? (<Button size="sm" isIconOnly onClick={() => setCreatePostModalOpen(true)} color="success">+</Button>): ""
+            } />
             <CreateTournamentPostModal closeFn={() => setCreatePostModalOpen(false)} isOpen={createPostModalOpen} refreshFn={() => { }} tournamentID={props.params.tournamentID} />
             <TournamentPostsSection tournamentPlayer={tournamentPlayer} tournamentID={props.params.tournamentID} />
           </div>
-          <MiniHeader title="Packs" />
+          
+          <div className="flex flex-col max-w-[450px] w-full">
+            <MiniHeader title="Packs" />
+            
+            {/* boostersLoading || */ !tournamentPlayer ? <div className="flex justify-center"> <Spinner /></div> :
+              <div className="flex flex-row gap-2 justify-center">
+                {(
+                  <div className="bg-gray-800 w-[450px] border-small px-1 py-2 rounded-small border-default-200">
+                    <Listbox>
+                      {
+                        tournamentPlayer.game_resources.booster_packs.map((booster_pack) =>
+                          <ListboxItem
+                            className="text-white"
+                            href={"/" + tournamentPlayer?.tournament_id + "/packs"}
+                            key={booster_pack.set_code}
+                            startContent={<div className="text-gray-500 w-16">{booster_pack.set_code}</div>}
+                            endContent={<div className="text-gray-500 text-right">{`(${booster_pack.available})`}</div>}
+                          >
+                            {booster_pack.name}
+                          </ListboxItem>
+                        )
+                      }
+
+                    </Listbox>
+                  </div>
+                )}
+                
+              </div>
+            }
+          </div>
         </div>
       </div>
     </Layout>
