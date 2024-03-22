@@ -19,6 +19,8 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("", GetTournamentPlayersFromAuthHandler).Methods(http.MethodGet)
 	r.HandleFunc("/tournament", GetTournamentPlayer).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentPlayerHandler).Methods(http.MethodPost)
+	r.HandleFunc("/coins", AddCoinsToTournamentPlayerHandler).Methods(http.MethodPost)
+	r.HandleFunc("/points", AddPointsToTournamentPlayerHandler).Methods(http.MethodPost)
 }
 
 type GetPacksForTournamentPlayerResponse struct {
@@ -205,4 +207,82 @@ func GetTournamentPlayersFromAuthHandler(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(GetTournamentPlayersForUserResponse{TournamentPlayers: tournamentPlayers}))
+}
+
+type AddCoinsToTournamentPlayerRequest struct {
+	Coins int `json:"coins"`
+}
+
+type EmptyResponse struct {
+}
+
+func AddCoinsToTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get tournament player ID from request context
+	tPlayerID := r.URL.Query().Get("tournament_player_id")
+	if tPlayerID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Decode body data
+	var req AddCoinsToTournamentPlayerRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	err = AddCoinsToTournamentPlayer(tPlayerID, req.Coins)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(EmptyResponse{}))
+}
+
+type AddPointsToTournamentPlayerRequest struct {
+	Points int `json:"points"`
+}
+
+func AddPointsToTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get tournament player ID from request context
+	tPlayerID := r.URL.Query().Get("tournament_player_id")
+	if tPlayerID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+	// Decode body data
+	var req AddPointsToTournamentPlayerRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	err = AddPointsToTournamentPlayer(tPlayerID, req.Points)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(EmptyResponse{}))
 }

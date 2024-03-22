@@ -32,7 +32,7 @@ type GetDeckByIdResponse struct {
 func GetDeckByIdHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
-	// Get tournament ID from query
+	// Get deck ID from query
 	deckId := r.URL.Query().Get("deck_id")
 	if deckId == "" {
 		http.Error(w, "", http.StatusBadRequest)

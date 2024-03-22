@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -119,7 +120,7 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 		for _, cardData := range cards {
 			if strings.ToLower(cardData.SetCode) == cardIdent.Identifier.Set && cardData.CollectorNumber == cardIdent.Identifier.CollectorNumber {
 				foundCard = cardData
-				if cardIdent.Amount > 4 {
+				if cardIdent.Amount > 4 && !slices.Contains(cardData.Types, "Basic") {
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
 					case "mythic":

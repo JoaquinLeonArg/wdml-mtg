@@ -57,3 +57,19 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 
 	return tournamentID.Hex(), nil
 }
+
+func AddCoinsToTournamentPlayer(tPlayerID string, coins int) error {
+	tPlayer, err := db.GetTournamentPlayerByID(tPlayerID)
+	if err != nil {
+		return err
+	}
+	return db.AddCoinsToTournamentPlayer(coins, tPlayer.UserID.Hex(), tPlayer.TournamentID.Hex())
+}
+
+func AddPointsToTournamentPlayer(tPlayerID string, coins int) error {
+	tPlayer, err := db.GetTournamentPlayerByID(tPlayerID)
+	if err != nil {
+		return err
+	}
+	return db.AddPointsToTournamentPlayer(coins, tPlayer.UserID.Hex(), tPlayer.TournamentID.Hex())
+}
