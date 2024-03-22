@@ -146,7 +146,7 @@ export default function MatchesPage(props: any) {
                     <div className="flex flex-col gap-2">
                       {item.players_data.map((pd) => {
                         return (
-                          <div>{usersById[tournamentPlayersByID[pd.tournament_player_id].user_id].username}</div>
+                          <div key={pd.tournament_player_id + item.id}>{usersById[tournamentPlayersByID[pd.tournament_player_id].user_id].username}</div>
                         )
                       })}
                     </div>
