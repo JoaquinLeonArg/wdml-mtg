@@ -220,12 +220,9 @@ func AddCoinsToTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Get tournament player ID from request context
-	tPlayerID, ok := r.Context().Value("player_id").(string)
-	if tPlayerID == "" || !ok {
-		log.Debug().
-			Msg("failed to read user id from context")
-		http.Error(w, "", http.StatusForbidden)
-		return
+	tPlayerID := r.URL.Query().Get("tournament_player_id")
+	if tPlayerID == "" {
+		http.Error(w, "", http.StatusBadRequest)
 	}
 
 	// Decode body data
@@ -261,14 +258,10 @@ func AddPointsToTournamentPlayerHandler(w http.ResponseWriter, r *http.Request) 
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Get tournament player ID from request context
-	tPlayerID, ok := r.Context().Value("player_id").(string)
-	if tPlayerID == "" || !ok {
-		log.Debug().
-			Msg("failed to read user id from context")
-		http.Error(w, "", http.StatusForbidden)
-		return
+	tPlayerID := r.URL.Query().Get("tournament_player_id")
+	if tPlayerID == "" {
+		http.Error(w, "", http.StatusBadRequest)
 	}
-
 	// Decode body data
 	var req AddPointsToTournamentPlayerRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
