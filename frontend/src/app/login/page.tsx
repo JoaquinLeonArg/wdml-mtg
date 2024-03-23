@@ -71,13 +71,13 @@ export default function Login() {
                 setIsLoading(false)
                 switch (err) {
                     case "USERNAME_INVALID":
-                        setRegisterError("Invalid username")
+                        setRegisterError("Invalid username"); break
                     case "PASSWORD_WEAK":
-                        setRegisterError("Password is too weak")
+                        setRegisterError("Password is too weak"); break
                     case "EMAIL_INVALID":
-                        setRegisterError("Email is invalid")
+                        setRegisterError("Email is invalid"); break
                     case "DUPLICATED_RESOURCE":
-                        setRegisterError("User already exists")
+                        setRegisterError("User already exists"); break
                 }
             }
         })
