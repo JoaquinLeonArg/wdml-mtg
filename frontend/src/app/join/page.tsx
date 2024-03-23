@@ -61,7 +61,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <div className="w-[50%] p-2 flex flex-col items-center justify-between bg-gray-600 rounded-lg">
+      <div className="w-[50%] p-2 flex flex-row items-center justify-between bg-gray-600 rounded-lg">
         <div className="flex flex-col w-[50%] h-full p-2">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">Join</h1>
           <h3 className="text-sm font-bold leading-tight tracking-tight text-white opacity-70 md:text-base mb-8">Join an existing tournament using an invitation code.</h3>
