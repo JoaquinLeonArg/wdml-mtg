@@ -3,14 +3,12 @@ package boosterpacks
 import (
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/joaquinleonarg/wdml_mtg/backend/db"
 	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
 	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
 	boostergen "github.com/joaquinleonarg/wdml_mtg/backend/internal/booster_gen"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetTournamentBoosterPacks() ([]domain.BoosterPack, error) {
@@ -109,15 +107,7 @@ func OpenBoosterPack(userID, tournamentID string, setCode string) ([]domain.Card
 }
 
 func CreateNewBoosterPack(boosterPack domain.BoosterPack) error {
-	err := db.CreateBoosterPack(domain.BoosterPack{
-		SetCode:     boosterPack.SetCode,
-		Name:        boosterPack.Name,
-		Description: boosterPack.Description,
-		CardCount:   boosterPack.CardCount,
-		Slots:       boosterPack.Slots,
-		CreatedAt:   primitive.NewDateTimeFromTime(time.Now()),
-		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
-	})
+	err := db.CreateBoosterPack(boosterPack)
 	if err != nil {
 		if errors.Is(err, db.ErrAlreadyExists) {
 			return apiErrors.ErrDuplicatedResource
@@ -128,14 +118,7 @@ func CreateNewBoosterPack(boosterPack domain.BoosterPack) error {
 }
 
 func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
-	err := db.UpdateBoosterPack(domain.BoosterPack{
-		SetCode:     boosterPack.SetCode,
-		Name:        boosterPack.Name,
-		Description: boosterPack.Description,
-		CardCount:   boosterPack.CardCount,
-		Slots:       boosterPack.Slots,
-		UpdatedAt:   primitive.NewDateTimeFromTime(time.Now()),
-	})
+	err := db.UpdateBoosterPack(boosterPack)
 	if err != nil {
 		if errors.Is(err, db.ErrAlreadyExists) {
 			return apiErrors.ErrDuplicatedResource

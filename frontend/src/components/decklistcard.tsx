@@ -76,7 +76,7 @@ export function DecklistCardList(props: DecklistCardListProps) {
     },
     {
       key: "move-mainboard-all",
-      label: "Move all to main deck",
+      label: "Move ALL to main deck",
       action: () => moveToBoard("b_mainboard", props.count),
       boards: ["b_sideboard", "b_maybeboard"]
     },
@@ -88,7 +88,7 @@ export function DecklistCardList(props: DecklistCardListProps) {
     },
     {
       key: "move-sideboard-all",
-      label: "Move all to sideboard",
+      label: "Move ALL to sideboard",
       action: () => moveToBoard("b_sideboard", props.count),
       boards: ["b_mainboard", "b_maybeboard"]
     },
@@ -100,7 +100,7 @@ export function DecklistCardList(props: DecklistCardListProps) {
     },
     {
       key: "move-maybeboard-all",
-      label: "Move all to considering",
+      label: "Move ALL to considering",
       action: () => moveToBoard("b_maybeboard", props.count),
       boards: ["b_mainboard", "b_sideboard"]
     },
@@ -112,7 +112,7 @@ export function DecklistCardList(props: DecklistCardListProps) {
     },
     {
       key: "delete-all",
-      label: "Remove all",
+      label: "Remove ALL",
       action: () => moveToBoard("", props.count),
       boards: ["b_mainboard", "b_sideboard", "b_maybeboard"]
     }
