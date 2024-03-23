@@ -30,7 +30,7 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 		if errors.Is(err, db.ErrNotFound) {
 			return "", apiErrors.ErrNotFound
 		}
-		return "", err
+		return "", apiErrors.ErrInternal
 	}
 	tournamentID, err := db.CreateTournamentPlayer(domain.TournamentPlayer{
 		UserID:       userID,
@@ -52,7 +52,13 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 		TournamentPoints: 0,
 	})
 	if err != nil {
-		return "", err
+		if errors.Is(err, db.ErrNotFound) {
+			return "", apiErrors.ErrNotFound
+		}
+		if errors.Is(err, db.ErrAlreadyExists) {
+			return "", apiErrors.ErrDuplicatedResource
+		}
+		return "", apiErrors.ErrInternal
 	}
 
 	return tournamentID.Hex(), nil

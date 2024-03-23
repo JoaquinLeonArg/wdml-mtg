@@ -97,7 +97,7 @@ function TournamentPostsSection(props: TournamentPostsSection) {
       },
       errorHandler: () => { setIsLoading(false) },
       responseHandler: (res: { tournament_posts: TournamentPost[] }) => {
-        setPosts(res.tournament_posts)
+        setPosts(res.tournament_posts.toReversed())
         setIsLoading(false)
       }
     })
@@ -146,7 +146,7 @@ function TournamentPostsSection(props: TournamentPostsSection) {
           <Accordion className="text-white" isCompact>
             {post.blocks && post.blocks.map((block, index) => {
               return (
-                <AccordionItem className="font-bold" key={index} title={block.title}>
+                <AccordionItem disableAnimation className="font-bold" key={index} title={block.title}>
                   <div className="flex flex-col gap-4">
                     {block.content.map((content) => {
                       switch (content.type) {
@@ -159,7 +159,7 @@ function TournamentPostsSection(props: TournamentPostsSection) {
                         case "tbct_image":
                           return (
                             <div className="flex justify-center w-full">
-                              <Image className="rounded-2xl" src={content.content.startsWith("https://") ? content.content : ""} alt="image" width={300} height={300} />
+                              <Image className="rounded-2xl" src={content.content.startsWith("https://") ? content.content : ""} alt="image" width={317} height={445} />
                             </div>
                           )
                         default:
