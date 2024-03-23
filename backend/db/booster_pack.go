@@ -88,6 +88,8 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 	if boosterPack.ID != primitive.NilObjectID {
 		return ErrObjectIDProvided
 	}
+	boosterPack.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	// Begin transaction
