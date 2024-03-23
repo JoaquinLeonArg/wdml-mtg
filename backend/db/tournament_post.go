@@ -12,7 +12,7 @@ import (
 )
 
 func GetAllTournamentPosts(tournamentID string) ([]domain.TournamentPost, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -56,7 +56,7 @@ func CreateTournamentPost(tournamentPost domain.TournamentPost, tournamentID str
 	tournamentPost.TournamentID = dbTournamentID
 	tournamentPost.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	tournamentPost.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	_, err = MongoDatabaseClient.
@@ -73,7 +73,7 @@ func CreateTournamentPost(tournamentPost domain.TournamentPost, tournamentID str
 }
 
 func DeleteTournamentPost(tournamentID, tournamentPostID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)

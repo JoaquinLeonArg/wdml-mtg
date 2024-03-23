@@ -18,7 +18,7 @@ func GetEventLogs(tournamentID string, count int) ([]domain.EventLog, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	opts := options.Find().SetLimit(int64(count))
@@ -54,7 +54,7 @@ func AddEventLog(tournamentID string, eventLog domain.EventLog) error {
 	eventLog.ID = primitive.NewObjectID()
 	eventLog.TournamentID = dbTournamentID
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -81,7 +81,7 @@ func AddEventLog(tournamentID string, eventLog domain.EventLog) error {
 }
 
 func UpdateEventLog(eventLog domain.EventLog) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction

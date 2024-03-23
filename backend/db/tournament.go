@@ -20,7 +20,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 	tournament.InviteCode = uuid.New().String()
 	tournament.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	tournament.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -71,7 +71,7 @@ func CreateTournament(tournament domain.Tournament) (primitive.ObjectID, error) 
 }
 
 func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -103,7 +103,7 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 }
 
 func GetTournamentByInviteCode(inviteCode string) (*domain.Tournament, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Find tournament
@@ -130,7 +130,7 @@ func GetTournamentByInviteCode(inviteCode string) (*domain.Tournament, error) {
 }
 
 func GetTournamentsForUser(userID string) ([]domain.Tournament, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	tournament_players, err := GetTournamentPlayersForUser(userID)
