@@ -15,6 +15,7 @@ export type ApiPostRequestConfig = {
   route: string,
   noCredentials?: boolean
   body: any
+  rawBody?: boolean
   query?: any
   responseHandler: (res: any) => void
   errorHandler: (err: string) => void
@@ -24,7 +25,7 @@ export function ApiPostRequest(r: ApiPostRequestConfig) {
   fetch(API_URL + r.route + "?" + new URLSearchParams(r.query), {
     method: "POST",
     credentials: r.noCredentials ? "omit" : 'include',
-    body: JSON.stringify(r.body),
+    body: r.rawBody ? r.body : JSON.stringify(r.body)
   })
     .then((res: Response) => {
       if (res.status == 401) {

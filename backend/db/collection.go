@@ -43,7 +43,7 @@ const (
 
 func GetCardsFromTournamentPlayer(userID, tournamentID string, filters []CardFilter, count, page int) ([]domain.OwnedCard, int, error) {
 	log.Debug().Interface("filters", filters).Int("count", count).Int("page", page).Send()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -195,7 +195,7 @@ func GetCardsFromTournamentPlayer(userID, tournamentID string, filters []CardFil
 }
 
 func GetOwnedCardById(cardId string) (domain.OwnedCard, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	dbCardId, err := primitive.ObjectIDFromHex(cardId)
 	if err != nil {
@@ -229,7 +229,7 @@ type CardBySetNum struct {
 }
 
 func ImportCollection(cards []domain.OwnedCard) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	session, err := MongoDatabaseClient.
 		StartSession()

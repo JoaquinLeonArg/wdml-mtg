@@ -5,11 +5,7 @@ import { ApiPostRequest } from "@/requests/requests";
 import { Button } from "@nextui-org/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
-
-type JoinResponse = {
-  tournamentCode: string
-}
+import { useState } from "react";
 
 export default function Home() {
   let router = useRouter()
