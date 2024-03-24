@@ -5,11 +5,7 @@ import { ApiPostRequest } from "@/requests/requests";
 import { Button } from "@nextui-org/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
-
-type JoinResponse = {
-  tournamentCode: string
-}
+import { useState } from "react";
 
 export default function Home() {
   let router = useRouter()
@@ -32,9 +28,11 @@ export default function Home() {
       errorHandler: (err) => {
         switch (err) {
           case "NOT_FOUND":
-            setJoinError("Invite code is invalid")
+            setJoinError("Invite code is invalid"); break
           case "INTERNAL":
-            setJoinError("An error ocurred")
+            setJoinError("An error ocurred"); break
+          case "DUPLICATED_RESOURCE":
+            setJoinError("You already joined this tournament"); break
         }
       },
       responseHandler: (res) => {
@@ -74,20 +72,21 @@ export default function Home() {
             onValueChange={(value) => setJoinCode(value)} />
           <p className="text-sm font-light text-red-400 h-2">{joinError}</p>
           <div className="h-4"></div>
-          <Button onClick={sendJoinRequest}>Join</Button>
+          <Button color={joinCode.length > 0 ? "success" : "default"} onClick={sendJoinRequest}>Join</Button>
         </div>
         <div className="w-1 mx-2 h-[90%] bg-white opacity-20"></div>
         <div className="flex flex-col w-[50%] h-full p-2">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">Create</h1>
           <h3 className="text-sm font-bold leading-tight tracking-tight text-white opacity-70 md:text-base mb-8">Create a new tournament and invite people to join.</h3>
           <Input
+            isDisabled
             id="name"
             placeholder="My cool tournament!"
             label="Tournament name"
             onValueChange={(value) => setCreateName(value)} />
           <p className="text-sm font-light text-red-400 h-2">{createError}</p>
           <div className="h-4"></div>
-          <Button onClick={sendCreateRequest}>Create</Button>
+          <Button isDisabled color={createName.length > 0 ? "success" : "default"} onClick={sendCreateRequest}>Create</Button>
         </div>
       </div>
       <div className="mt-2">

@@ -20,7 +20,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive
 	tournamentPlayer.ID = primitive.NewObjectID()
 	tournamentPlayer.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	tournamentPlayer.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -60,7 +60,7 @@ func CreateTournamentPlayer(tournamentPlayer domain.TournamentPlayer) (primitive
 }
 
 func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlayer, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
@@ -92,7 +92,7 @@ func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlaye
 }
 
 func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -145,7 +145,7 @@ func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []dom
 }
 
 func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbUserID, err := primitive.ObjectIDFromHex(userID)
@@ -174,7 +174,7 @@ func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, erro
 }
 
 func GetTournamentPlayer(tournamentID, userID string) (*domain.TournamentPlayer, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -210,7 +210,7 @@ func GetTournamentPlayer(tournamentID, userID string) (*domain.TournamentPlayer,
 }
 
 func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain.OwnedBoosterPack, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -246,7 +246,7 @@ func GetAvailablePacksForTournamentPlayer(tournamentID, userID string) ([]domain
 }
 
 func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode string, cards []domain.CardData) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -399,7 +399,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode 
 }
 
 func AddPacksToTournamentPlayers(tournamentPlayers []domain.TournamentPlayer, pack domain.OwnedBoosterPack) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -428,7 +428,7 @@ func AddPacksToTournamentPlayers(tournamentPlayers []domain.TournamentPlayer, pa
 }
 
 func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoosterPack) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
@@ -445,7 +445,7 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoos
 	defer session.EndSession(ctx)
 
 	// Find if user has packs of the same type and add them, or create new
-	
+
 	// Find tournament user
 	result := MongoDatabaseClient.
 		Database(DB_MAIN).
@@ -488,7 +488,7 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoos
 }
 
 func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -543,7 +543,7 @@ func AddCoinsToTournamentPlayer(coins int, userID, tournamentID string) error {
 }
 
 func AddPointsToTournamentPlayer(points int, userID, tournamentID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)

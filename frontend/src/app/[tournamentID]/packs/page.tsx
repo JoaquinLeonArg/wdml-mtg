@@ -18,6 +18,7 @@ export default function PacksPage(props: any) {
   let [boostersVisible, setBoostersVisible] = useState<boolean>(true)
   let [flipAllCards, setFlipAllCards] = useState<boolean>(false)
   let [flipAllCurrentIndex, setFlipAllCurrentIndex] = useState<number>(0)
+  let [lastOpenedPack, setLastOpenedPack] = useState<BoosterPack>()
 
   let flipCard = (index: number, oldCards: CardFullProps[]) => {
     let cards = [...oldCards]
@@ -70,6 +71,8 @@ export default function PacksPage(props: any) {
         }))
         cardsFull.forEach((card: CardFullProps, index: number) => { card.onClickFn = () => flipCard(index, cardsFull) })
         setCurrentCards(cardsFull)
+        booster_pack.available -= 1
+        setLastOpenedPack(booster_pack)
       }
     })
   }
@@ -139,6 +142,32 @@ export default function PacksPage(props: any) {
                   <Button color="danger" onClick={() => { setCurrentCards([]); refreshData(); setBoostersVisible(true) }}>Close</Button>
                 </ButtonGroup>
                 <CardDisplaySpoiler cards={currentCards} />
+                <ButtonGroup>
+                  <Button
+                    color="success"
+                    isDisabled={lastOpenedPack && lastOpenedPack.available <= 0}
+                    onClick={() => {
+                      setBoostersLoading(true)
+                      setCurrentCards([])
+                      refreshData()
+                      if (lastOpenedPack && lastOpenedPack.available > 0) {
+                        sendOpenPackRequest(lastOpenedPack)
+                      } else {
+                        setBoostersVisible(true)
+                      }
+                    }}>
+                    Open another ({lastOpenedPack?.available} {lastOpenedPack?.set_code} remaining)
+                  </Button>
+                  <Button
+                    color="danger"
+                    onClick={() => {
+                      setCurrentCards([])
+                      refreshData()
+                      setBoostersVisible(true)
+                    }}>
+                    Close
+                  </Button>
+                </ButtonGroup>
               </div>
             )}
           </div>
@@ -289,7 +318,7 @@ function AddPacks(props: AddPacksProps) {
           >
             {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
           </Autocomplete>
-          <Button size="md" isIconOnly aria-label="Like" disabled>
+          <Button size="md" isIconOnly aria-label="trash" disabled>
             <BsFillTrashFill className="w-6 h-6" />
           </Button>
         </div>

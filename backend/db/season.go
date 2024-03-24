@@ -13,7 +13,7 @@ import (
 )
 
 func GetAllSeasons(tournamentID string) ([]domain.Season, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
@@ -42,7 +42,7 @@ func GetAllSeasons(tournamentID string) ([]domain.Season, error) {
 }
 
 func GetSeasonByID(seasonID string) (*domain.Season, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	dbSeasonID, err := primitive.ObjectIDFromHex(seasonID)
 	if err != nil {
@@ -80,7 +80,7 @@ func CreateEmptySeason(season domain.Season) error {
 	season.ID = primitive.NewObjectID()
 	season.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	season.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction

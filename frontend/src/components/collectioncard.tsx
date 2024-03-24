@@ -36,7 +36,7 @@ export function CardFull(props: CardFullProps) {
   }, [props.flipped, props.card.back_image_url])
 
   return (
-    <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[100] hover:z-[110] [perspective:1000px]">
+    <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[1] hover:z-[2] [perspective:1000px]">
       {props.disabled && <div className="absolute w-full h-full bg-black opacity-40 z-10" />}
       {props.count && props.count > 1 ? <div className="absolute z-[200] bg-lime-950 border-1 border-white text-white text-lg font-bold px-2 -my-1 -mx-1 rounded">{props.count}</div> : ""}
       <div onClick={() => { if (!props.disabled) props.onClickFn() }} className={

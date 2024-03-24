@@ -12,7 +12,7 @@ import (
 )
 
 func GetUserByUsername(username string) (*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Find user
@@ -45,7 +45,7 @@ func CreateUser(user domain.User) error {
 	user.ID = primitive.NewObjectID()
 	user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	user.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction

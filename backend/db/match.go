@@ -14,7 +14,7 @@ import (
 )
 
 func GetMatchesFromSeason(seasonID string, onlyPending bool) ([]domain.Match, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbSeasonID, err := primitive.ObjectIDFromHex(seasonID)
@@ -47,7 +47,7 @@ func GetMatchesFromSeason(seasonID string, onlyPending bool) ([]domain.Match, er
 	return matches, nil
 }
 func GetMatchesFromPlayer(playerID string, onlyPending bool, count, page int) ([]domain.Match, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbPlayerID, err := primitive.ObjectIDFromHex(playerID)
@@ -99,7 +99,7 @@ func CreateMatch(seasonID string, match domain.Match) error {
 	}
 	match.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	match.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -133,7 +133,7 @@ func UpdateMatch(matchID string, playerWins map[string]int, gamesPlayed int, com
 		return fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction

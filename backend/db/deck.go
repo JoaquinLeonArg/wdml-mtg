@@ -13,7 +13,7 @@ import (
 )
 
 func GetDeckByID(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	dbDeckID, err := primitive.ObjectIDFromHex(deckID)
 	if err != nil {
@@ -72,7 +72,7 @@ func GetDeckByID(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 }
 
 func GetDecksForTournamentPlayer(tournamentPlayerID string) ([]domain.Deck, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
 	if err != nil {
@@ -107,7 +107,7 @@ func CreateEmptyDeck(deck domain.Deck) error {
 	deck.Cards = make([]domain.DeckCard, 0)
 	deck.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	deck.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -136,7 +136,7 @@ func CreateEmptyDeck(deck domain.Deck) error {
 }
 
 func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.DeckBoard) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	card, err := GetOwnedCardById(cardID)
@@ -205,7 +205,7 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 }
 
 func RemoveDeckCardFromDeck(ownedCardID, deckID string, board domain.DeckBoard, amount int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	dbOwnedCardID, err := primitive.ObjectIDFromHex(ownedCardID)

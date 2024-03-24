@@ -71,13 +71,13 @@ export default function Login() {
                 setIsLoading(false)
                 switch (err) {
                     case "USERNAME_INVALID":
-                        setRegisterError("Invalid username")
+                        setRegisterError("Invalid username"); break
                     case "PASSWORD_WEAK":
-                        setRegisterError("Password is too weak")
+                        setRegisterError("Password is too weak"); break
                     case "EMAIL_INVALID":
-                        setRegisterError("Email is invalid")
+                        setRegisterError("Email is invalid"); break
                     case "DUPLICATED_RESOURCE":
-                        setRegisterError("User already exists")
+                        setRegisterError("User already exists"); break
                 }
             }
         })
@@ -116,7 +116,7 @@ export default function Login() {
                                             isDisabled={isLoading}
                                             required />
                                         <div className="text-sm font-light text-red-400">{loginError}</div>
-                                        <Button isLoading={isLoading} onClick={sendLoginRequest} fullWidth>Sign in</Button>
+                                        <Button color="success" isLoading={isLoading} onClick={sendLoginRequest} fullWidth>Sign in</Button>
                                         <div className="flex flex-col gap-4 text-sm font-light text-gray-400 justify-center items-center">
                                             <div className="flex flex-row">
                                                 {"New user?"}
@@ -125,7 +125,7 @@ export default function Login() {
                                                     Sign up
                                                 </a>
                                             </div>
-                                            <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a>
+                                            {/* <a href="#" className="text-sm font-medium text-secondary-600 hover:underline">Forgot password?</a> */}
                                         </div>
                                     </form>
                                 </div >
@@ -172,7 +172,7 @@ export default function Login() {
                                             isDisabled={isLoading}
                                             required />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>
-                                        <Button isLoading={isLoading} onClick={sendRegisterRequest} fullWidth>Sign up</Button>
+                                        <Button color="success" isLoading={isLoading} onClick={sendRegisterRequest} fullWidth>Sign up</Button>
                                         <a href="#" className="text-sm justify-center flex items-center font-medium ml-1 text-secondary-600 hover:underline"
                                             onClick={() => setCurrentState(PageState.PS_LOGIN)}>
                                             Back to sign in

@@ -12,7 +12,7 @@ import (
 )
 
 func GetPackBySetCode(setCode string) (*domain.BoosterPack, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Find pack
@@ -45,7 +45,7 @@ func CreateBoosterPack(boosterPack domain.BoosterPack) error {
 	boosterPack.ID = primitive.NewObjectID()
 	boosterPack.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	boosterPack.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	// Begin transaction
@@ -88,7 +88,9 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 	if boosterPack.ID != primitive.NilObjectID {
 		return ErrObjectIDProvided
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	boosterPack.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	// Begin transaction
 	session, err := MongoDatabaseClient.
@@ -124,7 +126,7 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 }
 
 func GetAllBoosterPacks() ([]domain.BoosterPack, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
 	cursor, err := MongoDatabaseClient.Database(DB_MAIN).
