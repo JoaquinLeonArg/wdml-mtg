@@ -44,6 +44,7 @@ func GetCardDataFromScryCard(card scryfall.Card) domain.CardData {
 		Rarity:          domain.CardRarity(card.Rarity),
 		Types:           types,
 		ManaValue:       int(card.CMC),
+		ManaCost:        card.ManaCost,
 		Colors:          colors,
 	}
 	newCard.ImageURL, newCard.BackImageURL = GetImageFromFaces(card)
