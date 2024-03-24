@@ -36,7 +36,7 @@ export default function Home() {
         }
       },
       responseHandler: (res) => {
-        router.push("/" + res.data.tournament_id)
+        router.push("/" + res.tournament_id)
       }
     })
   }
@@ -69,7 +69,9 @@ export default function Home() {
             id="join-code"
             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             label="Invitation code"
-            onValueChange={(value) => setJoinCode(value)} />
+            onValueChange={(value) => setJoinCode(value)}
+            className="text-white"
+          />
           <p className="text-sm font-light text-red-400 h-2">{joinError}</p>
           <div className="h-4"></div>
           <Button color={joinCode.length > 0 ? "success" : "default"} onClick={sendJoinRequest}>Join</Button>
@@ -83,7 +85,9 @@ export default function Home() {
             id="name"
             placeholder="My cool tournament!"
             label="Tournament name"
-            onValueChange={(value) => setCreateName(value)} />
+            onValueChange={(value) => setCreateName(value)}
+            className="text-white"
+          />
           <p className="text-sm font-light text-red-400 h-2">{createError}</p>
           <div className="h-4"></div>
           <Button isDisabled color={createName.length > 0 ? "success" : "default"} onClick={sendCreateRequest}>Create</Button>

@@ -106,6 +106,7 @@ export default function Login() {
                                             placeholder="Username"
                                             onValueChange={(value) => setLoginUsername(value)}
                                             isDisabled={isLoading}
+                                            className="caret-white"
                                             required />
                                         <Input
                                             id="password"
@@ -114,6 +115,7 @@ export default function Login() {
                                             placeholder="**********"
                                             onValueChange={(value) => setLoginPassword(value)}
                                             isDisabled={isLoading}
+                                            className="caret-white"
                                             required />
                                         <div className="text-sm font-light text-red-400">{loginError}</div>
                                         <Button color="success" isLoading={isLoading} onClick={sendLoginRequest} fullWidth>Sign in</Button>
@@ -146,6 +148,7 @@ export default function Login() {
                                             placeholder="Username"
                                             onValueChange={(value) => setRegisterUsername(value)}
                                             isDisabled={isLoading}
+                                            className="text-white"
                                             required />
                                         <Input
                                             type="email"
@@ -154,6 +157,7 @@ export default function Login() {
                                             placeholder="Email"
                                             onValueChange={(value) => setRegisterEmail(value)}
                                             isDisabled={isLoading}
+                                            className="text-white"
                                             required />
                                         <Input
                                             id="password"
@@ -162,6 +166,7 @@ export default function Login() {
                                             placeholder="**********"
                                             onValueChange={(value) => setRegisterPassword(value)}
                                             isDisabled={isLoading}
+                                            className="text-white"
                                             required />
                                         <Input
                                             id="repeatPassword"
@@ -170,6 +175,7 @@ export default function Login() {
                                             placeholder="**********"
                                             onValueChange={(value) => setRegisterRepeatPassword(value)}
                                             isDisabled={isLoading}
+                                            className="text-white"
                                             required />
                                         <p className="text-sm font-light text-red-400">{registerError}</p>
                                         <Button color="success" isLoading={isLoading} onClick={sendRegisterRequest} fullWidth>Sign up</Button>

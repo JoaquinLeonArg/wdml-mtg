@@ -41,9 +41,11 @@ func GetCardDataFromScryCard(card scryfall.Card) domain.CardData {
 		SetCode:         strings.ToUpper(card.Set),
 		CollectorNumber: card.CollectorNumber,
 		Name:            card.Name,
+		Oracle:          card.OracleText,
 		Rarity:          domain.CardRarity(card.Rarity),
 		Types:           types,
 		ManaValue:       int(card.CMC),
+		ManaCost:        card.ManaCost,
 		Colors:          colors,
 	}
 	newCard.ImageURL, newCard.BackImageURL = GetImageFromFaces(card)
