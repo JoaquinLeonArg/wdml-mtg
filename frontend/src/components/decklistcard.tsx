@@ -169,10 +169,15 @@ export type DecklistListProps = {
 
 export function DecklistList(props: DecklistListProps) {
   if (!props.cards.length) return
+  let totalcards = props.cards.map((card) => card.count).reduce((ov, pv) => ov + pv)
   return (
     <div className="flex flex-row">
       <div className="flex flex-col gap-2 px-8 my-4 w-[340px]">
-        <p className="text-white font-bold">{props.category}</p>
+        <div className="flex flex-row justify-between items-center">
+          <p className="text-white font-bold">{props.category}</p>
+          <p className="text-white">{totalcards}</p>
+        </div>
+        <div className="h-0.5 bg-white opacity-10" />
         <div className="flex flex-col flex-wrap">
           {props.cards.map((card) => (
             <DecklistCardList key={card.card.id} {...card} />

@@ -139,11 +139,6 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
-	card, err := GetOwnedCardById(cardID)
-	if err != nil {
-		return err
-	}
-
 	// Begin transaction
 	session, err := MongoDatabaseClient.
 		StartSession()
@@ -153,6 +148,18 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		card, err := GetOwnedCardById(cardID)
+		if err != nil {
+			return nil, err
+		}
+		isBasic := false
+		for _, cardType := range card.CardData.Types {
+			if cardType == "Basic" {
+				isBasic = true
+				break
+			}
+		}
+
 		deck, _, err := GetDeckByID(deckID)
 		if err != nil {
 			return nil, err
@@ -172,7 +179,7 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 			}
 		}
 		if foundIndex != -1 {
-			if foundAmount+amount <= 4 {
+			if foundAmount+amount <= 4 && !isBasic {
 				if foundAmount+amount <= card.Count {
 					foundCard.Count += amount
 					deck.Cards[foundIndex] = foundCard

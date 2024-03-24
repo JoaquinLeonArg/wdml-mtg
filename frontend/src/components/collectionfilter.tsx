@@ -41,7 +41,7 @@ export function CollectionFilter(props: CollectionFilterProps) {
             onChange={(e) => props.setTags(e.target.value)}
             variant="bordered"
             type="string"
-            placeholder="Tags"
+            placeholder="Custom tags"
             className="text-white max-w-96"
           />
           <Dropdown>
@@ -67,8 +67,8 @@ export function CollectionFilter(props: CollectionFilterProps) {
             {
               Object.keys(props.colors).map((key: string) =>
                 <Button isIconOnly
-                  className={`text-xl ${colors[key as keyof typeof colors] && "bg-gray-500"}`}
-                  variant="ghost"
+                  className={`text-xl ${props.colors[key as keyof typeof props.colors] && "bg-gray-500"}`}
+                  variant="bordered"
                   onClick={() => props.setColors({ ...props.colors, [key]: !props.colors[key as keyof mtgColors] })}
                   key={key}
                 >

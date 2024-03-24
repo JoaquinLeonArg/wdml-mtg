@@ -134,7 +134,7 @@ export default function PlayersPage(props: any) {
                       return <TableCell className="text-white">
                         <div className="flex flex-row items-center gap-2">
                           {
-                            tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator" ?
+                            (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") ?
                               <>
                                 <Input
                                   defaultValue={getKeyValue(item, columnKey)}
@@ -158,7 +158,7 @@ export default function PlayersPage(props: any) {
                                   sendChangeTournamentPointsRequest(item.id)
                                 }}><BsFillSendFill /></Button>
                               </> :
-                              <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>
+                              <div>{getKeyValue(item, columnKey)}</div>
                           }
                         </div>
                       </TableCell>
@@ -191,8 +191,7 @@ export default function PlayersPage(props: any) {
                                   sendChangeCoinsRequest(item.id)
                                 }}><BsFillSendFill /></Button>
                               </> :
-                              <TableCell className="text-white">{getKeyValue(item, columnKey)}</TableCell>
-
+                              <div>{getKeyValue(item, columnKey)}</div>
                           }
                         </div>
                       </TableCell>

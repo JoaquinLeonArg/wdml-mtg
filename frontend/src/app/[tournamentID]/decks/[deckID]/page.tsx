@@ -8,7 +8,7 @@ import Layout from "@/components/layout"
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"
 import { OwnedCard } from "@/types/card"
 import { Deck, DeckCard } from "@/types/deck"
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Spinner } from "@nextui-org/react"
+import { Button, ButtonGroup, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Pagination, Spinner } from "@nextui-org/react"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { groupCardsByType, groupCardsByColor, groupCardsByMV } from "./groups"
@@ -118,7 +118,11 @@ export default function EditDeckPage(props: any) {
                 deckLoading ? <div className="flex justify-center"> <Spinner /></div> :
                   <div className="flex flex-col w-full">
                     <MiniHeader title="Main Deck"
-                      endContent={<div className="text-gray-300 self-end">{deck?.cards.filter(card => card.board == "b_mainboard").length} cards</div>}
+                      endContent={
+                        <div className="text-gray-300 self-end">
+                          {deck?.cards.filter(card => card.board == "b_mainboard").map((card) => card.count).reduce((pv, cv) => pv + cv, 0)}
+                        </div>
+                      }
                     />
                     {deck ? <DeckDisplayFull
                       refreshFn={refreshData}
@@ -128,10 +132,14 @@ export default function EditDeckPage(props: any) {
                       orderBy={orderBy}
                       board="b_mainboard"
                       setPreview={setPreview}
-                      deck_cards={deck.cards.filter(card => card.board == "b_mainboard")}
+                      deckCards={deck.cards.filter(card => card.board == "b_mainboard")}
                     /> : ""}
                     <MiniHeader title="Sideboard"
-                      endContent={<div className="text-gray-300 self-end">{deck?.cards.filter(card => card.board == "b_sideboard").length} cards</div>}
+                      endContent={
+                        <div className="text-gray-300 self-end">
+                          {deck?.cards.filter(card => card.board == "b_sideboard").map((card) => card.count).reduce((pv, cv) => pv + cv, 0)}
+                        </div>
+                      }
                     />
                     {deck ? <DeckDisplayFull
                       refreshFn={refreshData}
@@ -141,10 +149,14 @@ export default function EditDeckPage(props: any) {
                       orderBy={orderBy}
                       board="b_sideboard"
                       setPreview={setPreview}
-                      deck_cards={deck.cards.filter(card => card.board == "b_sideboard")}
+                      deckCards={deck.cards.filter(card => card.board == "b_sideboard")}
                     /> : ""}
                     <MiniHeader title="Considering"
-                      endContent={<div className="text-gray-300 self-end">{deck?.cards.filter(card => card.board == "b_maybeboard").length} cards</div>}
+                      endContent={
+                        <div className="text-gray-300 self-end">
+                          {deck?.cards.filter(card => card.board == "b_maybeboard").map((card) => card.count).reduce((pv, cv) => pv + cv, 0)}
+                        </div>
+                      }
                     />
                     {deck ? <DeckDisplayFull
                       refreshFn={refreshData}
@@ -154,7 +166,7 @@ export default function EditDeckPage(props: any) {
                       orderBy={orderBy}
                       board="b_maybeboard"
                       setPreview={setPreview}
-                      deck_cards={deck.cards.filter(card => card.board == "b_maybeboard")}
+                      deckCards={deck.cards.filter(card => card.board == "b_maybeboard")}
                     /> : ""}
                   </div>
               }
@@ -192,6 +204,8 @@ function AddCardsModal(props: AddCardsModalProps) {
   let [totalPages, setTotalPages] = useState<number>(0)
   let [page, setPage] = useState<number>(1)
 
+  let [board, setBoard] = useState<string>("b_mainboard")
+
   let [error, setError] = useState<string>("")
 
   let refreshCollection = () => {
@@ -217,7 +231,7 @@ function AddCardsModal(props: AddCardsModalProps) {
             showRarityWhenFlipped: true,
             onClickFn: () => addCard(card.id),
             count: card.count,
-            disabled: card.count <= props.cardCounts[card.id] || props.cardCounts[card.id] >= 4,
+            disabled: card.count <= props.cardCounts[card.id] || (props.cardCounts[card.id] >= 4 && !card.card_data.types.includes("Basic")),
             inDeck: props.cardCounts[card.id]
           }
         })
@@ -233,7 +247,7 @@ function AddCardsModal(props: AddCardsModalProps) {
         owned_card_id: card_id,
         deck_id: props.deckID,
         amount: 1,
-        board: "b_mainboard"
+        board: board
       },
       errorHandler: (err) => { setError(err) },
       responseHandler: () => {
@@ -245,7 +259,7 @@ function AddCardsModal(props: AddCardsModalProps) {
 
   useEffect(() => {
     refreshCollection()
-  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page, props.tournamentID, props.cardCounts, props.deck])
+  }, [cardName, tags, rarity, colors, types, oracle, setCode, mv, page, props])
 
   if (!props.deck) {
     return
@@ -282,10 +296,32 @@ function AddCardsModal(props: AddCardsModalProps) {
           <CardDisplaySpoiler cards={currentCards} />
         </ModalBody>
         <ModalFooter>
-          <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalPages} initialPage={1}></Pagination>
-          <Button color="danger" variant="flat" onPress={props.closeFn}>
-            Close
-          </Button>
+          <div className="w-full flex flex-row gap-2 items-center justify-between">
+            <div className="flex flex-row items-center gap-2">
+              <div className="text-white">Add cards to</div>
+              <ButtonGroup>
+                <Button
+                  className={`${board == "b_mainboard" ? "bg-gray-400" : ""}`}
+                  onClick={() => setBoard("b_mainboard")}>
+                  Main Deck
+                </Button>
+                <Button
+                  className={`${board == "b_sideboard" ? "bg-gray-400" : ""}`}
+                  onClick={() => setBoard("b_sideboard")}>
+                  Sideboard
+                </Button>
+                <Button
+                  className={`${board == "b_maybeboard" ? "bg-gray-400" : ""}`}
+                  onClick={() => setBoard("b_maybeboard")}>
+                  Considering
+                </Button>
+              </ButtonGroup>
+              <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalPages} initialPage={1}></Pagination>
+            </div>
+            <Button color="danger" variant="flat" onPress={props.closeFn}>
+              Close
+            </Button>
+          </div>
         </ModalFooter>
       </ModalContent>
     </Modal>
@@ -294,7 +330,7 @@ function AddCardsModal(props: AddCardsModalProps) {
 
 type DeckDisplayListProps = {
   cards: OwnedCard[]
-  deck_cards: DeckCard[]
+  deckCards: DeckCard[]
   setPreview: (image_url: string) => void
   groupBy: string
   orderBy: string
@@ -323,7 +359,7 @@ function DeckDisplayFull(props: DeckDisplayListProps) {
     props.cards.forEach((card) => {
       cardsById[card.id] = card
     })
-    let grouped = categoryGroupers[props.groupBy] ? categoryGroupers[props.groupBy](props.deck_cards, cardsById) : {}
+    let grouped = categoryGroupers[props.groupBy] ? categoryGroupers[props.groupBy](props.deckCards, cardsById) : {}
     // Set common data
     Object.keys(grouped).forEach((category) => {
       grouped[category].forEach((card) => {
@@ -339,7 +375,7 @@ function DeckDisplayFull(props: DeckDisplayListProps) {
 
   return (
     <div className="flex flex-row">
-      <div className={`flex flex-col flex-wrap ${props.deck_cards.length < 40 ? "max-h-[600px]" : "max-h-[900px]"}`}>
+      <div className={`flex flex-col flex-wrap ${props.deckCards.length < 40 ? "max-h-[600px]" : "max-h-[900px]"}`}>
         {Object.keys(cardsByCategory).map((category) => (<DecklistList key={category} cards={cardsByCategory[category]} category={category} />))}
       </div>
     </div>
