@@ -179,7 +179,7 @@ func AddOwnedCardToDeck(cardID string, deckID string, amount int, board domain.D
 			}
 		}
 		if foundIndex != -1 {
-			if foundAmount+amount <= 4 && !isBasic {
+			if foundAmount+amount <= 4 || isBasic {
 				if foundAmount+amount <= card.Count {
 					foundCard.Count += amount
 					deck.Cards[foundIndex] = foundCard
