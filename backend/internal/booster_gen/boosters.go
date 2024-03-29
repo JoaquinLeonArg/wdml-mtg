@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
 

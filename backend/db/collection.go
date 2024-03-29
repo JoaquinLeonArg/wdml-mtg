@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

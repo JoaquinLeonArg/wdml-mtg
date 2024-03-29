@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/routes/auth"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 	"github.com/rs/zerolog/log"
 )
 
