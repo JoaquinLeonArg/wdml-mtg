@@ -64,6 +64,7 @@ export default function EditDeckPage(props: any) {
             } />
           <div className="flex flex-row gap-16">
             <Image
+              unoptimized
               className="duration-75 border-2 border-white rounded-xl w-72 h-96"
               src={preview}
               alt="back"

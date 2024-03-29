@@ -44,8 +44,8 @@ export function CardFull(props: CardFullProps) {
       }>
         <div className="absolute inset-0 [backface-visibility:hidden]">
           <Image
-            className={`duration-75 border-2 ${borderRarityColor} rounded-xl ${props.flipped ? "shadow-[0px_0px_10px_3px_rgba(0,0,0,0.1)]" : ""} ${shadowRarityColor}`}
             unoptimized
+            className={`duration-75 border-2 ${borderRarityColor} rounded-xl ${props.flipped ? "shadow-[0px_0px_10px_3px_rgba(0,0,0,0.1)]" : ""} ${shadowRarityColor}`}
             priority
             src={props.card.image_url}
             alt={props.card.image_url}
@@ -56,6 +56,7 @@ export function CardFull(props: CardFullProps) {
         </div>
         <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
           <Image
+            unoptimized
             className="duration-75 border-2 border-white rounded-xl"
             src={backImage}
             alt="back"
