@@ -100,7 +100,7 @@ export default function PacksPage(props: any) {
         {/* Open packs admin */}
         {/* TODO: Move this to an admin page */}
         {
-          tournamentPlayer?.access_level == "al_administrator" &&
+          (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") &&
           (
             <>
               <Header title="Add packs" />
