@@ -363,15 +363,18 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode 
 				}
 			} else if len(foundCards) == 1 {
 				// Update count of existing card
+				// TODO: Consolidate this logic with the other one
 				if foundCards[0].Count >= 4 && !slices.Contains(foundCards[0].CardData.Types, "Basic") {
 					switch foundCards[0].CardData.Rarity {
-					case "mythic":
+					case domain.CardRaritySpecial:
+						AddCoinsToTournamentPlayer(domain.SPECIAL_TO_COIN, userID, tournamentID)
+					case domain.CardRarityMythic:
 						AddCoinsToTournamentPlayer(domain.MYTHIC_TO_COIN, userID, tournamentID)
-					case "rare":
+					case domain.CardRarityRare:
 						AddCoinsToTournamentPlayer(domain.RARE_TO_COIN, userID, tournamentID)
-					case "uncommon":
+					case domain.CardRarityUncommon:
 						AddCoinsToTournamentPlayer(domain.UNCOMMON_TO_COIN, userID, tournamentID)
-					case "common":
+					case domain.CardRarityCommon:
 						AddCoinsToTournamentPlayer(domain.COMMON_TO_COIN, userID, tournamentID)
 					}
 				} else {

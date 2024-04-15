@@ -13,10 +13,10 @@ import (
 var MongoDatabaseClient *mongo.Client
 
 var (
-	ErrInternal         = fmt.Errorf("internal error: %w")
-	ErrObjectIDProvided = fmt.Errorf("object id should not be provided: %w")
-	ErrInvalidID        = fmt.Errorf("invalid object id provided: %w")
-	ErrNotFound         = fmt.Errorf("not found: %w")
+	ErrInternal         = fmt.Errorf("internal error: %w", mongo.ErrNilValue)
+	ErrObjectIDProvided = fmt.Errorf("object id should not be provided: %w", mongo.ErrNilDocument)
+	ErrInvalidID        = fmt.Errorf("invalid object id provided: %w", mongo.ErrNilValue)
+	ErrNotFound         = fmt.Errorf("not found: %w", mongo.ErrNoDocuments)
 	ErrAlreadyExists    = fmt.Errorf("already exists: %w", mongo.ErrEmptySlice)
 )
 

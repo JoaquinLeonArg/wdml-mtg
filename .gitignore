@@ -5,3 +5,6 @@
 */next-env.d.ts
 .vscode
 backend/app.yaml
+*/.env.e2e
+*/.env.dev
+*/.env.prod

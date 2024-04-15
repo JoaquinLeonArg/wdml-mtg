@@ -266,10 +266,26 @@ function AddCardsModal(props: AddCardsModalProps) {
     return
   }
 
+  let refreshFilters = () => {
+    setCardName("")
+    setTags("")
+    setRarity("")
+    setColors({ W: false, U: false, B: false, R: false, G: false, C: false })
+    setTypes("")
+    setOracle("")
+    setSetCode("")
+    setMv("")
+    setBoard("b_mainboard")
+    setPage(1)
+    refreshCollection()
+  }
+
   return (
     <Modal
       hideCloseButton
-      onClose={props.closeFn}
+      onClose={() => {
+        props.closeFn()
+      }}
       isOpen={props.isOpen}
       placement="top-center"
       size="full"
@@ -290,6 +306,7 @@ function AddCardsModal(props: AddCardsModalProps) {
             setSetCode={setSetCode}
             setOracle={setOracle}
             setMv={setMv}
+            onChange={() => setPage(1)}
           />
 
         </ModalHeader>
@@ -303,23 +320,23 @@ function AddCardsModal(props: AddCardsModalProps) {
               <ButtonGroup>
                 <Button
                   className={`${board == "b_mainboard" ? "bg-gray-400" : ""}`}
-                  onClick={() => setBoard("b_mainboard")}>
+                  onPress={() => setBoard("b_mainboard")}>
                   Main Deck
                 </Button>
                 <Button
                   className={`${board == "b_sideboard" ? "bg-gray-400" : ""}`}
-                  onClick={() => setBoard("b_sideboard")}>
+                  onPress={() => setBoard("b_sideboard")}>
                   Sideboard
                 </Button>
                 <Button
                   className={`${board == "b_maybeboard" ? "bg-gray-400" : ""}`}
-                  onClick={() => setBoard("b_maybeboard")}>
+                  onPress={() => setBoard("b_maybeboard")}>
                   Considering
                 </Button>
               </ButtonGroup>
               <Pagination onChange={(page) => setPage(page)} isCompact showControls total={totalPages} initialPage={1}></Pagination>
             </div>
-            <Button color="danger" variant="flat" onPress={props.closeFn}>
+            <Button color="danger" variant="flat" onPress={() => { props.closeFn(); refreshFilters() }}>
               Close
             </Button>
           </div>

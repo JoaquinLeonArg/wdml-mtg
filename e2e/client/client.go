@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/cookiejar"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -16,60 +17,61 @@ type ApiClient struct {
 	log     zerolog.Logger
 }
 
-func NewApiClient(baseURL string) ApiClient {
-	return ApiClient{
+func NewApiClient(baseURL string) *ApiClient {
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		panic("failed to create cookie jar")
+	}
+	return &ApiClient{
 		baseURL: baseURL,
-		client:  http.Client{},
-		log:     zerolog.New(zerolog.ConsoleWriter{}),
+		client: http.Client{
+			Jar: jar,
+		},
+		log: zerolog.New(zerolog.ConsoleWriter{}),
 	}
 }
 
 func (ac *ApiClient) get(endpoint string) (*http.Response, error) {
-	log.Info().
-		Str("endpoint", endpoint).
-		Str("method", http.MethodGet).
-		Msg("request sent")
-	return ac.client.Get(fmt.Sprintf("%s/%s", ac.baseURL, endpoint))
+	return ac.doRequest(http.MethodGet, endpoint, nil)
 }
 
 func (ac *ApiClient) post(endpoint string, body any) (*http.Response, error) {
-	log.Info().
-		Str("endpoint", endpoint).
-		Interface("body", body).
-		Str("method", http.MethodPost).
-		Msg("request sent")
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	return ac.client.Post(fmt.Sprintf("%s/%s", ac.baseURL, endpoint), "application/json", bytes.NewBuffer(jsonBody))
+	return ac.doRequest(http.MethodPost, endpoint, body)
 }
 
 func (ac *ApiClient) put(endpoint string, body any) (*http.Response, error) {
-	log.Info().
-		Str("endpoint", endpoint).
-		Interface("body", body).
-		Str("method", http.MethodPut).
-		Msg("request sent")
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/%s", ac.baseURL, endpoint), bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, err
-	}
-	return ac.client.Do(req)
+	return ac.doRequest(http.MethodPut, endpoint, body)
 }
 
 func (ac *ApiClient) delete(endpoint string) (*http.Response, error) {
+	return ac.doRequest(http.MethodDelete, endpoint, nil)
+}
+
+func (ac *ApiClient) doRequest(method, endpoint string, body any) (*http.Response, error) {
 	log.Info().
 		Str("endpoint", endpoint).
-		Str("method", http.MethodDelete).
-		Msg("request sent")
-	req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/%s", ac.baseURL, endpoint), nil)
+		Interface("body", body).
+		Str("method", method).
+		Msg("sending request")
+	jsonBody := []byte{}
+	if body != nil {
+		var err error
+		jsonBody, err = json.Marshal(body)
+		if err != nil {
+			log.Error().Err(err).Interface("body", body).Msg("failed to marshal request body")
+			return nil, err
+		}
+	}
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", ac.baseURL, endpoint), bytes.NewBuffer(jsonBody))
 	if err != nil {
+		log.Error().Err(err).Msg("failed to create request")
 		return nil, err
 	}
-	return ac.client.Do(req)
+	res, err := ac.client.Do(req)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to send request")
+		return nil, err
+	}
+	log.Info().Int("status_code", res.StatusCode).Msg("request completed")
+	return res, err
 }

@@ -47,6 +47,7 @@ func CreateTournament(tournament domain.Tournament) (string, error) {
 		}
 		return "", apiErrors.ErrInternal
 	}
+	// TODO: Consolidate this creation with the other one
 	_, err = db.CreateTournamentPlayer(
 		domain.TournamentPlayer{
 			UserID:       tournament.OwnerID,

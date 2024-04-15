@@ -99,6 +99,7 @@ export default function CollectionPage(props: any) {
               setSetCode={setSetCode}
               setOracle={setOracle}
               setMv={setMv}
+              onChange={() => { }}
             />
           </div>
           <div className="pb-4">

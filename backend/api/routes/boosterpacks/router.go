@@ -186,6 +186,7 @@ func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.NewDataResponse(AddTournamentBoosterPacksResponse{}))
 }
 
+// TODO: Restrict the request body
 // Endpoint: Edit booster pack
 func UpdateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()

@@ -32,6 +32,7 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 		}
 		return "", apiErrors.ErrInternal
 	}
+	// TODO: Consolidate this creation with the other one
 	tournamentID, err := db.CreateTournamentPlayer(domain.TournamentPlayer{
 		UserID:       userID,
 		TournamentID: tournament.ID,

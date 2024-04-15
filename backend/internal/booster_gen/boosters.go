@@ -50,7 +50,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 
 			cards, err := scryfall.GetAllCardsByFilter(filter)
 			if err != nil || len(cards) == 0 {
-				log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
+				log.Debug().Str("set", setCode).Str("filter", filter).Err(err).Msg("failed to generate booster pack")
 				return nil, fmt.Errorf("no cards error")
 			}
 			card := cards[rand.Int()%len(cards)]

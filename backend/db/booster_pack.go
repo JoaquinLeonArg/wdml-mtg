@@ -113,6 +113,7 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 						"description": boosterPack.Description,
 						"card_count":  boosterPack.CardCount,
 						"slots":       boosterPack.Slots,
+						"filter":      boosterPack.Filter,
 						"updated_at":  primitive.NewDateTimeFromTime(time.Now()),
 					},
 				})

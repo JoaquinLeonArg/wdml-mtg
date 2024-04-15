@@ -7,6 +7,7 @@ import { Deck } from "@/types/deck"
 import { Button, Input, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, Textarea } from "@nextui-org/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { BsFillTrashFill } from "react-icons/bs"
 
 
 
@@ -36,6 +37,23 @@ export default function DecksPage(props: any) {
     })
   }
 
+  let sendDeleteDeckRequest = (deckID: string) => {
+    setIsLoading(true)
+    ApiGetRequest({
+      route: "/deck/remove",
+      query: { tournament_id: props.params.tournamentID, deck_id: deckID },
+      errorHandler: (err) => {
+        setError(err)
+        setIsLoading(false)
+        refreshData()
+      },
+      responseHandler: () => {
+        setIsLoading(false)
+        refreshData()
+      }
+    })
+  }
+
   useEffect(() => {
     refreshData()
   }, [props.params.tournamentID])
@@ -58,6 +76,7 @@ export default function DecksPage(props: any) {
                         className="text-white"
                         onPress={() => router.push(`/${props.params.tournamentID}/decks/${deck.id}`)}
                         key={deck.name}
+                        endContent={<Button size="sm" isIconOnly color="danger" onClick={() => sendDeleteDeckRequest(deck.id)}><BsFillTrashFill /></Button>}
                       >
                         {deck.name}
                       </ListboxItem>

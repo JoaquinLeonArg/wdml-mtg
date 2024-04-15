@@ -12,6 +12,10 @@ func GetDeckById(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 	return db.GetDeckByID(deckID)
 }
 
+func DeleteDeckByID(deckID string) error {
+	return db.DeleteDeckByID(deckID)
+}
+
 func GetDecksForTournamentPlayer(tournamentID, userID string) ([]domain.Deck, error) {
 	tournamentPlayer, err := db.GetTournamentPlayer(tournamentID, userID)
 	if err != nil {
