@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/joaquinleonarg/wdml_mtg/backend/api"
-	"github.com/joaquinleonarg/wdml_mtg/backend/config"
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api"
+	"github.com/joaquinleonarg/wdml-mtg/backend/config"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

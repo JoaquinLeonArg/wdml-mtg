@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/config"
+	"github.com/joaquinleonarg/wdml-mtg/backend/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -13,11 +13,11 @@ import (
 var MongoDatabaseClient *mongo.Client
 
 var (
-	ErrInternal         = fmt.Errorf("internal error")
-	ErrObjectIDProvided = fmt.Errorf("object id should not be provided")
-	ErrInvalidID        = fmt.Errorf("invalid object id provided")
-	ErrNotFound         = fmt.Errorf("not found")
-	ErrAlreadyExists    = fmt.Errorf("already exists")
+	ErrInternal         = fmt.Errorf("internal error: %w", mongo.ErrNilValue)
+	ErrObjectIDProvided = fmt.Errorf("object id should not be provided: %w", mongo.ErrNilDocument)
+	ErrInvalidID        = fmt.Errorf("invalid object id provided: %w", mongo.ErrNilValue)
+	ErrNotFound         = fmt.Errorf("not found: %w", mongo.ErrNoDocuments)
+	ErrAlreadyExists    = fmt.Errorf("already exists: %w", mongo.ErrEmptySlice)
 )
 
 const (

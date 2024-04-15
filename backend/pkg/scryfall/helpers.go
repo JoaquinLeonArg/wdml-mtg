@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/BlueMonday/go-scryfall"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 )
 
 func ParseScryfallTypeline(rawType string) []string {

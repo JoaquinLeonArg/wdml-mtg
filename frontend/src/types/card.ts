@@ -1,5 +1,5 @@
 export type CardData = {
-  rarity: string
+  rarity: "common" | "uncommon" | "rare" | "mythic" | "special"
   types: string[]
   colors: string[]
   mana_value: number

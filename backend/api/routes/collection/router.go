@@ -2,14 +2,15 @@ package collection
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"math"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/routes/auth"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,9 +18,13 @@ func RegisterEndpoints(r *mux.Router) {
 	r = r.PathPrefix("/collection").Subrouter()
 	r.HandleFunc("", GetCollectionHandler).Methods(http.MethodGet)
 	r.HandleFunc("/import", ImportCollectionHandler).Methods(http.MethodPost)
+	r.HandleFunc("/tag", SetTagsForCollectionCardHandler).Methods(http.MethodPost)
 }
 
+//
 // ENDPOINT: Get cards from tournament player's collection
+//
+
 type EmptyResponse struct{}
 
 type GetCollectionResponse struct {
@@ -123,4 +128,51 @@ func ImportCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(EmptyResponse{}))
+}
+
+//
+// ENDPOINT: Add tags to collection cards
+//
+
+type SetTagsForCollectionCardRequest struct {
+	OwnedCardID string   `json:"owned_card_id"`
+	Tags        []string `json:"tags"`
+}
+
+type SetTagsForCollectionCardResponse struct{}
+
+func SetTagsForCollectionCardHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from request context
+	ownerID, ok := r.Context().Value("user_id").(string)
+	if ownerID == "" || !ok {
+		log.Debug().
+			Msg("failed to read user id from context")
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	// Decode body data
+	var req SetTagsForCollectionCardRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	err = SetTagsToOwnedCard(ownerID, req.OwnedCardID, req.Tags)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(SetTagsForCollectionCardResponse{}))
 }

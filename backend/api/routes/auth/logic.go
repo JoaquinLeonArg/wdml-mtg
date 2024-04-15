@@ -5,9 +5,9 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"

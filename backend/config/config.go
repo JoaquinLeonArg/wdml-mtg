@@ -12,7 +12,6 @@ type ServerConfig struct {
 	ApiPort       int
 	SecretKey     string
 	MongoURL      string
-	MongoPort     int
 	MongoUser     string
 	MongoPassword string
 	CorsOrigin    string
@@ -21,7 +20,11 @@ type ServerConfig struct {
 var Config = ServerConfig{}
 
 func Load() error {
-	godotenv.Load(".env")
+	if os.Getenv("E2E") == "true" {
+		godotenv.Load(".env.e2e")
+	} else {
+		godotenv.Load(".env")
+	}
 
 	apiPort, err := strconv.Atoi(os.Getenv("API_PORT"))
 	if err != nil || apiPort == 0 {
@@ -36,11 +39,6 @@ func Load() error {
 	mongoURL := os.Getenv("MONGO_URL")
 	if mongoURL == "" {
 		return fmt.Errorf("missing MONGO_URL env variable")
-	}
-
-	mongoPort, err := strconv.Atoi(os.Getenv("MONGO_PORT"))
-	if err != nil || mongoPort == 0 {
-		return fmt.Errorf("invalid MONGO_PORT env variable, got %v", os.Getenv("MONGO_PORT"))
 	}
 
 	mongoUser := os.Getenv("MONGO_USER")
@@ -62,7 +60,6 @@ func Load() error {
 		ApiPort:       apiPort,
 		SecretKey:     secretKey,
 		MongoURL:      mongoURL,
-		MongoPort:     mongoPort,
 		MongoUser:     mongoUser,
 		MongoPassword: mongoPassword,
 		CorsOrigin:    corsOrigin,

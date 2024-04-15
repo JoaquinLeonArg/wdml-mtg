@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
 	"github.com/rs/zerolog/log"
 )
 
@@ -32,19 +32,19 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Debug().
 			Err(err).
 			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
-		// w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Try to create user
+	// Try to login user
 	jwt, err := LoginUser(loginRequest)
 
 	// Write response
 	if err != nil {
 		log.Debug().Err(err).Msg("failed to login user")
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(response.NewErrorResponse(err))
-		// w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	log.Debug().
@@ -60,7 +60,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 	w.Write(response.NewDataResponse(LoginResponse{}))
-	// w.WriteHeader(http.StatusOK)
 }
 
 type RegisterRequest struct {

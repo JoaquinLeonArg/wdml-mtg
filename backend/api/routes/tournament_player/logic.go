@@ -3,9 +3,9 @@ package tournament_player
 import (
 	"errors"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -32,6 +32,7 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 		}
 		return "", apiErrors.ErrInternal
 	}
+	// TODO: Consolidate this creation with the other one
 	tournamentID, err := db.CreateTournamentPlayer(domain.TournamentPlayer{
 		UserID:       userID,
 		TournamentID: tournament.ID,

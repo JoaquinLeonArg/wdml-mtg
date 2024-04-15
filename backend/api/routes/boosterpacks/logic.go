@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
-	boostergen "github.com/joaquinleonarg/wdml_mtg/backend/internal/booster_gen"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
+	boostergen "github.com/joaquinleonarg/wdml-mtg/backend/internal/booster_gen"
 	"github.com/rs/zerolog/log"
 )
 

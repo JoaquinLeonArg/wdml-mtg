@@ -3,13 +3,17 @@ package deck
 import (
 	"errors"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 )
 
 func GetDeckById(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 	return db.GetDeckByID(deckID)
+}
+
+func DeleteDeckByID(deckID string) error {
+	return db.DeleteDeckByID(deckID)
 }
 
 func GetDecksForTournamentPlayer(tournamentID, userID string) ([]domain.Deck, error) {

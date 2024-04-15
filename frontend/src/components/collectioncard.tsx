@@ -21,12 +21,14 @@ export function CardFull(props: CardFullProps) {
     "uncommon": "border-rarity-uncommon",
     "rare": "border-rarity-rare",
     "mythic": "border-rarity-mythic",
+    "special": "border-rarity-special"
   }[props.card.rarity]
   let shadowRarityColor = {
     "common": "shadow-rarity-common",
     "uncommon": "shadow-rarity-uncommon",
     "rare": "shadow-rarity-rare",
     "mythic": "shadow-rarity-mythic",
+    "special": "shadow-rarity-special"
   }[props.card.rarity]
 
   let [backImage, setBackImage] = useState<string>("/cardback.webp")
@@ -36,7 +38,7 @@ export function CardFull(props: CardFullProps) {
   }, [props.flipped, props.card.back_image_url])
 
   return (
-    <div className="group w-[256px] h-[355px] hover:scale-110 will-change-transform scale-100 duration-75 z-[1] hover:z-[2] [perspective:1000px] cursor-pointer">
+    <div className="group w-[256px] h-[355px] hover:scale-100 will-change-transform scale-90 duration-75 z-[1] hover:z-[2] [perspective:1000px] cursor-pointer">
       {props.disabled && <div className="absolute w-full h-full bg-black opacity-40 z-10" />}
       {props.count && props.count > 1 ? <div className="absolute z-[200] bg-lime-950 border-1 border-white text-white text-lg font-bold px-2 -my-1 -mx-1 rounded">{props.count}</div> : ""}
       <div onClick={() => { if (!props.disabled) props.onClickFn() }} className={
@@ -84,7 +86,7 @@ export function CardDisplaySpoiler(props: CardDisplaySpoilerProps) {
     return <div className="text-white self-center font-thin italic">No cards to show</div>
   }
   return (
-    <div className="flex flex-wrap flex-row gap-4 items-center justify-center">
+    <div className="flex flex-wrap flex-row items-center justify-center">
       {props.cards.map((card: CardFullProps, index: number) => {
         return (<CardFull {...card} key={card.card.image_url + index} />)
       })

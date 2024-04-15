@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/routes/auth"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 )
 
@@ -186,6 +186,7 @@ func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.NewDataResponse(AddTournamentBoosterPacksResponse{}))
 }
 
+// TODO: Restrict the request body
 // Endpoint: Edit booster pack
 func UpdateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()

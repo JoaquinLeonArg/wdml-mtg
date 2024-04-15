@@ -3,9 +3,9 @@ package tournament
 import (
 	"errors"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 )
 
 func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
@@ -47,6 +47,7 @@ func CreateTournament(tournament domain.Tournament) (string, error) {
 		}
 		return "", apiErrors.ErrInternal
 	}
+	// TODO: Consolidate this creation with the other one
 	_, err = db.CreateTournamentPlayer(
 		domain.TournamentPlayer{
 			UserID:       tournament.OwnerID,

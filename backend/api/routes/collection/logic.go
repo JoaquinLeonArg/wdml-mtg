@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
-	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -123,13 +123,15 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 				if cardIdent.Amount > 4 && !slices.Contains(cardData.Types, "Basic") {
 					coins := (cardIdent.Amount - 4)
 					switch foundCard.Rarity {
-					case "mythic":
+					case domain.CardRaritySpecial:
+						coinsToAdd += coins * domain.SPECIAL_TO_COIN
+					case domain.CardRarityMythic:
 						coinsToAdd += coins * domain.MYTHIC_TO_COIN
-					case "rare":
+					case domain.CardRarityRare:
 						coinsToAdd += coins * domain.RARE_TO_COIN
-					case "uncommon":
+					case domain.CardRarityUncommon:
 						coinsToAdd += coins * domain.UNCOMMON_TO_COIN
-					case "common":
+					case domain.CardRarityCommon:
 						coinsToAdd += coins * domain.COMMON_TO_COIN
 					}
 					cardIdent.Amount = 4
@@ -147,4 +149,19 @@ func ImportCollection(importCardCsv [][]string, userID, tournamentID string) err
 	}
 	db.AddCoinsToTournamentPlayer(coinsToAdd, userID, tournamentID)
 	return db.ImportCollection(ownedCards)
+}
+
+func SetTagsToOwnedCard(ownerID, ownedCardID string, tags []string) error {
+	ownedCard, err := db.GetOwnedCardById(ownedCardID)
+	if err != nil {
+		return apiErrors.ErrBadRequest
+	}
+	if ownedCard.UserID.Hex() != ownerID {
+		return apiErrors.ErrUnauthorized
+	}
+
+	ownedCard.Tags = tags
+	db.UpdateOwnedCard(ownedCard)
+
+	return nil
 }

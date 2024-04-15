@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/response"
-	"github.com/joaquinleonarg/wdml_mtg/backend/api/routes/auth"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/routes/auth"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,6 +18,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("", CreateEmptyDeckHandler).Methods(http.MethodPost)
 	r.HandleFunc("/card", AddOwnedCardToDeckHandler).Methods(http.MethodPost)
 	r.HandleFunc("/card/remove", RemoveCardFromDeckHandler).Methods(http.MethodPost)
+	r.HandleFunc("/remove", DeleteDeckHandler).Methods(http.MethodGet)
 }
 
 //
@@ -48,6 +49,34 @@ func GetDeckByIdHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(GetDeckByIdResponse{Deck: deck, Cards: cards}))
+}
+
+//
+// ENDPOINT: Get deck by ID
+//
+
+type DeleteDeckResponse struct {
+}
+
+func DeleteDeckHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get deck ID from query
+	deckId := r.URL.Query().Get("deck_id")
+	if deckId == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	err := DeleteDeckByID(deckId)
+	if err != nil {
+		log.Debug().Err(err).Msg("failed to delete deck")
+		w.Write(response.NewErrorResponse(err))
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(DeleteDeckResponse{}))
 }
 
 //

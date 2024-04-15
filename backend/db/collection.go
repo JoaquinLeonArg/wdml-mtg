@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -258,4 +258,21 @@ func ImportCollection(cards []domain.OwnedCard) error {
 	})
 
 	return err
+}
+
+func UpdateOwnedCard(ownedCard domain.OwnedCard) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	result, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_BOOSTER_PACKS).
+		UpdateByID(ctx, ownedCard.ID, ownedCard)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w", ErrNotFound)
+	}
+	return nil
 }
