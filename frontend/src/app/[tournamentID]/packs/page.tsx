@@ -275,9 +275,9 @@ function AddPacks(props: AddPacksProps) {
   }, [props.tournamentID])
 
   return (
-    <div>
-      <form onSubmit={sendAddPacksRequest} className="flex flex-col gap-2 items-center">
-        <div className="flex flex-row gap-2 items-center">
+    <div className="w-full">
+      <form onSubmit={sendAddPacksRequest} className="flex flex-col gap-2 items-center w-full">
+        <div className="flex flex-row gap-2 items-center w-full">
           <Input
             disabled={loading}
             onChange={(e) => setCount(Number(e.target.value))}
@@ -287,7 +287,7 @@ function AddPacks(props: AddPacksProps) {
             label="Amount"
             placeholder="Number of packs"
             labelPlacement="inside"
-            className="text-white"
+            className="text-white max-w-64"
             endContent={
               <div className="pointer-events-none flex items-center">
                 <span className="text-gray-300 text-small">packs</span>
@@ -301,7 +301,7 @@ function AddPacks(props: AddPacksProps) {
             label="Booster pack"
             labelPlacement="inside"
             placeholder="Select a booster pack"
-            className="text-white max-w-xs"
+            className="text-white"
             defaultItems={availablePacks.map((val) => { return { value: val.set_code, label: `${val.set_code} - ${val.name}` } })}
           >
             {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
@@ -318,9 +318,6 @@ function AddPacks(props: AddPacksProps) {
           >
             {(item) => <AutocompleteItem className="text-white" key={item.value}>{item.label}</AutocompleteItem>}
           </Autocomplete>
-          <Button size="md" isIconOnly aria-label="trash" disabled>
-            <BsFillTrashFill className="w-6 h-6" />
-          </Button>
         </div>
         <Button isLoading={loading} onPress={sendAddPacksRequest} disabled={isButtonDisabled} size="md" className={`w-full ${isButtonDisabled || "bg-primary-500"}`} aria-label="Like">Add packs</Button>
       </form >

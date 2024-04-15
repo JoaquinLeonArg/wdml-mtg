@@ -1,4 +1,4 @@
-module github.com/joaquinleonarg/wdml_mtg/backend
+module github.com/joaquinleonarg/wdml-mtg/backend
 
 go 1.22
 

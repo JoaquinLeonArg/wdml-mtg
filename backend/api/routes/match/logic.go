@@ -3,9 +3,9 @@ package match
 import (
 	"errors"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	apiErrors "github.com/joaquinleonarg/wdml_mtg/backend/errors"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

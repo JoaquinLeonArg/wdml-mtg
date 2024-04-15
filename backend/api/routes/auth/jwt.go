@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joaquinleonarg/wdml_mtg/backend/config"
+	"github.com/joaquinleonarg/wdml-mtg/backend/config"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )

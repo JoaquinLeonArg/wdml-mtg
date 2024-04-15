@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -69,6 +69,31 @@ func GetDeckByID(deckID string) (*domain.Deck, []domain.OwnedCard, error) {
 	}
 
 	return deck, cards, nil
+}
+
+func DeleteDeckByID(deckID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+	dbDeckID, err := primitive.ObjectIDFromHex(deckID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	// Delete deck
+	result, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_DECKS).
+		DeleteOne(ctx,
+			bson.M{"_id": dbDeckID},
+		)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("%w", ErrNotFound)
+	}
+
+	return nil
 }
 
 func GetDecksForTournamentPlayer(tournamentPlayerID string) ([]domain.Deck, error) {

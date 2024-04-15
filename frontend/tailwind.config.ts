@@ -40,7 +40,8 @@ module.exports = {
           "common": "#666666",
           "uncommon": "#9BCDFF",
           "rare": "#C6AC6E",
-          "mythic": "#D66525"
+          "mythic": "#D66525",
+          "special": "#D12197"
         },
         mana: {
           "white": "#F8E7B9",

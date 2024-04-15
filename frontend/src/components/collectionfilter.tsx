@@ -13,6 +13,8 @@ export type CollectionFilterProps = {
   setOracle: (oracle: string) => void
   setSetCode: (setCode: string) => void
   setMv: (mv: string) => void
+
+  onChange: () => void
 }
 
 export const rarities = {
@@ -20,7 +22,8 @@ export const rarities = {
   "common": "Common",
   "uncommon": "Uncommon",
   "rare": "Rare",
-  "mythic": "Mythic"
+  "mythic": "Mythic",
+  "special": "Special"
 }
 
 export type mtgColors = { W: boolean, U: boolean, B: boolean, R: boolean, G: boolean, C: boolean }
@@ -31,14 +34,14 @@ export function CollectionFilter(props: CollectionFilterProps) {
       <div className="flex flex-col w-full">
         <div className="flex flex-row gap-2 mb-2 items-center">
           <Input
-            onChange={(e) => props.setCardName(e.target.value)}
+            onChange={(e) => { props.setCardName(e.target.value); props.onChange() }}
             variant="bordered"
             type="string"
             placeholder="Card name"
             className="text-white max-w-96"
           />
           <Input
-            onChange={(e) => props.setTags(e.target.value)}
+            onChange={(e) => { props.setTags(e.target.value); props.onChange() }}
             variant="bordered"
             type="string"
             placeholder="Custom tags"
@@ -58,7 +61,7 @@ export function CollectionFilter(props: CollectionFilterProps) {
             >
               {
                 Object.keys(rarities).map((key) =>
-                  <DropdownItem onPress={() => props.setRarity(key as keyof typeof rarities)} key={key}>{rarities[key as keyof typeof rarities]}</DropdownItem>
+                  <DropdownItem onPress={() => { props.setRarity(key as keyof typeof rarities); props.onChange() }} key={key}>{rarities[key as keyof typeof rarities]}</DropdownItem>
                 )
               }
             </DropdownMenu>
@@ -69,7 +72,7 @@ export function CollectionFilter(props: CollectionFilterProps) {
                 <Button isIconOnly
                   className={`text-xl ${props.colors[key as keyof typeof props.colors] && "bg-gray-500"}`}
                   variant="bordered"
-                  onClick={() => props.setColors({ ...props.colors, [key]: !props.colors[key as keyof mtgColors] })}
+                  onClick={() => { props.setColors({ ...props.colors, [key]: !props.colors[key as keyof mtgColors] }); props.onChange() }}
                   key={key}
                 >
                   <i className={`ms ms-${key.toLowerCase()} ms-cost`}></i>
@@ -80,28 +83,28 @@ export function CollectionFilter(props: CollectionFilterProps) {
         </div>
         <div className="flex flex-row gap-2 mb-2 items-center">
           <Input
-            onChange={(e) => props.setTypes(e.target.value)}
+            onChange={(e) => { props.setTypes(e.target.value); props.onChange() }}
             variant="bordered"
             type="string"
             placeholder="Types"
             className="text-white max-w-96"
           />
           <Input
-            onChange={(e) => props.setOracle(e.target.value)}
+            onChange={(e) => { props.setOracle(e.target.value); props.onChange() }}
             variant="bordered"
             type="string"
             placeholder="Oracle"
             className="text-white max-w-96"
           />
           <Input
-            onChange={(e) => props.setSetCode(e.target.value)}
+            onChange={(e) => { props.setSetCode(e.target.value); props.onChange() }}
             variant="bordered"
             type="string"
             placeholder="Set code"
             className="text-white max-w-24"
           />
           <Input
-            onChange={(e) => props.setMv(e.target.value)}
+            onChange={(e) => { props.setMv(e.target.value); props.onChange() }}
             variant="bordered"
             type="number"
             placeholder="Any"

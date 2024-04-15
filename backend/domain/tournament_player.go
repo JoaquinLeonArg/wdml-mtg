@@ -31,6 +31,7 @@ type GameResources struct {
 }
 
 const (
+	SPECIAL_TO_COIN  = 10
 	MYTHIC_TO_COIN   = 20
 	RARE_TO_COIN     = 10
 	UNCOMMON_TO_COIN = 3

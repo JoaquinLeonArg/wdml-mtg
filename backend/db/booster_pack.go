@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -113,6 +113,7 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 						"description": boosterPack.Description,
 						"card_count":  boosterPack.CardCount,
 						"slots":       boosterPack.Slots,
+						"filter":      boosterPack.Filter,
 						"updated_at":  primitive.NewDateTimeFromTime(time.Now()),
 					},
 				})

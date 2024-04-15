@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	scryfallapi "github.com/BlueMonday/go-scryfall"
-	"github.com/joaquinleonarg/wdml_mtg/backend/db"
-	"github.com/joaquinleonarg/wdml_mtg/backend/domain"
-	"github.com/joaquinleonarg/wdml_mtg/backend/pkg/scryfall"
+	"github.com/joaquinleonarg/wdml-mtg/backend/db"
+	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
+	"github.com/joaquinleonarg/wdml-mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 )
 
@@ -50,7 +50,7 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 
 			cards, err := scryfall.GetAllCardsByFilter(filter)
 			if err != nil || len(cards) == 0 {
-				log.Debug().Str("set", setCode).Err(err).Msg("failed to generate booster pack")
+				log.Debug().Str("set", setCode).Str("filter", filter).Err(err).Msg("failed to generate booster pack")
 				return nil, fmt.Errorf("no cards error")
 			}
 			card := cards[rand.Int()%len(cards)]
