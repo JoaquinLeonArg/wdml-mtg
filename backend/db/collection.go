@@ -278,7 +278,7 @@ func UpdateOwnedCard(ownedCard domain.OwnedCard) error {
 	return nil
 }
 
-func TradeUpCards(ownedCards []domain.OwnedCard, cardsToAdd []domain.CardData, ownerId string) error {
+func TradeUpCards(ownedCardIDs []string, cardsToAdd []domain.CardData, ownerId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
@@ -297,7 +297,7 @@ func TradeUpCards(ownedCards []domain.OwnedCard, cardsToAdd []domain.CardData, o
 		}
 		tplayerID, userID := string(tournamentPlayer.UserID.String()), tournamentPlayer.TournamentID.String()
 		AddCardsToTournamentPlayer(cardsToAdd, userID, tplayerID)
-		RemoveCardsFromTournamentPlayer(ownedCards)
+		RemoveCardsFromTournamentPlayer(ownedCardIDs)
 
 		return nil, nil
 	})
@@ -427,7 +427,7 @@ func AddCardsToTournamentPlayer(cards []domain.CardData, userID, tournamentID st
 	return err
 }
 
-func RemoveCardsFromTournamentPlayer(cards []domain.OwnedCard) error {
+func RemoveCardsFromTournamentPlayer(ownedCardIDs []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
@@ -440,8 +440,12 @@ func RemoveCardsFromTournamentPlayer(cards []domain.OwnedCard) error {
 	defer session.EndSession(ctx)
 
 	cardIDs := make([]primitive.ObjectID, 0)
-	for _, card := range cards {
-		cardIDs = append(cardIDs, card.ID)
+	for _, cardID := range ownedCardIDs {
+		id, err := primitive.ObjectIDFromHex(cardID)
+		if err != nil {
+			return fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		cardIDs = append(cardIDs, id)
 	}
 
 	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
@@ -458,5 +462,8 @@ func RemoveCardsFromTournamentPlayer(cards []domain.OwnedCard) error {
 		}
 		return nil, nil
 	})
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
 	return nil
 }
