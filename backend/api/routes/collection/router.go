@@ -209,6 +209,14 @@ func TradeUpCardsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(response.NewErrorResponse(err))
 		return
 	}
+	if len(req.CardIDs) != 30 {
+		log.Debug().
+			Err(err).
+			Msg("incorrect amount of cards sent")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
 
 	cards, err := TradeUpCards(req.CardIDs, ownerID)
 
