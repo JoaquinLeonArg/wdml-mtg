@@ -6,34 +6,39 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joaquinleonarg/wdml-mtg/backend/api/response"
+	"github.com/joaquinleonarg/wdml-mtg/backend/api/routes/tournament/tournament_player"
 	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func RegisterEndpoints(r *mux.Router) {
-	r = r.PathPrefix("/tournament").Subrouter()
-	r.HandleFunc("", GetTournamentHandler).Methods(http.MethodGet)
-	r.HandleFunc("/user", GetTournamentsForUserHandler).Methods(http.MethodGet)
-	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
-	r.HandleFunc("/tournament_player", GetTournamentPlayersHandler).Methods(http.MethodGet)
-}
+	r = r.PathPrefix("/tournaments").Subrouter()
+	tournament_player.RegisterEndpoints(r.PathPrefix("/{tournament_id}/tournament-players").Subrouter())
 
-//
-// ENDPOINT: Get a tournament by it's id
-//
+	r.HandleFunc("/{tournament_id}", GetTournamentHandler).Methods(http.MethodGet)
+	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
+}
 
 type GetTournamentResponse struct {
 	Tournament domain.Tournament `json:"tournament"`
 }
 
+// GetTournament godoc
+//
+//	@Summary Get tournament
+//	@Description Returns a tournament given it's id.
+//	@Tags tournament
+//	@Accept json
+//	@Produce json
 func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
-	// Get tournament ID from query
-	tournamentID := r.URL.Query().Get("tournament_id")
-	if tournamentID == "" {
+	// Get tournament ID from url
+	tournamentID, ok := mux.Vars(r)["tournament_id"]
+	if !ok {
 		http.Error(w, "", http.StatusBadRequest)
+		return
 	}
 
 	// Get the tournament
@@ -48,81 +53,9 @@ func GetTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(GetTournamentResponse{Tournament: *tournament}))
-
 }
 
-//
-// ENDPOINT: Get all tournaments for a user
-//
-
-type GetTournamentsForUserResponse struct {
-	Tournaments []domain.Tournament `json:"tournaments"`
-}
-
-func GetTournamentsForUserHandler(w http.ResponseWriter, r *http.Request) {
-	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
-
-	// Get user ID from context
-	userID, ok := r.Context().Value("user_id").(string)
-	if userID == "" || !ok {
-		log.Debug().
-			Msg("failed to read user id from context")
-		http.Error(w, "", http.StatusForbidden)
-		return
-	}
-
-	// Get the tournament
-	tournaments, err := GetTournamentsForUser(userID)
-	if err != nil {
-		log.Debug().Err(err).Msg("failed to get tournaments")
-		w.Write(response.NewErrorResponse(err))
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// Send response back
-	w.WriteHeader(http.StatusOK)
-	w.Write(response.NewDataResponse(GetTournamentsForUserResponse{Tournaments: tournaments}))
-
-}
-
-//
-// ENDPOINT: Get a tournament's players
-//
-
-type GetTournamentPlayersResponse struct {
-	TournamentPlayers []domain.TournamentPlayer `json:"tournament_players"`
-	Users             []domain.User             `json:"users"`
-}
-
-func GetTournamentPlayersHandler(w http.ResponseWriter, r *http.Request) {
-	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
-
-	// Get tournament ID from query
-	tournamentID := r.URL.Query().Get("tournament_id")
-	if tournamentID == "" {
-		http.Error(w, "", http.StatusBadRequest)
-	}
-
-	// Get the tournament players
-	tournament_players, users, err := GetTournamentPlayers(tournamentID)
-	if err != nil {
-		log.Debug().Err(err).Msg("failed to get tournament")
-		w.Write(response.NewErrorResponse(err))
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// Send response back
-	w.WriteHeader(http.StatusOK)
-	w.Write(response.NewDataResponse(GetTournamentPlayersResponse{TournamentPlayers: tournament_players, Users: users}))
-
-}
-
-//
 // ENDPOINT: Create a new tournament
-//
-
 type CreateTournamentRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`

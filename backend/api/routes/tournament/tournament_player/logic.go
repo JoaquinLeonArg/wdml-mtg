@@ -9,15 +9,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
+	tournament_players, users, err := db.GetTournamentPlayers(tournamentID)
+
+	// Redact sensitive information
+	for index := range users {
+		users[index].Password = nil
+		users[index].Email = ""
+	}
+
+	return tournament_players, users, err
+}
+
 func GetTournamentPlayerByID(tournamentPlayerID string) (*domain.TournamentPlayer, error) {
 	return db.GetTournamentPlayerByID(tournamentPlayerID)
 }
 
-func GetTournamentPlayersForUser(userID string) ([]domain.TournamentPlayer, error) {
-	return db.GetTournamentPlayersForUser(userID)
-}
-func GetBoosterPacksForTournamentPlayer(tournamentID, userID string) ([]domain.OwnedBoosterPack, error) {
-	return db.GetAvailablePacksForTournamentPlayer(tournamentID, userID)
+func GetTournamentPlayerByAuth(tournamentID, userID string) (*domain.TournamentPlayer, error) {
+	return db.GetTournamentPlayer(tournamentID, userID)
 }
 
 func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest CreateTournamentPlayerRequest) (string, error) {
@@ -65,16 +74,16 @@ func CreateTournamentPlayer(rawUserID string, createTournamentPlayerRequest Crea
 	return tournamentID.Hex(), nil
 }
 
-func AddCoinsToTournamentPlayer(tPlayerID string, coins int) error {
-	tPlayer, err := db.GetTournamentPlayerByID(tPlayerID)
+func AddCoinsToTournamentPlayer(tournamentPlayerID string, coins int) error {
+	tPlayer, err := db.GetTournamentPlayerByID(tournamentPlayerID)
 	if err != nil {
 		return err
 	}
 	return db.AddCoinsToTournamentPlayer(coins, tPlayer.UserID.Hex(), tPlayer.TournamentID.Hex())
 }
 
-func AddPointsToTournamentPlayer(tPlayerID string, coins int) error {
-	tPlayer, err := db.GetTournamentPlayerByID(tPlayerID)
+func AddPointsToTournamentPlayer(tournamentPlayerID string, coins int) error {
+	tPlayer, err := db.GetTournamentPlayerByID(tournamentPlayerID)
 	if err != nil {
 		return err
 	}

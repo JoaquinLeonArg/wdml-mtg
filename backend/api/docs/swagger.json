@@ -1,0 +1,15 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Private backend HTTP API for Tolarian Archives",
+        "title": "Tolarian Archives API",
+        "contact": {
+            "name": "Joaquin Leon",
+            "email": "leonjoaquin77@gmail.com"
+        },
+        "version": "1.1"
+    },
+    "host": "api.tolarianarchives.xyz",
+    "basePath": "/v1",
+    "paths": {}
+}

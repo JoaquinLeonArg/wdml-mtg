@@ -1,0 +1,11 @@
+basePath: /v1
+host: api.tolarianarchives.xyz
+info:
+  contact:
+    email: leonjoaquin77@gmail.com
+    name: Joaquin Leon
+  description: Private backend HTTP API for Tolarian Archives
+  title: Tolarian Archives API
+  version: "1.1"
+paths: {}
+swagger: "2.0"

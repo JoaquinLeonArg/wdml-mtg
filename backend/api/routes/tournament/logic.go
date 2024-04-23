@@ -16,14 +16,6 @@ func GetTournamentByID(tournamentID string) (*domain.Tournament, error) {
 	return tournament, nil
 }
 
-func GetTournamentsForUser(userID string) ([]domain.Tournament, error) {
-	tournaments, err := db.GetTournamentsForUser(userID)
-	if err != nil {
-		return nil, apiErrors.ErrInternal
-	}
-	return tournaments, nil
-}
-
 func GetTournamentPlayers(tournamentID string) ([]domain.TournamentPlayer, []domain.User, error) {
 	tournament_players, users, err := db.GetTournamentPlayers(tournamentID)
 
