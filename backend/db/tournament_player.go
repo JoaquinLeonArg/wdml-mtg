@@ -320,7 +320,7 @@ func ConsumeBoosterPackForTournamentPlayer(userID, tournamentID string, setCode 
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 
-		AddCardsToTournamentPlayer(cards, userID, tournamentID)
+		AddCardsToTournamentPlayer(tournamentPlayer.ID.Hex(), cards)
 
 		return nil, nil
 	})

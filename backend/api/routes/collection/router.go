@@ -179,7 +179,7 @@ func SetTagsForCollectionCardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type TradeUpCardsRequest struct {
-	CardIDs []string `json:"card_ids"`
+	Cards map[string]int `json:"cards"`
 }
 
 type TradeUpCardsResponse struct {
@@ -198,6 +198,13 @@ func TradeUpCardsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
 	// Decode body data
 	var req TradeUpCardsRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -209,16 +216,8 @@ func TradeUpCardsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(response.NewErrorResponse(err))
 		return
 	}
-	if len(req.CardIDs) != 30 {
-		log.Debug().
-			Err(err).
-			Msg("incorrect amount of cards sent")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(response.NewErrorResponse(err))
-		return
-	}
 
-	cards, err := TradeUpCards(req.CardIDs, ownerID)
+	cards, err := TradeUpCards(req.Cards, ownerID, tournamentID)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

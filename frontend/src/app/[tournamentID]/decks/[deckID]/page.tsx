@@ -233,7 +233,7 @@ function AddCardsModal(props: AddCardsModalProps) {
             onClickFn: () => addCard(card.id),
             count: card.count,
             disabled: card.count <= props.cardCounts[card.id] || (props.cardCounts[card.id] >= 4 && !card.card_data.types.includes("Basic")),
-            inDeck: props.cardCounts[card.id]
+            inDeckText: `${props.cardCounts[card.id]} / ${card.card_data.types.includes("Basic") ? "∞" : "4"}`
           }
         })
         setCurrentCards(cardsFull)

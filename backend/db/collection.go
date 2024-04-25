@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -278,7 +277,7 @@ func UpdateOwnedCard(ownedCard domain.OwnedCard) error {
 	return nil
 }
 
-func TradeUpCards(ownedCardIDs []string, cardsToAdd []domain.CardData, ownerId string) error {
+func TradeUpCards(cardsToRemove map[string]int, cardsToAdd []domain.CardData, tournamentID, ownerID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
@@ -291,33 +290,30 @@ func TradeUpCards(ownedCardIDs []string, cardsToAdd []domain.CardData, ownerId s
 	defer session.EndSession(ctx)
 
 	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
-		tournamentPlayer, err := GetTournamentPlayerByID(ownerId)
+		tournamentPlayer, err := GetTournamentPlayer(tournamentID, ownerID)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
 		}
-		tplayerID, userID := string(tournamentPlayer.UserID.String()), tournamentPlayer.TournamentID.String()
-		AddCardsToTournamentPlayer(cardsToAdd, userID, tplayerID)
-		RemoveCardsFromTournamentPlayer(ownedCardIDs)
+		err = RemoveCardsFromTournamentPlayer(tournamentPlayer.ID.Hex(), cardsToRemove)
+		if err != nil {
+			return nil, err
+		}
+		err = AddCardsToTournamentPlayer(tournamentPlayer.ID.Hex(), cardsToAdd)
+		if err != nil {
+			return nil, err
+		}
 
 		return nil, nil
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func AddCardsToTournamentPlayer(cards []domain.CardData, userID, tournamentID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+func AddCardsToTournamentPlayer(tournamentPlayerID string, cards []domain.CardData) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidID, err)
-	}
-	dbUserID, err := primitive.ObjectIDFromHex(userID)
+	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalidID, err)
 	}
@@ -335,7 +331,7 @@ func AddCardsToTournamentPlayer(cards []domain.CardData, userID, tournamentID st
 			Database(DB_MAIN).
 			Collection(COLLECTION_TOURNAMENT_PLAYERS).
 			FindOne(ctx,
-				bson.M{"user_id": dbUserID, "tournament_id": dbTournamentID},
+				bson.M{"_id": dbTournamentPlayerID},
 			)
 		if err := result.Err(); err != nil {
 			if err == mongo.ErrNoDocuments {
@@ -343,14 +339,17 @@ func AddCardsToTournamentPlayer(cards []domain.CardData, userID, tournamentID st
 			}
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
-		// Decode user
+
+		// Decode tournament player
 		var tournamentPlayer *domain.TournamentPlayer
 		err = result.Decode(&tournamentPlayer)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
+
 		// Add the cards to the tournament player's collection
 		// For each card, find if the user already has some of that card, and update or add it accordingly
+		cardsToAdd := []domain.OwnedCard{}
 		for _, card := range cards {
 			result, err := MongoDatabaseClient.
 				Database(DB_MAIN).
@@ -371,65 +370,60 @@ func AddCardsToTournamentPlayer(cards []domain.CardData, userID, tournamentID st
 				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 			}
 			if len(foundCards) == 0 {
-				// Add a new card
-				_, err := MongoDatabaseClient.
-					Database(DB_MAIN).
-					Collection(COLLECTION_CARD_COLLECTION).
-					InsertOne(ctx, domain.OwnedCard{
-						ID:           primitive.NewObjectID(),
-						TournamentID: tournamentPlayer.TournamentID,
-						UserID:       tournamentPlayer.UserID,
-						Tags:         []string{},
-						Count:        1,
-						CardData:     card,
-						CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
-						UpdatedAt:    primitive.NewDateTimeFromTime(time.Now()),
-					})
+				// Prepare card to add
+				cardsToAdd = append(cardsToAdd, domain.OwnedCard{
+					ID:           primitive.NewObjectID(),
+					TournamentID: tournamentPlayer.TournamentID,
+					UserID:       tournamentPlayer.UserID,
+					Tags:         []string{},
+					Count:        1,
+					CardData:     card,
+					CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+					UpdatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+				})
 
-				if err != nil {
-					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
-				}
 			} else if len(foundCards) == 1 {
 				// Update count of existing card
-				// TODO: Consolidate this logic with the other one
-				if foundCards[0].Count >= 4 && !slices.Contains(foundCards[0].CardData.Types, "Basic") {
-					switch foundCards[0].CardData.Rarity {
-					case domain.CardRaritySpecial:
-						AddCoinsToTournamentPlayer(domain.SPECIAL_TO_COIN, userID, tournamentID)
-					case domain.CardRarityMythic:
-						AddCoinsToTournamentPlayer(domain.MYTHIC_TO_COIN, userID, tournamentID)
-					case domain.CardRarityRare:
-						AddCoinsToTournamentPlayer(domain.RARE_TO_COIN, userID, tournamentID)
-					case domain.CardRarityUncommon:
-						AddCoinsToTournamentPlayer(domain.UNCOMMON_TO_COIN, userID, tournamentID)
-					case domain.CardRarityCommon:
-						AddCoinsToTournamentPlayer(domain.COMMON_TO_COIN, userID, tournamentID)
-					}
-				} else {
-					foundCards[0].Count += 1
-				}
+				foundCards[0].Count += 1
 				foundCards[0].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-				_, err := MongoDatabaseClient.
+				result, err := MongoDatabaseClient.
 					Database(DB_MAIN).
 					Collection(COLLECTION_CARD_COLLECTION).
 					UpdateByID(ctx, foundCards[0].ID, bson.M{"$set": foundCards[0]})
-				if err != nil {
+				if err != nil || result.MatchedCount == 0 {
 					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 				}
-
 			} else {
 				// TODO: Consolidate duplicate entries just in case
 				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
 			}
+		}
+		// Add all cards at once
+		newValues := make([]interface{}, len(cardsToAdd))
+		for i, cardToAdd := range cardsToAdd {
+			newValues[i] = cardToAdd
+		}
+
+		_, err := MongoDatabaseClient.
+			Database(DB_MAIN).
+			Collection(COLLECTION_CARD_COLLECTION).
+			InsertMany(ctx, newValues)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
 		return nil, nil
 	})
 	return err
 }
 
-func RemoveCardsFromTournamentPlayer(ownedCardIDs []string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+func RemoveCardsFromTournamentPlayer(tournamentPlayerID string, cardsToRemove map[string]int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
+
+	dbTournamentPlayerID, err := primitive.ObjectIDFromHex(tournamentPlayerID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
 
 	// Begin transaction
 	session, err := MongoDatabaseClient.
@@ -439,26 +433,77 @@ func RemoveCardsFromTournamentPlayer(ownedCardIDs []string) error {
 	}
 	defer session.EndSession(ctx)
 
-	cardIDs := make([]primitive.ObjectID, 0)
-	for _, cardID := range ownedCardIDs {
-		id, err := primitive.ObjectIDFromHex(cardID)
-		if err != nil {
-			return fmt.Errorf("%w: %v", ErrInternal, err)
-		}
-		cardIDs = append(cardIDs, id)
-	}
-
 	_, err = session.WithTransaction(ctx, func(mongoCtx mongo.SessionContext) (interface{}, error) {
-		result, err := MongoDatabaseClient.
+		result := MongoDatabaseClient.
 			Database(DB_MAIN).
-			Collection(COLLECTION_CARD_COLLECTION).DeleteMany(ctx, bson.M{
-			"_id": bson.M{"$in": cardIDs},
-		})
+			Collection(COLLECTION_TOURNAMENT_PLAYERS).
+			FindOne(ctx,
+				bson.M{"_id": dbTournamentPlayerID},
+			)
+		if err := result.Err(); err != nil {
+			if err == mongo.ErrNoDocuments {
+				return nil, fmt.Errorf("%w: %v", ErrNotFound, err)
+			}
+			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+		}
+		// Decode user
+		var tournamentPlayer *domain.TournamentPlayer
+		err = result.Decode(&tournamentPlayer)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 		}
-		if result.DeletedCount == 0 {
-			return nil, fmt.Errorf("%w", ErrNotFound)
+		// Remove the cards to the tournament player's collection
+		// For each card, find if the user already has some of that card, and update or remove it accordingly
+		for cardID, count := range cardsToRemove {
+			dbCardID, err := primitive.ObjectIDFromHex(cardID)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
+			}
+			result, err := MongoDatabaseClient.
+				Database(DB_MAIN).
+				Collection(COLLECTION_CARD_COLLECTION).
+				Find(ctx,
+					bson.M{
+						"tournament_id": tournamentPlayer.TournamentID,
+						"user_id":       tournamentPlayer.UserID,
+						"_id":           dbCardID,
+					},
+				)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+			}
+			var foundCards []domain.OwnedCard
+			if err := result.All(ctx, &foundCards); err != nil {
+				return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+			}
+			if len(foundCards) == 0 {
+				return nil, fmt.Errorf("%w: %v", ErrInternal, "card to remove not found")
+			} else if len(foundCards) == 1 {
+				if foundCards[0].Count > count {
+					// Update count of existing card
+					foundCards[0].Count -= count
+					foundCards[0].UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+					result, err := MongoDatabaseClient.
+						Database(DB_MAIN).
+						Collection(COLLECTION_CARD_COLLECTION).
+						UpdateByID(ctx, foundCards[0].ID, bson.M{"$set": foundCards[0]})
+					if err != nil || result.MatchedCount == 0 {
+						return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+					}
+				} else {
+					// Remove the card entirely
+					result, err := MongoDatabaseClient.
+						Database(DB_MAIN).
+						Collection(COLLECTION_CARD_COLLECTION).
+						DeleteOne(ctx, bson.M{"_id": foundCards[0].ID})
+					if err != nil || result.DeletedCount == 0 {
+						return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+					}
+				}
+			} else {
+				// TODO: Consolidate duplicate entries just in case
+				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
+			}
 		}
 		return nil, nil
 	})
