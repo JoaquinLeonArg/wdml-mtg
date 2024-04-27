@@ -8,7 +8,8 @@ export type DecklistCardProps = {
   deckId?: string
   card: OwnedCard
   board?: string
-  count: number
+  count: number,
+  totalCount: number,
   onHoverFn?: () => void
   refreshDeckFn?: () => void
 }
@@ -60,13 +61,14 @@ export function DecklistCardList(props: DecklistCardListProps) {
     })
   }
 
+  console.log(props.totalCount, props.card.count)
   let dropdownItems = [
     {
       key: "add-one",
       label: "Add one copy",
       action: () => addOne(),
       boards: ["b_mainboard", "b_sideboard", "b_maybeboard"],
-      isDisabled: () => props.count >= props.card.count
+      isDisabled: () => props.totalCount >= props.card.count
     },
     {
       key: "move-mainboard-one",

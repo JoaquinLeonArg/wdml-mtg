@@ -134,6 +134,7 @@ export default function EditDeckPage(props: any) {
                       board="b_mainboard"
                       setPreview={setPreview}
                       deckCards={deck.cards.filter(card => card.board == "b_mainboard")}
+                      allDeckCards={deck.cards}
                     /> : ""}
                     <MiniHeader title="Sideboard"
                       endContent={
@@ -151,6 +152,7 @@ export default function EditDeckPage(props: any) {
                       board="b_sideboard"
                       setPreview={setPreview}
                       deckCards={deck.cards.filter(card => card.board == "b_sideboard")}
+                      allDeckCards={deck.cards}
                     /> : ""}
                     <MiniHeader title="Considering"
                       endContent={
@@ -168,6 +170,7 @@ export default function EditDeckPage(props: any) {
                       board="b_maybeboard"
                       setPreview={setPreview}
                       deckCards={deck.cards.filter(card => card.board == "b_maybeboard")}
+                      allDeckCards={deck.cards}
                     /> : ""}
                   </div>
               }
@@ -233,7 +236,7 @@ function AddCardsModal(props: AddCardsModalProps) {
             onClickFn: () => addCard(card.id),
             count: card.count,
             disabled: card.count <= props.cardCounts[card.id] || (props.cardCounts[card.id] >= 4 && !card.card_data.types.includes("Basic")),
-            inDeckText: `${props.cardCounts[card.id]} / ${card.card_data.types.includes("Basic") ? "∞" : "4"}`
+            inDeckText: !props.cardCounts[card.id] ? "" : `${props.cardCounts[card.id]} / ${card.card_data.types.includes("Basic") ? "∞" : "4"}`
           }
         })
         setCurrentCards(cardsFull)
@@ -349,6 +352,7 @@ function AddCardsModal(props: AddCardsModalProps) {
 type DeckDisplayListProps = {
   cards: OwnedCard[]
   deckCards: DeckCard[]
+  allDeckCards: DeckCard[]
   setPreview: (image_url: string) => void
   groupBy: string
   orderBy: string
@@ -357,7 +361,7 @@ type DeckDisplayListProps = {
   refreshFn: () => void
 }
 
-let categoryGroupers: { [groupingType: string]: (deck_cards: DeckCard[], cards: { [card_id: string]: OwnedCard }) => { [category: string]: DecklistCardProps[] } } = {
+let categoryGroupers: { [groupingType: string]: (deckCards: DeckCard[], allDeckCards: DeckCard[], cards: { [card_id: string]: OwnedCard }) => { [category: string]: DecklistCardProps[] } } = {
   "Type": groupCardsByType,
   "Color": groupCardsByColor,
   "Mana Value": groupCardsByMV
@@ -377,7 +381,7 @@ function DeckDisplayFull(props: DeckDisplayListProps) {
     props.cards.forEach((card) => {
       cardsById[card.id] = card
     })
-    let grouped = categoryGroupers[props.groupBy] ? categoryGroupers[props.groupBy](props.deckCards, cardsById) : {}
+    let grouped = categoryGroupers[props.groupBy] ? categoryGroupers[props.groupBy](props.deckCards, props.allDeckCards, cardsById) : {}
     // Set common data
     Object.keys(grouped).forEach((category) => {
       grouped[category].forEach((card) => {

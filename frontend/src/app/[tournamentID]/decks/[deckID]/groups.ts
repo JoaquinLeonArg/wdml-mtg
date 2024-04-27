@@ -1,8 +1,8 @@
-import { DecklistCardProps } from "@/components/decklistcard"
+import { DecklistCardListProps, DecklistCardProps } from "@/components/decklistcard"
 import { OwnedCard } from "@/types/card"
 import { DeckCard } from "@/types/deck"
 
-export function groupCardsByType(deck_cards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
+export function groupCardsByType(deckCards: DeckCard[], allDeckCards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
   let creatures: DecklistCardProps[] = []
   let artifacts: DecklistCardProps[] = []
   let enchantments: DecklistCardProps[] = []
@@ -11,21 +11,24 @@ export function groupCardsByType(deck_cards: DeckCard[], cardsById: { [id: strin
   let lands: DecklistCardProps[] = []
   let other: DecklistCardProps[] = []
 
-  deck_cards.forEach((card) => {
-    if (cardsById[card.owned_card_id].card_data.types.includes("Creature")) {
-      creatures.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.types.includes("Artifact")) {
-      artifacts.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.types.includes("Enchantment")) {
-      enchantments.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.types.includes("Sorcery")) {
-      sorceries.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.types.includes("Instant")) {
-      instants.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.types.includes("Land")) {
-      lands.push({ card: cardsById[card.owned_card_id], count: card.count })
+  deckCards.forEach((card) => {
+    let types = cardsById[card.owned_card_id].card_data.types
+    let totalCount = allDeckCards.reduce((prev, deckCard) => card.owned_card_id == deckCard.owned_card_id ? prev + deckCard.count : prev, 0)
+    console.log(totalCount)
+    if (types.includes("Land")) {
+      lands.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (types.includes("Creature")) {
+      creatures.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (types.includes("Artifact")) {
+      artifacts.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (types.includes("Enchantment")) {
+      enchantments.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (types.includes("Sorcery")) {
+      sorceries.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (types.includes("Instant")) {
+      instants.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     } else {
-      other.push({ card: cardsById[card.owned_card_id], count: card.count })
+      other.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     }
   })
 
@@ -40,7 +43,7 @@ export function groupCardsByType(deck_cards: DeckCard[], cardsById: { [id: strin
   }
 }
 
-export function groupCardsByColor(deck_cards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
+export function groupCardsByColor(deckCards: DeckCard[], allDeckCards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
   let white: DecklistCardProps[] = []
   let blue: DecklistCardProps[] = []
   let black: DecklistCardProps[] = []
@@ -50,23 +53,25 @@ export function groupCardsByColor(deck_cards: DeckCard[], cardsById: { [id: stri
   let colorless: DecklistCardProps[] = []
   let lands: DecklistCardProps[] = []
 
-  deck_cards.forEach((card) => {
-    if (cardsById[card.owned_card_id].card_data.colors.length > 1) {
-      multicolor.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.colors.includes("W")) {
-      white.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.colors.includes("U")) {
-      blue.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.colors.includes("B")) {
-      black.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.colors.includes("R")) {
-      red.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.colors.includes("G")) {
-      green.push({ card: cardsById[card.owned_card_id], count: card.count })
+  deckCards.forEach((card) => {
+    let colors = cardsById[card.owned_card_id].card_data.colors
+    let totalCount = allDeckCards.reduce((prev, deckCard) => card.owned_card_id == deckCard.owned_card_id ? prev + deckCard.count : prev, 0)
+    if (colors.length > 1) {
+      multicolor.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (colors.includes("W")) {
+      white.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (colors.includes("U")) {
+      blue.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (colors.includes("B")) {
+      black.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (colors.includes("R")) {
+      red.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (colors.includes("G")) {
+      green.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     } else if (cardsById[card.owned_card_id].card_data.types.includes("Land")) {
-      lands.push({ card: cardsById[card.owned_card_id], count: card.count })
+      lands.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     } else {
-      colorless.push({ card: cardsById[card.owned_card_id], count: card.count })
+      colorless.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     }
   })
 
@@ -83,7 +88,8 @@ export function groupCardsByColor(deck_cards: DeckCard[], cardsById: { [id: stri
 }
 
 
-export function groupCardsByMV(deck_cards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
+export function groupCardsByMV(deckCards: DeckCard[], allDeckCards: DeckCard[], cardsById: { [id: string]: OwnedCard }) {
+  let land: DecklistCardListProps[] = []
   let zero: DecklistCardProps[] = []
   let one: DecklistCardProps[] = []
   let two: DecklistCardProps[] = []
@@ -95,27 +101,32 @@ export function groupCardsByMV(deck_cards: DeckCard[], cardsById: { [id: string]
   let eight: DecklistCardProps[] = []
   let nineplus: DecklistCardProps[] = []
 
-  deck_cards.forEach((card) => {
-    if (cardsById[card.owned_card_id].card_data.mana_value == 0) {
-      zero.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 1) {
-      one.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 2) {
-      two.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 3) {
-      three.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 4) {
-      four.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 5) {
-      five.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 6) {
-      six.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 7) {
-      seven.push({ card: cardsById[card.owned_card_id], count: card.count })
-    } else if (cardsById[card.owned_card_id].card_data.mana_value == 8) {
-      eight.push({ card: cardsById[card.owned_card_id], count: card.count })
+  console.log(deckCards)
+  deckCards.forEach((card) => {
+    let mv = cardsById[card.owned_card_id].card_data.mana_value
+    let totalCount = allDeckCards.reduce((prev, deckCard) => card.owned_card_id == deckCard.owned_card_id ? prev + deckCard.count : prev, 0)
+    if (cardsById[card.owned_card_id].card_data.types.includes("Land")) {
+      land.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 0) {
+      zero.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 1) {
+      one.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 2) {
+      two.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 3) {
+      three.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 4) {
+      four.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 5) {
+      five.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 6) {
+      six.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 7) {
+      seven.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
+    } else if (mv == 8) {
+      eight.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     } else {
-      nineplus.push({ card: cardsById[card.owned_card_id], count: card.count })
+      nineplus.push({ card: cardsById[card.owned_card_id], count: card.count, totalCount })
     }
   })
 
@@ -128,6 +139,7 @@ export function groupCardsByMV(deck_cards: DeckCard[], cardsById: { [id: string]
     "6 mana": six,
     "7 mana": seven,
     "8 mana": eight,
-    "9+ mana": nineplus
+    "9+ mana": nineplus,
+    "Lands": land
   }
 }

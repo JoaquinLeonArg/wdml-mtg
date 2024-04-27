@@ -78,7 +78,11 @@ export default function DecksPage(props: any) {
                         key={deck.name}
                         endContent={<Button size="sm" isIconOnly color="danger" onClick={() => sendDeleteDeckRequest(deck.id)}><BsFillTrashFill /></Button>}
                       >
-                        {deck.name}
+                        <div className="flex flex-row gap-3">
+                          <div className="font-bold">{deck.name}</div>
+                          -
+                          <div className="font-thin">{deck.description}</div>
+                        </div>
                       </ListboxItem>
                     ) : []
                   }
