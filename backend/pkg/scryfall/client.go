@@ -3,6 +3,7 @@ package scryfall
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -107,7 +108,7 @@ func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
 
 	for {
 		setData, err := client.SearchCards(ctx, filter, scryfallapi.SearchCardsOptions{Page: page})
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "not_found") {
 			return nil, err
 		}
 		allCards = append(allCards, setData.Cards...)
@@ -116,7 +117,28 @@ func GetAllCardsByFilter(filter string) ([]scryfallapi.Card, error) {
 		}
 		page += 1
 	}
-	cachedPossibleCards.Add(filter, allCards)
+	if len(allCards) == 0 {
+		var newFilter string
+		if slices.Contains(strings.Split(filter, " "), "rarity:special") || slices.Contains(strings.Split(filter, " "), "rarity:mythic") {
+			newFilter = strings.Replace(strings.Replace(filter, "rarity:special", "rarity:rare", 1), "rarity:mythic", "rarity:rare", 1)
+			page = 1
+			for {
+				setData, err := client.SearchCards(ctx, newFilter, scryfallapi.SearchCardsOptions{Page: page})
+				if err != nil {
+					return nil, err
+				}
+				allCards = append(allCards, setData.Cards...)
+				if !setData.HasMore {
+					break
+				}
+				page += 1
+			}
+		}
+		cachedPossibleCards.Add(newFilter, allCards)
+	} else {
+		cachedPossibleCards.Add(filter, allCards)
+
+	}
 	return allCards, nil
 }
 

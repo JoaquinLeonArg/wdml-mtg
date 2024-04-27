@@ -10,13 +10,15 @@ type BoosterPack struct {
 	Description string             `bson:"description" json:"description"`
 	CardCount   int                `bson:"card_count" json:"card_count"`
 	Filter      string             `bson:"filter" json:"filter"`
-	Slots       []struct {
-		Options []Option `bson:"options" json:"options"`
-		Filter  string   `bson:"filter" json:"filter"`
-		Count   int      `bson:"count" json:"count"`
-	} `bson:"slots" json:"slots"`
-	CreatedAt primitive.DateTime `bson:"created_at" json:"created_at"`
-	UpdatedAt primitive.DateTime `bson:"updated_at" json:"updated_at"`
+	Slots       []BoosterPackSlot  `bson:"slots" json:"slots"`
+	CreatedAt   primitive.DateTime `bson:"created_at" json:"created_at"`
+	UpdatedAt   primitive.DateTime `bson:"updated_at" json:"updated_at"`
+}
+
+type BoosterPackSlot struct {
+	Options []Option `bson:"options" json:"options"`
+	Filter  string   `bson:"filter" json:"filter"`
+	Count   int      `bson:"count" json:"count"`
 }
 
 type Option struct {

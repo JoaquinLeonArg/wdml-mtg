@@ -19,6 +19,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("", GetCollectionHandler).Methods(http.MethodGet)
 	r.HandleFunc("/import", ImportCollectionHandler).Methods(http.MethodPost)
 	r.HandleFunc("/tag", SetTagsForCollectionCardHandler).Methods(http.MethodPost)
+	r.HandleFunc("/tradeup", TradeUpCardsHandler).Methods(http.MethodPost)
 }
 
 //
@@ -175,4 +176,56 @@ func SetTagsForCollectionCardHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(SetTagsForCollectionCardResponse{}))
+}
+
+type TradeUpCardsRequest struct {
+	Cards map[string]int `json:"cards"`
+}
+
+type TradeUpCardsResponse struct {
+	Cards []domain.CardData `json:"cards"`
+}
+
+func TradeUpCardsHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from request context
+	ownerID, ok := r.Context().Value("user_id").(string)
+	if ownerID == "" || !ok {
+		log.Debug().
+			Msg("failed to read user id from context")
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	// Decode body data
+	var req TradeUpCardsRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	cards, err := TradeUpCards(req.Cards, ownerID, tournamentID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(TradeUpCardsResponse{Cards: cards}))
 }
