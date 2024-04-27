@@ -394,13 +394,50 @@ func AddCardsToTournamentPlayer(tournamentPlayerID string, cards []domain.CardDa
 					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
 				}
 			} else {
-				// TODO: Consolidate duplicate entries just in case
-				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
+				dbFoundCardsIDs := make([]primitive.ObjectID, len(foundCards))
+				newCount := 0
+				for _, foundCard := range foundCards {
+					dbFoundCardsIDs = append(dbFoundCardsIDs, foundCard.ID)
+					newCount += foundCard.Count
+				}
+				result, err := MongoDatabaseClient.
+					Database(DB_MAIN).
+					Collection(COLLECTION_CARD_COLLECTION).
+					DeleteMany(ctx, bson.M{"_id": bson.M{"$in": dbFoundCardsIDs}})
+				if err != nil || result.DeletedCount == 0 {
+					return nil, fmt.Errorf("%w: %v", ErrInternal, err)
+				}
+				cardsToAdd = append(cardsToAdd, domain.OwnedCard{
+					ID:           primitive.NewObjectID(),
+					TournamentID: tournamentPlayer.TournamentID,
+					UserID:       tournamentPlayer.UserID,
+					Tags:         []string{},
+					Count:        newCount + 1,
+					CardData:     card,
+					CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+					UpdatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+				})
 			}
 		}
+		// Consolidate duplicates in CardsToAdd
+		consolidatedCards := make([]domain.OwnedCard, 0)
+		for _, cardToAdd := range cardsToAdd {
+			found := false
+			for i, consolidatedCard := range consolidatedCards {
+				if cardToAdd.CardData.SetCode == consolidatedCard.CardData.SetCode && cardToAdd.CardData.CollectorNumber == consolidatedCard.CardData.CollectorNumber {
+					consolidatedCards[i].Count += cardToAdd.Count
+					found = true
+					break
+				}
+			}
+			if !found {
+				consolidatedCards = append(consolidatedCards, cardToAdd)
+			}
+		}
+
 		// Add all cards at once
-		newValues := make([]interface{}, len(cardsToAdd))
-		for i, cardToAdd := range cardsToAdd {
+		newValues := make([]interface{}, len(consolidatedCards))
+		for i, cardToAdd := range consolidatedCards {
 			newValues[i] = cardToAdd
 		}
 
@@ -501,7 +538,7 @@ func RemoveCardsFromTournamentPlayer(tournamentPlayerID string, cardsToRemove ma
 					}
 				}
 			} else {
-				// TODO: Consolidate duplicate entries just in case
+				// TODO (POSTA): TODO: Consolidate duplicate entries just in case
 				return nil, fmt.Errorf("%w: duplicated entries for card found on database", ErrInternal)
 			}
 		}
