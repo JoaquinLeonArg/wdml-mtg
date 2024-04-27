@@ -273,8 +273,6 @@ function CauldronFloat(props: CauldronFloatProps) {
 
   let totalCauldronCards = props.cauldronCards.reduce((prev, curr) => prev + curr.count, 0)
 
-
-
   return (
     <>
       <CauldronModal
@@ -294,6 +292,7 @@ function CauldronFloat(props: CauldronFloatProps) {
                 <div className="flex flex-row items-center justify-center gap-8">
                   {totalCauldronCards}/30 cards on the cauldron
                   {totalCauldronCards == 30 ? <Button onClick={() => setCauldronModalOpen(true)} color="success">Reroll cards</Button> : ""}
+                  {totalCauldronCards > 0 ? <Button onClick={() => props.setCauldronCardsFn([])} color="danger">Reset</Button> : ""}
                 </div>
             }
           </div>
@@ -318,7 +317,6 @@ function CauldronModal(props: CauldronModalProps) {
   let [cardsFull, setCardsFull] = useState<CardFullProps[]>([])
 
   useEffect(() => {
-    console.log(props.inputCards, cardsFull)
     let cf = props.inputCards.map((cauldronCard: { count: number, card: OwnedCard }, index: number) => {
       return {
         card: cauldronCard.card.card_data,
@@ -380,7 +378,12 @@ function CauldronModal(props: CauldronModalProps) {
   return (
     <Modal
       hideCloseButton
-      onClose={props.closeFn}
+      onClose={() => {
+        setIsLoading(false)
+        setError("")
+        setNewCards([])
+        props.closeFn()
+      }}
       isOpen={props.isOpen}
       placement="top-center"
       size="full"
@@ -403,7 +406,7 @@ function CauldronModal(props: CauldronModalProps) {
                   </div>
                 </> :
                 <>
-                  <p className="text-sm font-black text-white">This are your new cards!</p>
+                  <p className="text-sm font-light text-white">This are your new cards!</p>
                   <div className="pb-4">
                     <CardDisplaySpoiler cards={newCards} />
                   </div>
@@ -411,12 +414,25 @@ function CauldronModal(props: CauldronModalProps) {
           }
         </ModalBody>
         <ModalFooter>
-          <Button isDisabled={isLoading} color="danger" variant="flat" onPress={props.closeFn}>
-            Cancel
+          <Button
+            isDisabled={isLoading}
+            color="danger"
+            variant="flat"
+            onPress={() => {
+              setIsLoading(false)
+              setError("")
+              setNewCards([])
+              props.closeFn()
+            }}
+          >
+            {newCards.length == 0 ? "Cancel" : "Close"}
           </Button>
-          <Button isLoading={isLoading} color="success" onPress={sendTradeupRequest}>
-            Reroll cards
-          </Button>
+          {
+            newCards.length == 0 &&
+            <Button isLoading={isLoading} color="success" onPress={sendTradeupRequest}>
+              Reroll cards
+            </Button>
+          }
         </ModalFooter>
       </ModalContent>
     </Modal>

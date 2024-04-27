@@ -2,7 +2,7 @@
 
 import { CardDisplaySpoiler, CardFullProps } from "@/components/collectioncard"
 import { rarities, mtgColors, CollectionFilter } from "@/components/collectionfilter"
-import { DecklistCardListProps, DecklistCardProps, DecklistList, DecklistListProps } from "@/components/decklistcard"
+import { DecklistCardProps, DecklistList } from "@/components/decklistcard"
 import { Header, MiniHeader } from "@/components/header"
 import Layout from "@/components/layout"
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests"

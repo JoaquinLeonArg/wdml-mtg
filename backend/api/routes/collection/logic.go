@@ -208,18 +208,17 @@ func TradeUpCards(cards map[string]int, ownerID, tournamentID string) ([]domain.
 		},
 	}
 
+	log.Info().Interface("booster", boosterPack).Send()
+
 	cardsToAdd, err := boostergen.GenerateOneTimeBooster(boosterPack)
 	if err != nil {
 		return nil, apiErrors.ErrInternal
 	}
-	log.Info().Interface("cards_to_add", cardsToAdd).Msg("generated cards to trade")
 
 	err = db.TradeUpCards(cards, cardsToAdd, tournamentID, ownerID)
 	if err != nil {
 		return nil, apiErrors.ErrInternal
 	}
-
-	log.Info().Interface("cards_to_add", cardsToAdd).Msg("saved cards on the db for trade")
 
 	return cardsToAdd, nil
 }
