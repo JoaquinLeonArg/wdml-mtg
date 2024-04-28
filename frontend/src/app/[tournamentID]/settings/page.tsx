@@ -76,7 +76,7 @@ export default function ConfigPage(props: any) {
                   store.booster_packs.map((booster_pack: StoreBoosterPack, index: number) => {
                     let boosterPackData = availableBoosterPacks.filter(bp => bp.id == booster_pack.booster_pack_id)[0]
                     return (
-                      <div className="flex flex-row gap-2 items-center w-full">
+                      <div key={index} className="flex flex-row gap-2 items-center w-full">
                         <Input
                           onChange={(e) => {
                             let newStoreBoosterPacks = [...store.booster_packs]
