@@ -79,7 +79,7 @@ export default function ConfigPage(props: any) {
                       <div key={index} className="flex flex-row gap-2 items-center w-full">
                         <Input
                           onChange={(e) => {
-                            let newStoreBoosterPacks = [...store.booster_packs]
+                            let newStoreBoosterPacks = [...store?.booster_packs]
                             newStoreBoosterPacks[index].coin_price = Number(e.target.value)
                             setStore({ ...store, booster_packs: newStoreBoosterPacks })
                           }}
