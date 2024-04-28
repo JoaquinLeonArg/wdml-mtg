@@ -376,7 +376,7 @@ func AddPacksToTournamentPlayer(tournamentPlayerID string, pack domain.OwnedBoos
 
 	// Find if user has packs of the same type and add them, or create new
 
-	// Find tournament user
+	// Find tournament player
 	result := MongoDatabaseClient.
 		Database(DB_MAIN).
 		Collection(COLLECTION_TOURNAMENT_PLAYERS).

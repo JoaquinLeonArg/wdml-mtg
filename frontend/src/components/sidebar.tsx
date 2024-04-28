@@ -23,7 +23,7 @@ export default function NavigationSidebar(props: NavigationSidebarProps) {
                         ><BsCollectionFill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Matches" href={`/${props.tournamentID}/matches`} ><BsDiagram3Fill className="w-6 h-6" /></SidebarButton>
                         <SidebarButton name="Players" href={`/${props.tournamentID}/players`} ><BsEmojiSunglassesFill className="w-6 h-6" /></SidebarButton>
-                        <SidebarButton name="Settings" ><BsFillGearFill className="w-6 h-6" /></SidebarButton>
+                        <SidebarButton name="Settings" href={`/${props.tournamentID}/settings`} ><BsFillGearFill className="w-6 h-6" /></SidebarButton>
                     </ul>
 
                 </div>

@@ -18,6 +18,7 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("/open", OpenBoosterPackHandler).Methods(http.MethodPost)
 	r.HandleFunc("/", CreateBoosterPackHandler).Methods(http.MethodPost)
 	r.HandleFunc("/", UpdateBoosterPackHandler).Methods(http.MethodPut)
+	r.HandleFunc("/buy", BuyStoreBoosterPackHandler).Methods(http.MethodPost)
 }
 
 //
@@ -157,6 +158,7 @@ func OpenBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.NewDataResponse(OpenBoosterPackResponse{CardData: cards}))
 }
 
+// TODO: Restrict the request body
 // Endpoint: Create new booster pack
 func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
@@ -214,4 +216,51 @@ func UpdateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(AddTournamentBoosterPacksResponse{}))
+}
+
+type BuyStoreBoosterPackRequest struct {
+	BoosterPackID string `json:"booster_pack_id"`
+}
+
+type BuyStoreBoosterPackResponse struct {
+}
+
+func BuyStoreBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from context
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Decode body data
+	var buyStoreBoosterPackRequest BuyStoreBoosterPackRequest
+	err = json.NewDecoder(r.Body).Decode(&buyStoreBoosterPackRequest)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Check coins, remove them and add the booster to the tournament player
+	err = BuyBoosterPack(tournamentID, userID, buyStoreBoosterPackRequest.BoosterPackID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(BuyStoreBoosterPackResponse{}))
 }
