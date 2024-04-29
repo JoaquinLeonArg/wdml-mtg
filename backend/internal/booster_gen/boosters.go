@@ -28,19 +28,21 @@ func GenerateBooster(setCode string, genFunc BoosterDataGetter) ([]domain.CardDa
 	boosterPack := make([]domain.CardData, 0, boosterData.CardCount)
 
 	for _, slot := range boosterData.Slots {
+		optionKeys := []int{}
 		optionsByWeight := make(map[int]domain.Option)
 		currentWeight := 0
 		for _, option := range slot.Options {
 			currentWeight += option.Weight
 			optionsByWeight[currentWeight] = option
+			optionKeys = append(optionKeys, currentWeight)
 		}
 		for i := 0; i < slot.Count; i++ {
 			chosenOption := domain.Option{}
 			if currentWeight > 0 {
 				chosenWeight := rand.Int() % currentWeight
-				for w, option := range optionsByWeight {
+				for _, w := range optionKeys {
 					if chosenWeight < w {
-						chosenOption = option
+						chosenOption = optionsByWeight[w]
 						break
 					}
 				}
