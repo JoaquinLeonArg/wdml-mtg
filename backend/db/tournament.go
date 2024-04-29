@@ -162,3 +162,33 @@ func GetTournamentsForUser(userID string) ([]domain.Tournament, error) {
 
 	return tournaments, nil
 }
+
+func UpdateTournamentStore(tournamentID string, store domain.Store) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+	dbTournamentID, err := primitive.ObjectIDFromHex(tournamentID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidID, err)
+	}
+
+	result, err := MongoDatabaseClient.
+		Database(DB_MAIN).
+		Collection(COLLECTION_TOURNAMENTS).
+		UpdateOne(ctx,
+			bson.M{
+				"_id": dbTournamentID,
+			}, bson.M{
+				"$set": bson.M{
+					"store":      store,
+					"updated_at": primitive.NewDateTimeFromTime(time.Now()),
+				},
+			})
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if result.MatchedCount == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}

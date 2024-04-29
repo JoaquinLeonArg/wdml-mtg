@@ -8,3 +8,4 @@ backend/app.yaml
 */.env.e2e
 */.env.dev
 */.env.prod
+backend/debug*

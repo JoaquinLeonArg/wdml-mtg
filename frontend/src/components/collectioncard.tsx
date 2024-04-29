@@ -1,6 +1,7 @@
 "use client"
 
 import { CardData } from "@/types/card"
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
@@ -8,11 +9,12 @@ export type CardFullProps = {
   card: CardData
   flipped: boolean
   showRarityWhenFlipped: boolean
-  onClickFn: () => void
+  onClickFn?: (() => void)
+  dropdownOptions?: { key: string, label: string, enabled: () => boolean, action: () => void }[]
   count?: number
   disabled?: boolean
   extraContent?: React.ReactElement
-  inDeck?: number
+  inDeckText?: string
 }
 
 export function CardFull(props: CardFullProps) {
@@ -41,9 +43,17 @@ export function CardFull(props: CardFullProps) {
     <div className="group w-[256px] h-[355px] hover:scale-100 will-change-transform scale-90 duration-75 z-[1] hover:z-[2] [perspective:1000px] cursor-pointer">
       {props.disabled && <div className="absolute w-full h-full bg-black opacity-40 z-10" />}
       {props.count && props.count > 1 ? <div className="absolute z-[200] bg-lime-950 border-1 border-white text-white text-lg font-bold px-2 -my-1 -mx-1 rounded">{props.count}</div> : ""}
-      <div onClick={() => { if (!props.disabled) props.onClickFn() }} className={
-        `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${!props.flipped && "[transform:rotateY(180deg)]"}`
-      }>
+      <div
+        onClick={() => {
+          if (!props.disabled) {
+            if (props.onClickFn != null) {
+              props.onClickFn()
+            }
+          }
+        }}
+        className={
+          `absolute rounded-xl w-full h-full duration-500 transition-all [transform-style:preserve-3d] ${!props.flipped && "[transform:rotateY(180deg)]"}`
+        }>
         <div className="absolute inset-0 [backface-visibility:hidden]">
           <Image
             unoptimized
@@ -69,9 +79,9 @@ export function CardFull(props: CardFullProps) {
           />
         </div>
       </div>
-      {props.inDeck && props.inDeck > 0 ?
+      {props.inDeckText ?
         <div className="absolute p-0.5 px-2 m-1 bottom-0 bg-gray-800 text-white text-sm rounded-full border-1 border-white">
-          {props.inDeck} / {props.card.types.includes("Basic") ? "∞" : "4"}
+          {props.inDeckText}
         </div> : null}
     </div >
   )

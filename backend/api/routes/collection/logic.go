@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/joaquinleonarg/wdml-mtg/backend/db"
 	"github.com/joaquinleonarg/wdml-mtg/backend/domain"
 	apiErrors "github.com/joaquinleonarg/wdml-mtg/backend/errors"
+	boostergen "github.com/joaquinleonarg/wdml-mtg/backend/internal/booster_gen"
 	"github.com/joaquinleonarg/wdml-mtg/backend/pkg/scryfall"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -164,4 +166,59 @@ func SetTagsToOwnedCard(ownerID, ownedCardID string, tags []string) error {
 	db.UpdateOwnedCard(ownedCard)
 
 	return nil
+}
+
+func TradeUpCards(cards map[string]int, ownerID, tournamentID string) ([]domain.CardData, error) {
+	weightBySet := make(map[string]int, 0)
+	weightByRarity := make(map[string]int, 0)
+	totalCardCount := 0
+	for ownedCardId, count := range cards {
+		totalCardCount += count
+		ownedCard, err := db.GetOwnedCardById(ownedCardId)
+		if err != nil {
+			return nil, apiErrors.ErrBadRequest
+		}
+		if ownedCard.UserID.Hex() != ownerID {
+			return nil, apiErrors.ErrUnauthorized
+		}
+		weightBySet[ownedCard.CardData.SetCode] += count
+		weightByRarity[string(ownedCard.CardData.Rarity)] += count
+	}
+
+	if totalCardCount != 30 {
+		return nil, apiErrors.ErrBadRequest
+	}
+
+	options := make([]domain.Option, 0)
+	for set, setWeight := range weightBySet {
+		for rarity, rarityWeight := range weightByRarity {
+			options = append(options, domain.Option{Filter: fmt.Sprintf("set:%s rarity:%s", set, rarity), Weight: setWeight * rarityWeight})
+		}
+	}
+	boosterPack := domain.BoosterPack{
+		SetCode:   "TRADEUP",
+		CardCount: 5,
+		Filter:    "-type:basic",
+		Slots: []domain.BoosterPackSlot{
+			{
+				Options: options,
+				Filter:  "",
+				Count:   5,
+			},
+		},
+	}
+
+	log.Info().Interface("booster", boosterPack).Send()
+
+	cardsToAdd, err := boostergen.GenerateOneTimeBooster(boosterPack)
+	if err != nil {
+		return nil, apiErrors.ErrInternal
+	}
+
+	err = db.TradeUpCards(cards, cardsToAdd, tournamentID, ownerID)
+	if err != nil {
+		return nil, apiErrors.ErrInternal
+	}
+
+	return cardsToAdd, nil
 }

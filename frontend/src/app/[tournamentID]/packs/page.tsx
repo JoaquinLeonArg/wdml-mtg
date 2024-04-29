@@ -5,11 +5,15 @@ import Layout from "@/components/layout";
 import { ApiGetRequest, ApiPostRequest } from "@/requests/requests";
 import { CardData } from "@/types/card";
 import { BoosterPack, TournamentPlayer } from "@/types/tournamentPlayer";
-import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
+import { BoosterPack as GlobalBoosterPack } from "@/types/boosterPack";
+import { Autocomplete, AutocompleteItem, Button, ButtonGroup, Input, Listbox, ListboxItem, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
-import { BsFillTrashFill } from "react-icons/bs";
+import { BsFillCartFill, BsHypnotize } from "react-icons/bs";
 import { CardDisplaySpoiler, CardFullProps } from "@/components/collectioncard";
 import { User } from "@/types/user";
+import { DoBuyBoosterPackRequest, DoGetAvailableBoosterPacksRequest } from "@/requests/boosterpacks";
+import { DoGetTournamentStoreRequest } from "@/requests/tournament";
+import { Store } from "@/types/tournament";
 
 export default function PacksPage(props: any) {
   let [tournamentPlayer, setTournamentPlayer] = useState<TournamentPlayer>()
@@ -19,6 +23,7 @@ export default function PacksPage(props: any) {
   let [flipAllCards, setFlipAllCards] = useState<boolean>(false)
   let [flipAllCurrentIndex, setFlipAllCurrentIndex] = useState<number>(0)
   let [lastOpenedPack, setLastOpenedPack] = useState<BoosterPack>()
+  let [isPackStoreModalOpen, setIsPackStoreModalOpen] = useState<boolean>(false)
 
   let flipCard = (index: number, oldCards: CardFullProps[]) => {
     let cards = [...oldCards]
@@ -95,85 +100,96 @@ export default function PacksPage(props: any) {
   })
 
   return (
-    <Layout tournamentID={props.params.tournamentID}>
-      <div className="mx-16 my-16">
-        {/* Open packs admin */}
-        {/* TODO: Move this to an admin page */}
-        {
-          (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") &&
-          (
-            <>
-              <Header title="Add packs" />
-              <div className="flex flex-row gap-2 justify-left">
-                <AddPacks tournamentID={props.params.tournamentID} refreshFunc={refreshData} />
-              </div>
-            </>
-          )
-        }
-        {/* Select what pack to open */}
-        <Header title="Open packs" />
-        {boostersLoading || !tournamentPlayer ? <div className="flex justify-center"> <Spinner /></div> :
-          <div className="flex flex-row gap-2 justify-center">
-            {boostersVisible && (
-              <div className="bg-gray-800 w-[450px] border-small px-1 py-2 rounded-small border-default-200">
-                <Listbox>
-                  {
-                    tournamentPlayer.game_resources.booster_packs.map((booster_pack) =>
-                      <ListboxItem
-                        className="text-white"
-                        onPress={() => sendOpenPackRequest(booster_pack)}
-                        key={booster_pack.set_code}
-                        startContent={<div className="text-gray-500 w-16">{booster_pack.set_code}</div>}
-                        endContent={<div className="text-gray-500 text-right">{`(${booster_pack.available})`}</div>}
-                      >
-                        {booster_pack.name}
-                      </ListboxItem>
-                    )
-                  }
+    <>
+      {tournamentPlayer && <PackStoreModal
+        tournamentID={props.params.tournamentID}
+        tournamentPlayer={tournamentPlayer}
+        availableCoins={tournamentPlayer?.game_resources.coins}
+        isOpen={isPackStoreModalOpen}
+        closeFn={() => setIsPackStoreModalOpen(false)}
+        refreshBoostersFn={refreshData}
+      />
+      }
+      <Layout tournamentID={props.params.tournamentID}>
+        <div className="mx-16 my-16">
+          {/* Open packs admin */}
+          {/* TODO: Move this to an admin page */}
+          {
+            (tournamentPlayer?.access_level == "al_administrator" || tournamentPlayer?.access_level == "al_moderator") &&
+            (
+              <>
+                <Header title="Add packs" />
+                <div className="flex flex-row gap-2 justify-left">
+                  <AddPacks tournamentID={props.params.tournamentID} refreshFunc={refreshData} />
+                </div>
+              </>
+            )
+          }
+          {/* Select what pack to open */}
+          <Header title="Available packs" endContent={<Button size="md" color="success" onClick={() => setIsPackStoreModalOpen(true)}><BsFillCartFill />Buy packs</Button>} />
+          {boostersLoading || !tournamentPlayer ? <div className="flex justify-center"> <Spinner /></div> :
+            <div className="flex flex-row gap-2 justify-center">
+              {boostersVisible && (
+                <div className="bg-gray-800 w-[450px] border-small px-1 py-2 rounded-small border-default-200">
+                  <Listbox>
+                    {
+                      tournamentPlayer.game_resources.booster_packs.map((booster_pack) =>
+                        <ListboxItem
+                          className="text-white"
+                          onPress={() => sendOpenPackRequest(booster_pack)}
+                          key={booster_pack.set_code}
+                          startContent={<div className="text-gray-500 w-16">{booster_pack.set_code}</div>}
+                          endContent={<div className="text-gray-500 text-right">{`(${booster_pack.available})`}</div>}
+                        >
+                          {booster_pack.name}
+                        </ListboxItem>
+                      )
+                    }
 
-                </Listbox>
-              </div>
-            )}
-            {/* Show opened booster contents */}
-            {currentCards.length && (
-              <div className="flex flex-col gap-8 justify-center">
-                <ButtonGroup>
-                  <Button color="success" onClick={() => setFlipAllCards(true)}>Flip all</Button>
-                  <Button color="danger" onClick={() => { setCurrentCards([]); refreshData(); setBoostersVisible(true) }}>Close</Button>
-                </ButtonGroup>
-                <CardDisplaySpoiler cards={currentCards} />
-                <ButtonGroup>
-                  <Button
-                    color="success"
-                    isDisabled={lastOpenedPack && lastOpenedPack.available <= 0}
-                    onClick={() => {
-                      setBoostersLoading(true)
-                      setCurrentCards([])
-                      refreshData()
-                      if (lastOpenedPack && lastOpenedPack.available > 0) {
-                        sendOpenPackRequest(lastOpenedPack)
-                      } else {
+                  </Listbox>
+                </div>
+              )}
+              {/* Show opened booster contents */}
+              {currentCards.length && (
+                <div className="flex flex-col gap-8 justify-center">
+                  <ButtonGroup>
+                    <Button color="success" onClick={() => setFlipAllCards(true)}>Flip all</Button>
+                    <Button color="danger" onClick={() => { setCurrentCards([]); refreshData(); setBoostersVisible(true) }}>Close</Button>
+                  </ButtonGroup>
+                  <CardDisplaySpoiler cards={currentCards} />
+                  <ButtonGroup>
+                    <Button
+                      color="success"
+                      isDisabled={lastOpenedPack && lastOpenedPack.available <= 0}
+                      onClick={() => {
+                        setBoostersLoading(true)
+                        setCurrentCards([])
+                        refreshData()
+                        if (lastOpenedPack && lastOpenedPack.available > 0) {
+                          sendOpenPackRequest(lastOpenedPack)
+                        } else {
+                          setBoostersVisible(true)
+                        }
+                      }}>
+                      Open another ({lastOpenedPack?.available} {lastOpenedPack?.set_code} remaining)
+                    </Button>
+                    <Button
+                      color="danger"
+                      onClick={() => {
+                        setCurrentCards([])
+                        refreshData()
                         setBoostersVisible(true)
-                      }
-                    }}>
-                    Open another ({lastOpenedPack?.available} {lastOpenedPack?.set_code} remaining)
-                  </Button>
-                  <Button
-                    color="danger"
-                    onClick={() => {
-                      setCurrentCards([])
-                      refreshData()
-                      setBoostersVisible(true)
-                    }}>
-                    Close
-                  </Button>
-                </ButtonGroup>
-              </div>
-            )}
-          </div>
-        }
-      </div >
-    </Layout >
+                      }}>
+                      Close
+                    </Button>
+                  </ButtonGroup>
+                </div>
+              )}
+            </div>
+          }
+        </div >
+      </Layout >
+    </>
   )
 }
 
@@ -326,3 +342,122 @@ function AddPacks(props: AddPacksProps) {
   )
 }
 
+type PackStoreModalProps = {
+  tournamentID: string
+  tournamentPlayer: TournamentPlayer
+  availableCoins?: number
+  isOpen: boolean
+  closeFn: () => void
+  refreshBoostersFn: () => void
+}
+
+function PackStoreModal(props: PackStoreModalProps) {
+  let [error, setError] = useState<string>("")
+  let [isLoading, setIsLoading] = useState<boolean>(false)
+  let [store, setStore] = useState<Store>()
+  let [availableBoosterPacks, setAvailableBoosterPacks] = useState<GlobalBoosterPack[]>([])
+
+  let sendBuyBoosterRequest = (boosterPackId: string) => {
+    setError("")
+    setIsLoading(true)
+    DoBuyBoosterPackRequest(
+      boosterPackId,
+      props.tournamentID,
+      () => {
+        setIsLoading(false)
+        props.refreshBoostersFn()
+      },
+      (err) => {
+        setIsLoading(false)
+        setError(err)
+        props.refreshBoostersFn()
+      },
+    )
+  }
+
+  let refreshData = () => {
+    setIsLoading(true)
+    setError("")
+    DoGetTournamentStoreRequest(
+      props.tournamentID,
+      (s) => {
+        setStore(s)
+        setIsLoading(false)
+      },
+      (err) => {
+        setError(err)
+        setIsLoading(false)
+      }
+    )
+    DoGetAvailableBoosterPacksRequest(
+      props.tournamentID,
+      (bp) => {
+        setAvailableBoosterPacks(bp)
+        setIsLoading(false)
+      },
+      (err) => {
+        setError(err)
+        setIsLoading(false)
+      }
+    )
+  }
+
+  useEffect(() => {
+    refreshData()
+  }, [props.isOpen])
+
+  return (
+    <Modal
+      hideCloseButton
+      onClose={props.closeFn}
+      isOpen={props.isOpen}
+      placement="top-center"
+      size="2xl"
+    >
+      <ModalContent>
+        <ModalHeader className="flex flex-col text-white gap-1">Booster pack store</ModalHeader>
+        <ModalBody>
+          {
+            !store || isLoading ? <div className="flex flex-col"><Spinner /></div> : error ? error :
+              <div className="bg-gray-800 border-small px-1 py-2 rounded-small border-default-200 w-full">
+                <Listbox
+                  className="w-full"
+                  disabledKeys={
+                    store.booster_packs.
+                      filter(bp => bp.coin_price > props.tournamentPlayer.game_resources.coins).
+                      map(bp => bp.booster_pack_id)
+                  }
+                >
+                  {
+                    store.booster_packs.map((booster_pack) =>
+                      <ListboxItem
+                        className="text-white"
+                        onPress={() => sendBuyBoosterRequest(booster_pack.booster_pack_id)}
+                        key={booster_pack.booster_pack_id}
+
+                        startContent={<div className="text-gray-500 w-16">{availableBoosterPacks.filter(bp => bp.id == booster_pack.booster_pack_id)[0]?.set_code || ""}</div>}
+                        endContent={<div className="text-orange-500 text-right flex flex-row items-center gap-2">{booster_pack.coin_price} <BsHypnotize className="text-orange-400" /></div>}
+                      >
+                        {availableBoosterPacks.filter(bp => bp.id == booster_pack.booster_pack_id)[0]?.name || ""}
+                      </ListboxItem>
+                    )
+                  }
+
+                </Listbox>
+              </div>
+          }
+          <p className="text-sm font-light text-red-400 h-2">{error}</p>
+        </ModalBody>
+        <ModalFooter className="flex flex-row gap-4 justify-between items-center">
+          <div className="flex flex-row items-center gap-2 text-white">
+            <BsHypnotize className="text-orange-400" />
+            {props.availableCoins} coins available
+          </div>
+          <Button isDisabled={isLoading} color="danger" variant="flat" onPress={props.closeFn}>
+            Close
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
