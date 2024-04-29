@@ -43,7 +43,7 @@ export default function NavigationTopbar(props: NavigationTopbarProps) {
                           {props.tournaments.find((tournament) => tournament.id == props.tournamentID)?.name || ""}
                         </Button>
                       </DropdownTrigger>
-                      <DropdownMenu aria-label="Tournament Selection" items={props.tournaments.concat({ id: "!", name: "Join or create", invite_code: "", description: "" })}>
+                      <DropdownMenu aria-label="Tournament Selection" items={props.tournaments.concat({ id: "!", name: "Join or create", invite_code: "", description: "", store: { booster_packs: [] } })}>
                         {(item) => {
                           if (item.id == "!") {
                             return (

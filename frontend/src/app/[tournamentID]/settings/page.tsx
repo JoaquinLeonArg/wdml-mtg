@@ -61,7 +61,6 @@ export default function ConfigPage(props: any) {
     refreshData()
   }, [props.params.tournamentID])
 
-  console.log(store)
 
   return (
     <Layout tournamentID={props.params.tournamentID}>
@@ -72,7 +71,7 @@ export default function ConfigPage(props: any) {
               <Header title="Settings" />
               <MiniHeader title="Store" />
               <div className="flex flex-col gap-4 mb-4">
-                {store && availableBoosterPacks &&
+                {store != undefined && availableBoosterPacks &&
                   store.booster_packs.map((booster_pack: StoreBoosterPack, index: number) => {
                     let boosterPackData = availableBoosterPacks.filter(bp => bp.id == booster_pack.booster_pack_id)[0]
                     return (
@@ -131,9 +130,13 @@ export default function ConfigPage(props: any) {
                     )
                   })}
                 {
-                  store &&
+                  store != undefined &&
                   <Button
-                    onPress={() => setStore({ ...store, booster_packs: [...store.booster_packs, { booster_pack_id: "", coin_price: 0 }] })}
+                    onPress={() => {
+                      if (!store) return
+                      setStore({ ...store, booster_packs: [...store.booster_packs, { booster_pack_id: "", coin_price: 0 }] })
+                    }
+                    }
                     size="md" color="success" aria-label="Update"
                   >
                     Add store item
