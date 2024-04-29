@@ -18,7 +18,6 @@ var (
 	ErrInvalidID        = fmt.Errorf("invalid object id provided: %w", mongo.ErrNilValue)
 	ErrNotFound         = fmt.Errorf("not found: %w", mongo.ErrNoDocuments)
 	ErrAlreadyExists    = fmt.Errorf("already exists: %w", mongo.ErrEmptySlice)
-	ErrBadRequest       = fmt.Errorf("bad request: %w", mongo.ErrNilDocument)
 
 	ErrUninitialized = fmt.Errorf("uninitialized field: %w", mongo.ErrNilValue)
 )

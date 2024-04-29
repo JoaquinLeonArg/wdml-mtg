@@ -271,7 +271,7 @@ func BuyBoosterPack(tournamentID, userID, boosterPackID string) error {
 			return nil, ErrNotFound
 		}
 		if tournamentPlayer.GameResources.Coins < foundStoreBoosterPack.CoinPrice {
-			return nil, ErrBadRequest
+			return nil, ErrInternal
 		}
 		tournamentPlayer.GameResources.Coins -= foundStoreBoosterPack.CoinPrice
 
