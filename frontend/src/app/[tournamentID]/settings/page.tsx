@@ -100,6 +100,7 @@ export default function ConfigPage(props: any) {
                         />
                         <Autocomplete
                           onInputChange={(value) => {
+                            if (!store) return
                             let newStoreBoosterPacks = [...store.booster_packs]
                             newStoreBoosterPacks[index].booster_pack_id = availableBoosterPacks.find(v => `${v.set_code} - ${v.name}` == value)?.id || ""
                             setStore({ ...store, booster_packs: newStoreBoosterPacks })
@@ -116,6 +117,7 @@ export default function ConfigPage(props: any) {
                         </Autocomplete>
                         <Button
                           onClick={() => {
+                            if (!store) return
                             let newStoreBoosterPacks = [...store.booster_packs]
                             newStoreBoosterPacks.splice(index, 1)
                             setStore({ ...store, booster_packs: newStoreBoosterPacks })
