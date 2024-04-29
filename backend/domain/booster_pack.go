@@ -2,7 +2,7 @@ package domain
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-// Users collection
+// BoosterPacks collection
 type BoosterPack struct {
 	ID          primitive.ObjectID `bson:"_id" json:"id"`
 	SetCode     string             `bson:"set_code" json:"set_code"`

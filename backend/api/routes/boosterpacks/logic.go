@@ -127,3 +127,11 @@ func UpdateBoosterPack(boosterPack domain.BoosterPack) error {
 	}
 	return err
 }
+
+func BuyBoosterPack(tournamentID, userID, boosterPackID string) error {
+	err := db.BuyBoosterPack(tournamentID, userID, boosterPackID)
+	if err != nil {
+		return apiErrors.ErrInternal
+	}
+	return nil
+}

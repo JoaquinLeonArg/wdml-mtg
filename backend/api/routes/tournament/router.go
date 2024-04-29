@@ -17,6 +17,8 @@ func RegisterEndpoints(r *mux.Router) {
 	r.HandleFunc("/user", GetTournamentsForUserHandler).Methods(http.MethodGet)
 	r.HandleFunc("", CreateTournamentHandler).Methods(http.MethodPost)
 	r.HandleFunc("/tournament_player", GetTournamentPlayersHandler).Methods(http.MethodGet)
+	r.HandleFunc("/store/update", UpdateStoreHandler).Methods(http.MethodPost)
+	r.HandleFunc("/store", GetStoreHandler).Methods(http.MethodGet)
 }
 
 //
@@ -181,4 +183,79 @@ func CreateTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	// Send response back
 	w.WriteHeader(http.StatusOK)
 	w.Write(response.NewDataResponse(CreateTournamentResponse{TournamentID: tournamentID}))
+}
+
+type UpdateStoreRequest struct {
+	Store domain.Store `json:"store"`
+}
+
+type UpdateStoreResponse struct{}
+
+// ENDPOINT: Update store contents
+func UpdateStoreHandler(w http.ResponseWriter, r *http.Request) {
+	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value("user_id").(string)
+	if userID == "" || !ok {
+		log.Debug().
+			Msg("failed to read user id from context")
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Decode body data
+	var updateStoreRequest UpdateStoreRequest
+	err := json.NewDecoder(r.Body).Decode(&updateStoreRequest)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Msg("failed to read request body")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Update the store contents
+	err = UpdateStore(tournamentID, userID, updateStoreRequest.Store)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(UpdateStoreResponse{}))
+}
+
+type GetStoreRequest struct {
+	Store domain.Store `json:"store"`
+}
+
+// ENDPOINT: Get store contents
+func GetStoreHandler(w http.ResponseWriter, r *http.Request) {
+	// Get tournament ID from query
+	tournamentID := r.URL.Query().Get("tournament_id")
+	if tournamentID == "" {
+		http.Error(w, "", http.StatusBadRequest)
+	}
+
+	// Get the store contents
+	store, err := GetStore(tournamentID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response.NewErrorResponse(err))
+		return
+	}
+
+	// Send response back
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.NewDataResponse(GetStoreRequest{Store: *store}))
 }

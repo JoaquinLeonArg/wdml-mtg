@@ -7,3 +7,11 @@ export type OwnedBoosterPack = {
     description: string
   }
 }
+
+export type BoosterPack = {
+  id: string
+  set_code: string
+  name: string
+  description: string
+  card_count: number
+}

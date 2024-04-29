@@ -85,7 +85,7 @@ export default function Login() {
 
     return (
         <div className='flex flex-row'>
-            <div className='bg-background-300 relative w-full bg-[url(/intrude-on-the-mind.jpg)] bg-cover'>
+            <div className='bg-background-300 relative w-full bg-[url(/obeka-splitter-of-seconds.png)] bg-cover'>
             </div>
             <div className='flex h-screen justify-center'>
                 <div className='my-auto px-8 flex flex-col items-center'>
