@@ -210,7 +210,7 @@ func TradeUpCards(cards map[string]int, ownerID, tournamentID string) ([]domain.
 
 	log.Info().Interface("booster", boosterPack).Send()
 
-	cardsToAdd, err := boostergen.GenerateOneTimeBooster(boosterPack)
+	cardsToAdd, err := boostergen.GenerateBooster("TRADEUP", boostergen.GetBoosterDataPassthrough(boosterPack))
 	if err != nil {
 		return nil, apiErrors.ErrInternal
 	}
