@@ -109,60 +109,8 @@ func GetBoosterDataFromDb(setCode string) (*domain.BoosterPack, error) {
 	return boosterPack, nil
 }
 
-func GenerateOneTimeBooster(boosterData domain.BoosterPack) ([]domain.CardData, error) {
-	boosterPack := make([]domain.CardData, 0, boosterData.CardCount)
-
-	for _, slot := range boosterData.Slots {
-		optionsByWeight := make(map[int]domain.Option)
-		currentWeight := 0
-		for _, option := range slot.Options {
-			currentWeight += option.Weight
-			optionsByWeight[currentWeight] = option
-		}
-		for i := 0; i < slot.Count; i++ {
-			chosenOption := domain.Option{}
-			if currentWeight > 0 {
-				chosenWeight := rand.Int() % currentWeight
-				for w, option := range optionsByWeight {
-					if chosenWeight < w {
-						chosenOption = option
-						break
-					}
-				}
-			}
-
-			filter := fmt.Sprintf("%s %s %s", boosterData.Filter, slot.Filter, chosenOption.Filter)
-
-			cards, err := scryfall.GetAllCardsByFilter(filter)
-			if err != nil || len(cards) == 0 {
-				log.Debug().Str("set", "one-time").Str("filter", filter).Err(err).Msg("failed to generate booster pack")
-				return nil, fmt.Errorf("no cards error")
-			}
-			card := cards[rand.Int()%len(cards)]
-
-			colors := []string{}
-			for _, col := range card.Colors {
-				colors = append(colors, string(col))
-			}
-
-			cardFront, cardBack := scryfall.GetImageFromFaces(card)
-			boosterPack = append(boosterPack,
-				domain.CardData{
-					SetCode:         strings.ToUpper(card.Set),
-					CollectorNumber: card.CollectorNumber,
-					Name:            card.Name,
-					Oracle:          card.OracleText,
-					Rarity:          domain.CardRarity(card.Rarity),
-					Types:           scryfall.ParseScryfallTypeline(card.TypeLine),
-					ManaValue:       int(math.Floor(card.CMC)),
-					ManaCost:        card.ManaCost,
-					Colors:          colors,
-					ImageURL:        cardFront,
-					BackImageURL:    cardBack,
-				},
-			)
-		}
+func GetBoosterDataPassthrough(boosterData domain.BoosterPack) BoosterDataGetter {
+	return func(setCode string) (*domain.BoosterPack, error) {
+		return &boosterData, nil
 	}
-
-	return boosterPack, nil
 }
