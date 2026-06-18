@@ -9,22 +9,22 @@ import (
 )
 
 type ServerConfig struct {
-	ApiPort       int
-	SecretKey     string
-	MongoURL      string
-	MongoUser     string
-	MongoPassword string
-	CorsOrigin    string
+	ApiPort    int
+	SecretKey  string
+	MongoURI   string
+	CorsOrigin string
 }
 
 var Config = ServerConfig{}
 
 func Load() error {
+	envFile := ".env"
 	if os.Getenv("E2E") == "true" {
-		godotenv.Load(".env.e2e")
-	} else {
-		godotenv.Load(".env")
+		envFile = ".env.e2e"
+	} else if os.Getenv("DOCKER") == "true" {
+		envFile = ".env.docker"
 	}
+	godotenv.Load(envFile)
 
 	apiPort, err := strconv.Atoi(os.Getenv("API_PORT"))
 	if err != nil || apiPort == 0 {
@@ -36,19 +36,9 @@ func Load() error {
 		return fmt.Errorf("invalid SECRET_KEY env variable")
 	}
 
-	mongoURL := os.Getenv("MONGO_URL")
-	if mongoURL == "" {
-		return fmt.Errorf("missing MONGO_URL env variable")
-	}
-
-	mongoUser := os.Getenv("MONGO_USER")
-	if mongoUser == "" {
-		return fmt.Errorf("missing MONGO_USER env variable")
-	}
-
-	mongoPassword := os.Getenv("MONGO_PASSWORD")
-	if mongoPassword == "" {
-		return fmt.Errorf("missing MONGO_PASSWORD env variable")
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		return fmt.Errorf("missing MONGO_URI env variable")
 	}
 
 	corsOrigin := os.Getenv("CORS_ORIGIN")
@@ -57,12 +47,10 @@ func Load() error {
 	}
 
 	Config = ServerConfig{
-		ApiPort:       apiPort,
-		SecretKey:     secretKey,
-		MongoURL:      mongoURL,
-		MongoUser:     mongoUser,
-		MongoPassword: mongoPassword,
-		CorsOrigin:    corsOrigin,
+		ApiPort:    apiPort,
+		SecretKey:  secretKey,
+		MongoURI:   mongoURI,
+		CorsOrigin: corsOrigin,
 	}
 	return nil
 }

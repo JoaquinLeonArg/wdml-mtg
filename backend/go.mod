@@ -6,6 +6,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/zerolog v1.32.0
 	go.mongodb.org/mongo-driver v1.14.0
@@ -15,13 +16,11 @@ require (
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 )
 
 require (
-	github.com/BlueMonday/go-scryfall v0.4.0
-	github.com/MagicTheGathering/mtg-sdk-go v0.0.0-20190109105601-3aaea97721aa
+	github.com/BlueMonday/go-scryfall v0.9.1
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/handlers v1.5.2
 	github.com/klauspost/compress v1.13.6 // indirect

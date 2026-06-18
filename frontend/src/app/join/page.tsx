@@ -81,7 +81,6 @@ export default function Home() {
           <h1 className="text-xl font-bold leading-tight tracking-tight text-white md:text-2xl">Create</h1>
           <h3 className="text-sm font-bold leading-tight tracking-tight text-white opacity-70 md:text-base mb-8">Create a new tournament and invite people to join.</h3>
           <Input
-            isDisabled
             id="name"
             placeholder="My cool tournament!"
             label="Tournament name"
@@ -90,7 +89,7 @@ export default function Home() {
           />
           <p className="text-sm font-light text-red-400 h-2">{createError}</p>
           <div className="h-4"></div>
-          <Button isDisabled color={createName.length > 0 ? "success" : "default"} onClick={sendCreateRequest}>Create</Button>
+          <Button color={createName.length > 0 ? "success" : "default"} onClick={sendCreateRequest}>Create</Button>
         </div>
       </div>
       <div className="mt-2">

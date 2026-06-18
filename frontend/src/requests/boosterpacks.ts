@@ -1,5 +1,5 @@
 import { BoosterPack } from "@/types/boosterPack";
-import { ApiGetRequest, ApiPostRequest } from "./requests";
+import { ApiGetRequest, ApiPostRequest, ApiPutRequest } from "./requests";
 
 export function DoBuyBoosterPackRequest(
   boosterPackId: string,
@@ -31,6 +31,32 @@ export function DoGetAvailableBoosterPacksRequest(
       tournament_id: tournamentId
     },
     responseHandler: (res: { booster_packs: BoosterPack[] }) => onResponse(res.booster_packs),
+    errorHandler: (err: string) => onError(err)
+  })
+}
+
+export function DoCreateBoosterPackRequest(
+  body: object,
+  onResponse: () => void,
+  onError: (_: string) => void
+) {
+  ApiPostRequest({
+    route: "/boosterpacks/",
+    body: body,
+    responseHandler: () => onResponse(),
+    errorHandler: (err: string) => onError(err)
+  })
+}
+
+export function DoUpdateBoosterPackRequest(
+  body: object,
+  onResponse: () => void,
+  onError: (_: string) => void
+) {
+  ApiPutRequest({
+    route: "/boosterpacks/",
+    body: body,
+    responseHandler: () => onResponse(),
     errorHandler: (err: string) => onError(err)
   })
 }

@@ -254,7 +254,7 @@ function AddPacks(props: AddPacksProps) {
       route: "/boosterpacks/tournament",
       query: { tournament_id: props.tournamentID },
       responseHandler: (res: { booster_packs: BoosterPack[] }) => {
-        setAvailablePacks(res.booster_packs)
+        setAvailablePacks(res.booster_packs || [])
       },
       errorHandler: (err) => {
         setError(err)
@@ -392,7 +392,7 @@ function PackStoreModal(props: PackStoreModalProps) {
     DoGetAvailableBoosterPacksRequest(
       props.tournamentID,
       (bp) => {
-        setAvailableBoosterPacks(bp)
+        setAvailableBoosterPacks(bp || [])
         setIsLoading(false)
       },
       (err) => {

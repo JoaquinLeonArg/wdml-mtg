@@ -1,10 +1,19 @@
-FROM golang:1.19
+FROM docker.io/library/golang:1.22-alpine AS builder
 WORKDIR /app
-EXPOSE 8080
+
+RUN apk add --no-cache git ca-certificates
 
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
-COPY . .
-RUN go build -v -o /usr/local/bin/app ./
 
+COPY . .
+RUN CGO_ENABLED=0 go build -v -o /usr/local/bin/app ./
+
+FROM docker.io/library/alpine:3.20
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /usr/local/bin/app /usr/local/bin/app
+COPY --from=builder /app/.env.docker ./.env.docker
+
+EXPOSE 8080
 CMD ["app"]

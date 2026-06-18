@@ -41,9 +41,7 @@ func InitDBConnection() error {
 	defer cancel()
 	client, err := mongo.Connect(
 		ctx,
-		options.Client().
-			SetAuth(options.Credential{Username: config.Config.MongoUser, Password: config.Config.MongoPassword}).
-			ApplyURI(fmt.Sprintf("mongodb+srv://%s", config.Config.MongoURL)),
+		options.Client().ApplyURI(config.Config.MongoURI),
 	)
 	if err != nil {
 		return err

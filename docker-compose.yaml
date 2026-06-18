@@ -3,12 +3,10 @@ services:
   db:
     image: docker.io/library/mongo:7.0.5
     container_name: wdml-mtg-db
-    restart: "no"
-    ports:
-      - 27017:27017
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-example}
     entrypoint:
       - bash
       - -c
@@ -18,60 +16,60 @@ services:
           chown 999:999 /etc/mongo/mongo-keyfile
           chmod 400 /etc/mongo/mongo-keyfile
         fi
-        ( sleep 20 && mongosh --quiet -u root -p example --authenticationDatabase admin --eval '
+        ( sleep 20 && mongosh --quiet -u root -p ${MONGO_PASSWORD:-example} --authenticationDatabase admin --eval '
           try { rs.initiate({_id: "rs0", members: [{_id: 0, host: "db:27017"}]}) }
           catch(e) { print("Already initialized or waiting: " + e) }
         ' ) &
         exec docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --keyFile /etc/mongo/mongo-keyfile
     volumes:
-      - db-data-dev:/data/db
-      - mongo-keyfile-dev:/etc/mongo
+      - db-data:/data/db
+      - mongo-keyfile:/etc/mongo
 
   backend:
-    image: wdml_mtg_backend:dev
-    container_name: wdml-mtg-backend
     build:
       context: backend
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./Dockerfile.prod
+    container_name: wdml-mtg-backend
+    restart: unless-stopped
     ports:
       - 8080:8080
     depends_on:
       - db
     environment:
       DOCKER: "true"
-      SECRET_KEY: "localsecret"
-      MONGO_URI: mongodb://root:example@db:27017/wdml_main?authSource=admin&replicaSet=rs0
-      CORS_ORIGIN: http://localhost:3000
+      SECRET_KEY: ${SECRET_KEY:-changemeonprod!}
+      MONGO_URI: mongodb://root:${MONGO_PASSWORD:-example}@db:27017/wdml_main?authSource=admin&replicaSet=rs0
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
 
   frontend:
     build:
       context: frontend
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_ROUTE: ${NEXT_PUBLIC_API_ROUTE:-localhost:8080}
+        NEXT_PUBLIC_DEV_MODE: "false"
     container_name: wdml-mtg-frontend
+    restart: unless-stopped
     ports:
       - 3000:3000
     depends_on:
       - backend
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-    environment:
-      NEXT_PUBLIC_API_ROUTE: localhost:8080
-      NEXT_PUBLIC_DEV_MODE: "true"
 
   mongo-express:
     image: docker.io/library/mongo-express
     container_name: wdml-mtg-mongo-ui
-    restart: "no"
+    restart: unless-stopped
     ports:
       - 8081:8081
     depends_on:
       - db
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@db:27017/
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-example}
+      ME_CONFIG_MONGODB_URL: mongodb://root:${MONGO_PASSWORD:-example}@db:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_PASSWORD:-admin}
 
 volumes:
-  db-data-dev:
-  mongo-keyfile-dev:
+  db-data:
+  mongo-keyfile:
