@@ -22,6 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <title>Tolarian Archives</title>
+        <link rel="icon" href="/logo.png" />
+      </head>
       <body className={`dark ${inter.className}`}>
         <NextUIProvider>
           {children}
