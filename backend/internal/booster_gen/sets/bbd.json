@@ -1,0 +1,60 @@
+{
+    "card_count": 15,
+    "description": "Battlebond Booster Pack",
+    "name": "Baattlebond",
+    "set_code": "bbd",
+    "slots": [
+        {
+            "filter": "set:bbd rarity:c -type:basic",
+            "count": 9
+        },
+        {
+            "options": [
+                {
+                    "filter": "rarity:c -type:basic",
+                    "weight": 66
+                },
+                {
+                    "filter": "rarity:c",
+                    "weight": 20
+                },
+                {
+                    "filter": "rarity:u",
+                    "weight": 10
+                },
+                {
+                    "filter": "rarity:r",
+                    "weight": 3
+                },
+                {
+                    "filter": "rarity:m",
+                    "weight": 1
+                }
+            ],
+            "filter": "set:bbd",
+            "count": 1
+        },
+        {
+            "filter": "set:bbd rarity:u",
+            "count": 3
+        },
+        {
+            "options": [
+                {
+                    "filter": "rarity:r",
+                    "weight": 7
+                },
+                {
+                    "filter": "rarity:m",
+                    "weight": 1
+                }
+            ],
+            "filter": "set:bbd",
+            "count": 1
+        },
+        {
+            "filter": "set:bbd type:basic",
+            "count": 1
+        }
+    ]
+}

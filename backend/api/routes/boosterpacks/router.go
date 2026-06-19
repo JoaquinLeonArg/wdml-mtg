@@ -164,8 +164,8 @@ func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 	log := log.With().Ctx(r.Context()).Str("path", r.URL.Path).Logger()
 
 	// Decode body data
-	var boosterPack domain.BoosterPack
-	err := json.NewDecoder(r.Body).Decode(&boosterPack)
+	var boosterPacks []domain.BoosterPack
+	err := json.NewDecoder(r.Body).Decode(&boosterPacks)
 	if err != nil {
 		log.Debug().
 			Err(err).
@@ -174,13 +174,14 @@ func CreateBoosterPackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(response.NewErrorResponse(err))
 		return
 	}
-
 	// Add the booster packs
-	err = CreateNewBoosterPack(boosterPack)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(response.NewErrorResponse(err))
-		return
+	for _, pack := range boosterPacks {
+		err = CreateNewBoosterPack(pack)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(response.NewErrorResponse(err))
+			return
+		}
 	}
 
 	// Send response back
