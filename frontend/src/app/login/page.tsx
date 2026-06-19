@@ -11,6 +11,14 @@ enum PageState {
     PS_REGISTER
 }
 
+function getDailyBg(): number {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), 0, 0)
+    const diff = now.getTime() - start.getTime()
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24))
+    return (dayOfYear % 5) + 1
+}
+
 
 export default function Login() {
     let router = useRouter()
@@ -85,7 +93,7 @@ export default function Login() {
 
     return (
         <div className='flex flex-row'>
-            <div className='bg-background-300 relative w-full bg-[url(/obeka-splitter-of-seconds.png)] bg-cover'>
+            <div className="bg-background-300 relative w-full bg-cover" style={{ backgroundImage: `url(/bg${getDailyBg()}.jpg)` }}>
             </div>
             <div className='flex h-screen justify-center'>
                 <div className='my-auto px-8 flex flex-col items-center'>
